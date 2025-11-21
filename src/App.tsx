@@ -1,0 +1,81 @@
+﻿import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import NavigationSidebar from './components/NavigationSidebar';
+import PlaceholderPage from './components/PlaceholderPage';
+import AskPlexiInterface from './components/AskPlexiInterface';
+import ExecutiveFeed from './features/executive/ExecutiveFeed';
+import FieldView from './features/field/FieldView';
+
+/**
+ * Main App Component - Phase 1 Navigation
+ *
+ * Serves as the router and container for the PlexifyBID application
+ * with professional sidebar navigation system
+ */
+const App: React.FC = () => {
+  return (
+    <Router>
+      <div className="app-container">
+        {/* Sidebar Navigation */}
+        <NavigationSidebar />
+        
+        {/* Main Content Area */}
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/home" element={<ExecutiveFeed />} />
+            <Route path="/executive" element={<ExecutiveFeed />} />
+            <Route path="/field" element={<FieldView />} />
+            
+            {/* Ask Plexi AI Interface */}
+            <Route path="/ask-plexi" element={<AskPlexiInterface />} />
+            <Route path="/upload" element={
+              <PlaceholderPage
+                title="Upload"
+                description="Upload and process district documents with AI."
+              />
+            } />
+            <Route path="/library" element={
+              <PlaceholderPage
+                title="Library"
+                description="Access your district document library."
+              />
+            } />
+            <Route path="/resources" element={
+              <PlaceholderPage
+                title="Resources"
+                description="BID resources and references."
+              />
+            } />
+            <Route path="/settings" element={
+              <PlaceholderPage
+                title="Settings"
+                description="Configure your PlexifyBID preferences."
+              />
+            } />
+            <Route path="/analytics" element={
+              <PlaceholderPage
+                title="Analytics"
+                description="Advanced initiative analytics and insights."
+              />
+            } />
+            <Route path="/alerts" element={
+              <PlaceholderPage
+                title="Alerts"
+                description="Real-time initiative alerts and notifications."
+              />
+            } />
+            <Route path="/scorecards" element={
+              <PlaceholderPage
+                title="Scorecards"
+                description="Initiative performance scorecards and KPIs."
+              />
+            } />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+  );
+};
+
+export default App;
