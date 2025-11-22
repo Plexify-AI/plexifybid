@@ -7,6 +7,7 @@ import ExecutiveFeed from './features/executive/ExecutiveFeed';
 import FieldView from './features/field/FieldView';
 import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
+import BoardReporting from './pages/BoardReporting';
 
 /**
  * Main App Component - Phase 1 Navigation
@@ -28,6 +29,7 @@ const App: React.FC = () => {
             <Route path="/home" element={<ExecutiveFeed />} />
             <Route path="/operations" element={<OperationsDashboard />} />
             <Route path="/assessments" element={<AssessmentManagement />} />
+            <Route path="/board-reports" element={<BoardReporting />} />
             <Route path="/executive" element={<ExecutiveFeed />} />
             <Route path="/field" element={<FieldView />} />
             
