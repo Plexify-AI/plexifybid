@@ -25,6 +25,7 @@ const NavigationSidebar: React.FC = () => {
       title: 'AI REPORTS',
       items: [
         { path: '/home', label: 'Home', icon: Home },
+        { path: '/operations', label: 'Operations', icon: Activity },
         { 
           path: '/ask-plexi', 
           label: 'Ask Plexi', 
