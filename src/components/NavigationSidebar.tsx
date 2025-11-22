@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { 
   Home, Upload, Folder, Grid, Settings,
-  BarChart, Bell, Activity, ChevronLeft, Menu
+  BarChart, Bell, Activity, ChevronLeft, Menu, Table
 } from 'lucide-react';
 
 const NavigationSidebar: React.FC = () => {
@@ -26,6 +26,7 @@ const NavigationSidebar: React.FC = () => {
       items: [
         { path: '/home', label: 'Home', icon: Home },
         { path: '/operations', label: 'Operations', icon: Activity },
+        { path: '/assessments', label: 'Assessments', icon: Table },
         { 
           path: '/ask-plexi', 
           label: 'Ask Plexi', 

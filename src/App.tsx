@@ -6,6 +6,7 @@ import AskPlexiInterface from './components/AskPlexiInterface';
 import ExecutiveFeed from './features/executive/ExecutiveFeed';
 import FieldView from './features/field/FieldView';
 import OperationsDashboard from './pages/OperationsDashboard';
+import AssessmentManagement from './pages/AssessmentManagement';
 
 /**
  * Main App Component - Phase 1 Navigation
@@ -26,6 +27,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<ExecutiveFeed />} />
             <Route path="/operations" element={<OperationsDashboard />} />
+            <Route path="/assessments" element={<AssessmentManagement />} />
             <Route path="/executive" element={<ExecutiveFeed />} />
             <Route path="/field" element={<FieldView />} />
             
