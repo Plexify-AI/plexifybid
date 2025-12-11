@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AudioBriefingCard from './workspace/AudioBriefingCard';
 import VideoSummaryCard from './workspace/VideoSummaryCard';
 import SourceMaterialsList, { MaterialItem } from './workspace/SourceMaterialsList';
+import BlockEditor from './workspace/editor/BlockEditor';
 
 interface ReportEditorWorkspaceProps {
   projectId: string;
@@ -75,30 +76,7 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
           {/* CENTER PANEL - Block Editor Canvas */}
           <main className="bg-white overflow-y-auto p-8">
             <h1 className="text-[32px] font-semibold text-gray-900 mb-6">Project {projectId}: Executive Project Report</h1>
-            <div className="sticky top-0 bg-white pt-1 pb-3 -mt-1 z-10">
-              <div className="flex items-center gap-2">
-                <button className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50">B</button>
-                <button className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 italic">I</button>
-                <button className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 line-through">S</button>
-                <button className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50">H1</button>
-                <button className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50">H2</button>
-                <button className="ml-auto px-3 py-1.5 rounded bg-[#3b82f6] text-white">? Regenerate with AI</button>
-              </div>
-            </div>
-            <section className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Executive Summary</h2>
-                <p className="text-gray-800">Block editor coming in Phase 3. Use this space to draft the executive summary�</p>
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Critical Path Progress</h2>
-                <ul className="list-disc pl-6 text-gray-800">
-                  <li>North Wing structural steel at 65% completion</li>
-                  <li>MEP rough-in scheduled to begin next week</li>
-                  <li>All quality inspections passed</li>
-                </ul>
-              </div>
-            </section>
+            <BlockEditor />
             <div className="mt-6 text-xs text-gray-500 text-right">Auto-save: Ready</div>
           </main>
 
