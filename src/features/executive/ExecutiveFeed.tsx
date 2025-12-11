@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { UnifiedDailyIntelligence } from '../../types';
 import useReportStore from '../../store/reportStore';
 import AudioPlayer from '../../components/AudioPlayer';
-import AudioNarrationService from '../../services/AudioNarrationService';
 
+import { useWorkspaceStore } from '../../store/workspaceStore';
+import AudioNarrationService from '../../services/AudioNarrationService';
 /**
  * ExecutiveFeed Component
  * 
@@ -26,6 +27,8 @@ const ExecutiveFeed: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [audioService] = useState(() => new AudioNarrationService());
+  
+  const openWorkspace = useWorkspaceStore(state => state.openWorkspace);
   
   // Refresh local reports whenever the store publishes new executive data
   useEffect(() => {
