@@ -388,7 +388,7 @@ const ExecutiveFeed: React.FC = () => {
               <div className="intelligence-card-footer">
                 <button 
                   className="btn btn-secondary text-sm"
-                  onClick={() => handleExpandReport(report)}
+                  onClick={() => openWorkspace(report.projectId)}
                 >
                   View Full Report
                 </button>
