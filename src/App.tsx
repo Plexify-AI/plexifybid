@@ -9,6 +9,8 @@ import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
 import ReportPrintView from './pages/ReportPrintView';
+import ReportEditorWorkspace from './components/ReportEditorWorkspace';
+import { useWorkspaceStore } from './store/workspaceStore';
 
 /**
  * Main App Component - Phase 1 Navigation
@@ -17,6 +19,10 @@ import ReportPrintView from './pages/ReportPrintView';
  * with professional sidebar navigation system
  */
 const App: React.FC = () => {
+  const isOpen = useWorkspaceStore(s => s.isOpen);
+  const currentProjectId = useWorkspaceStore(s => s.currentProjectId);
+  const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
+
   return (
     <Router>
       <div className="app-container">
@@ -81,6 +87,13 @@ const App: React.FC = () => {
             } />
           </Routes>
         </main>
+
+        {/* Workspace Overlay */}
+        <ReportEditorWorkspace
+          isOpen={isOpen}
+          projectId={currentProjectId || 'project-001'}
+          onClose={closeWorkspace}
+        />
       </div>
     </Router>
   );
