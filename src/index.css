@@ -25,6 +25,16 @@
 
 /* Custom components */
 @layer components {
+  /* Generic card wrapper for consistent panels */
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  }
+
+  /* Small button size helper */
+  .btn-sm {
+    @apply px-2 py-1 text-sm;
+  }
+
   /* Intelligence Card styling */
   .intelligence-card {
     @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden;
