@@ -1,4 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import AudioBriefingCard from './workspace/AudioBriefingCard';
+import VideoSummaryCard from './workspace/VideoSummaryCard';
+import SourceMaterialsList, { MaterialItem } from './workspace/SourceMaterialsList';
 
 interface ReportEditorWorkspaceProps {
   projectId: string;
@@ -17,6 +20,13 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
+
+  const [materials, setMaterials] = useState<MaterialItem[]>([
+    { id: 'm1', label: 'Daily Logs - Oct 9', meta: 'PDF' },
+    { id: 'm2', label: 'RFI-H-042 Details', meta: 'RFI' },
+    { id: 'm3', label: 'Site Photos (14)', meta: 'Images' },
+    { id: 'm4', label: 'Centennial Tower Schedule Data', meta: 'XLSX' },
+  ]);
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/50">
@@ -42,55 +52,23 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
           <aside className="bg-[#f9fafb] border-r border-[#e5e7eb] overflow-y-auto p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Inputs & Media Sources</h2>
             <div className="space-y-5">
-              {/* Audio Briefing */}
-              <div className="rounded-xl p-4 text-white shadow-md" style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)' }}>
-                <div className="text-sm font-medium mb-2">Audio Briefing</div>
-                <div className="flex items-center gap-2 mb-2">
-                  <button className="px-3 py-1.5 bg-white/20 rounded">?</button>
-                  <div className="flex-1 h-2 bg-white/20 rounded">
-                    <div className="h-2 w-1/3 bg-white rounded" />
-                  </div>
-                  <select className="bg-white/10 rounded px-2 py-1 text-xs">
-                    <option>1x</option>
-                    <option>1.25x</option>
-                    <option>1.5x</option>
-                    <option>2x</option>
-                  </select>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {['Introduction','Executive Summary','Video Feed'].map(c => (
-                    <span key={c} className="px-2 py-1 bg-white/15 rounded-full">{c}</span>
-                  ))}
-                </div>
-                <div className="mt-2 text-xs opacity-90">Status: Ready — ?? Introduction</div>
-              </div>
+              <AudioBriefingCard
+                audioUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+                duration={360}
+                chapters={[
+                  { label: 'Introduction', timestamp: 0 },
+                  { label: 'Executive Summary', timestamp: 60 },
+                  { label: 'Video Feed', timestamp: 180 },
+                ]}
+              />
 
-              {/* Video Summary */}
-              <div className="bg-white rounded-xl border border-[#e5e7eb] p-3">
-                <div className="relative aspect-video bg-gray-200 rounded">
-                  <button className="absolute inset-0 m-auto w-14 h-14 rounded-full bg-black/60 text-white">?</button>
-                </div>
-                <div className="mt-2 text-sm text-gray-600">Visual Site Summary</div>
-              </div>
+              <VideoSummaryCard
+                thumbnailUrl="https://images.unsplash.com/photo-1520975922284-5f22b7bbd2ae?q=80&w=900&auto=format&fit=crop"
+                videoUrl="#"
+                title="Visual Site Summary"
+              />
 
-              {/* Source Materials */}
-              <div>
-                <div className="text-sm font-medium text-gray-800 mb-2">Source Materials</div>
-                <ul className="bg-white rounded-xl border border-[#e5e7eb] divide-y divide-[#e5e7eb]">
-                  {[
-                    'Daily Logs - Oct 9',
-                    'RFI-H-042 Details',
-                    'Site Photos (14)',
-                    'Centennial Tower Schedule Data',
-                  ].map(item => (
-                    <li key={item} className="px-3 py-2 flex items-center gap-2 hover:bg-gray-50">
-                      <span className="text-gray-400 select-none">??</span>
-                      <span className="text-sm text-gray-800">{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-1 text-xs text-gray-500">Draggable materials</div>
-              </div>
+              <SourceMaterialsList items={materials} onReorder={setMaterials} />
             </div>
           </aside>
 
@@ -110,7 +88,7 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
             <section className="space-y-6">
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Executive Summary</h2>
-                <p className="text-gray-800">Block editor coming in Phase 3. Use this space to draft the executive summary…</p>
+                <p className="text-gray-800">Block editor coming in Phase 3. Use this space to draft the executive summaryï¿½</p>
               </div>
               <div>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">Critical Path Progress</h2>
@@ -129,7 +107,7 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Plexify AI Assistant</h2>
             <div className="space-y-3">
               <div className="bg-white border border-[#e5e7eb] rounded-xl p-3 text-sm text-gray-800">
-                I’ve drafted the executive summary based on today’s field reports and the new video feed. Would you like me to expand on the steel erection delays?
+                Iï¿½ve drafted the executive summary based on todayï¿½s field reports and the new video feed. Would you like me to expand on the steel erection delays?
               </div>
               <div className="bg-[#3b82f6] text-white rounded-xl p-3 text-sm self-end ml-10">
                 Yes, adjust the tone to be more urgent for external stakeholders.
