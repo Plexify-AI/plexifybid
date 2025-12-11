@@ -76,7 +76,7 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
           {/* CENTER PANEL - Block Editor Canvas */}
           <main className="bg-white overflow-y-auto p-8">
             <h1 className="text-[32px] font-semibold text-gray-900 mb-6">Project {projectId}: Executive Project Report</h1>
-            <BlockEditor />
+            <BlockEditor projectId={projectId} />
             <div className="mt-6 text-xs text-gray-500 text-right">Auto-save: Ready</div>
           </main>
 
