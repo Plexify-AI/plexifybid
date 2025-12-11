@@ -8,7 +8,7 @@ export interface VideoSummaryCardProps {
 
 const VideoSummaryCard: React.FC<VideoSummaryCardProps> = ({ thumbnailUrl, videoUrl, title = 'Visual Site Summary' }) => {
   return (
-    <div className="bg-white rounded-xl border border-[#e5e7eb] p-3">
+    <div className="card p-3">
       <div className="relative aspect-video bg-gray-200 rounded overflow-hidden">
         {thumbnailUrl ? (
           <img src={thumbnailUrl} alt={title} className="w-full h-full object-cover" />

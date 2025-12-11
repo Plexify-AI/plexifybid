@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HelpCircle, FileText, Save, Share2, Download, X, Paperclip, Image as ImageIcon, Send } from 'lucide-react';
 import AudioBriefingCard from './workspace/AudioBriefingCard';
 import VideoSummaryCard from './workspace/VideoSummaryCard';
 import SourceMaterialsList, { MaterialItem } from './workspace/SourceMaterialsList';
@@ -36,18 +37,24 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
       {/* Workspace Container */}
       <div className="h-full w-full bg-white flex flex-col shadow-2xl">
         {/* Header Bar */}
-        <header className="bg-[#1e3a8a] text-white px-6 py-4 flex items-center justify-between">
+        <header className="bg-[#1f367d] text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div aria-label="Plexify logo" className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center font-bold">P</div>
             <h1 className="text-xl font-semibold">PlexifyBID Report Editor Workspace</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button aria-label="Help" className="p-2 hover:bg-white/10 rounded">?</button>
-            <button aria-label="Field report" className="px-3 py-2 bg-white/10 rounded hover:bg-white/20">Field report</button>
-            <button aria-label="Save" className="px-3 py-2 bg-[#3b82f6] rounded hover:brightness-110">?? Save</button>
+            <button aria-label="Help" className="btn btn-secondary btn-sm flex items-center gap-1">
+              <HelpCircle size={16} /> Help
+            </button>
+            <button aria-label="Field report" className="btn btn-secondary btn-sm flex items-center gap-1">
+              <FileText size={16} /> Field report
+            </button>
+            <button aria-label="Save" className="btn btn-primary btn-sm flex items-center gap-1">
+              <Save size={16} /> Save
+            </button>
             <button
               aria-label="Share link"
-              className="px-3 py-2 bg-white/10 rounded hover:bg-white/20"
+              className="btn btn-secondary btn-sm flex items-center gap-1"
               onClick={async () => {
                 const url = `${window.location.origin}/report/${projectId}/print`;
                 try {
@@ -56,23 +63,25 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
                 } catch {}
               }}
             >
-              Share
+              <Share2 size={16} /> Share
             </button>
             <button
               aria-label="Export / Print"
-              className="px-3 py-2 bg-white/10 rounded hover:bg-white/20"
+              className="btn btn-secondary btn-sm flex items-center gap-1"
               onClick={() => navigate(`/report/${projectId}/print`)}
             >
-              Export
+              <Download size={16} /> Export
             </button>
-            <button aria-label="Close workspace" onClick={onClose} className="p-2 hover:bg-white/10 rounded">?</button>
+            <button aria-label="Close workspace" onClick={onClose} className="btn btn-secondary btn-sm" title="Close">
+              <X size={16} />
+            </button>
           </div>
         </header>
 
         {/* 3-Column Grid */}
         <div className="flex-1 overflow-hidden grid" style={{ gridTemplateColumns: '25% 50% 25%' }}>
           {/* LEFT PANEL - Inputs & Media Sources */}
-          <aside className="bg-[#f9fafb] border-r border-[#e5e7eb] overflow-y-auto p-6">
+          <aside className="bg-[#f9fafb] border-r border-gray-200 overflow-y-auto p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Inputs & Media Sources</h2>
             <div className="space-y-5">
               <AudioBriefingCard
@@ -103,11 +112,11 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
           </main>
 
           {/* RIGHT PANEL - AI Research Assistant */}
-          <aside className="bg-[#f9fafb] border-l border-[#e5e7eb] overflow-y-auto p-6">
+          <aside className="bg-[#f9fafb] border-l border-gray-200 overflow-y-auto p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Plexify AI Assistant</h2>
             <div className="space-y-3">
-              <div className="bg-white border border-[#e5e7eb] rounded-xl p-3 text-sm text-gray-800">
-                I�ve drafted the executive summary based on today�s field reports and the new video feed. Would you like me to expand on the steel erection delays?
+              <div className="card p-3 text-sm text-gray-800">
+                I've drafted the executive summary based on today's field reports and the new video feed. Would you like me to expand on the steel erection delays?
               </div>
               <div className="bg-[#3b82f6] text-white rounded-xl p-3 text-sm self-end ml-10">
                 Yes, adjust the tone to be more urgent for external stakeholders.
@@ -115,10 +124,10 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
             </div>
             <div className="mt-4">
               <div className="flex items-center gap-2">
-                <input aria-label="Ask AI" className="flex-1 px-3 py-2 border border-[#e5e7eb] rounded" placeholder="Ask AI to research, refine, or add data..." />
-                <button aria-label="Attach" className="px-2 py-2 border border-[#e5e7eb] rounded">??</button>
-                <button aria-label="Attach image" className="px-2 py-2 border border-[#e5e7eb] rounded">??</button>
-                <button aria-label="Send" className="px-3 py-2 bg-[#3b82f6] text-white rounded">?</button>
+                <input aria-label="Ask AI" className="flex-1 px-3 py-2 border border-gray-300 rounded" placeholder="Ask AI to research, refine, or add data..." />
+                <button aria-label="Attach" className="btn btn-secondary btn-sm"><Paperclip size={16} /></button>
+                <button aria-label="Attach image" className="btn btn-secondary btn-sm"><ImageIcon size={16} /></button>
+                <button aria-label="Send" className="btn btn-primary btn-sm flex items-center gap-1"><Send size={16} /> Send</button>
               </div>
             </div>
           </aside>

@@ -52,11 +52,11 @@ const SourceMaterialsList: React.FC<SourceMaterialsListProps> = ({ items, onReor
   };
 
   return (
-    <div>
-      <div className="text-sm font-medium text-gray-800 mb-2">Source Materials</div>
+    <div className="card p-3">
+      <div className="text-sm font-semibold text-gray-900 mb-2">Source Materials</div>
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          <ul className="bg-white rounded-xl border border-[#e5e7eb] divide-y divide-[#e5e7eb]">
+          <ul className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-200">
             {items.map((it) => (
               <Row key={it.id} {...it} />
             ))}

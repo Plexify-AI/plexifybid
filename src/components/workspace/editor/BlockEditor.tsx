@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Trash2 } from 'lucide-react';
 
 export type BlockType = 'h1' | 'h2' | 'p';
 
@@ -146,7 +147,7 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
             {...attributes}
             {...listeners}
           >
-            ⋮⋮
+            <GripVertical size={16} />
           </button>
           <div
             role="textbox"
@@ -189,7 +190,7 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
             title="Delete block"
             onClick={() => deleteBlock(block.id)}
           >
-            🗑
+            <Trash2 size={16} />
           </button>
         </div>
       </Tag>
@@ -200,19 +201,19 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
     <div>
       {/* Inline toolbar */}
       <div className="flex items-center gap-2 mb-4">
-        <button onClick={() => toolbarAction('bold')} className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 font-semibold">B</button>
-        <button onClick={() => toolbarAction('italic')} className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 italic">I</button>
-        <button onClick={() => toolbarAction('strike')} className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50 line-through">S</button>
-        <button onClick={() => toolbarAction('h1')} className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50">H1</button>
-        <button onClick={() => toolbarAction('h2')} className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50">H2</button>
-        <button onClick={() => toolbarAction('p')} className="px-2 py-1 text-sm rounded border border-gray-300 hover:bg-gray-50">P</button>
+        <button onClick={() => toolbarAction('bold')} className="btn btn-secondary btn-sm font-semibold">B</button>
+        <button onClick={() => toolbarAction('italic')} className="btn btn-secondary btn-sm italic">I</button>
+        <button onClick={() => toolbarAction('strike')} className="btn btn-secondary btn-sm line-through">S</button>
+        <button onClick={() => toolbarAction('h1')} className="btn btn-secondary btn-sm">H1</button>
+        <button onClick={() => toolbarAction('h2')} className="btn btn-secondary btn-sm">H2</button>
+        <button onClick={() => toolbarAction('p')} className="btn btn-secondary btn-sm">P</button>
         <div className="ml-auto text-xs text-gray-500">{activeIndex >= 0 ? `Block ${activeIndex + 1} of ${blocks.length}` : ''}</div>
       </div>
 
       {/* AI draft/regenerate hooks (mock) */}
       <div className="flex items-center gap-2 mb-3">
         <button
-          className="px-3 py-1.5 rounded bg-[#3b82f6] text-white hover:brightness-110"
+          className="btn btn-primary btn-sm"
           onClick={() => {
             // Seed an AI draft with citations
             const c1: Citation = { id: uuidv4(), title: 'Monthly Field Report – Oct', source: 'Internal Logs' };
@@ -237,7 +238,7 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
           ✨ Draft with AI
         </button>
         <button
-          className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+          className="btn btn-secondary btn-sm"
           onClick={() => {
             // Simple regenerate: tweak text and add a new citation
             const c3: Citation = { id: uuidv4(), title: 'Patrol Metrics Snapshot', source: 'Operations Dashboard' };

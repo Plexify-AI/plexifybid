@@ -56,26 +56,26 @@ const AudioBriefingCard: React.FC<AudioBriefingCardProps> = ({ audioUrl, duratio
   };
 
   return (
-    <div className="rounded-xl p-4 text-white shadow-md" style={{ background: 'linear-gradient(135deg,#7c3aed,#5b21b6)' }}>
-      <div className="text-sm font-medium mb-2">Audio Briefing</div>
+    <div className="card p-4">
+      <div className="text-sm font-semibold text-gray-900 mb-2">Audio Briefing</div>
 
       <audio ref={audioRef} src={audioUrl} preload="none" />
 
       <div className="flex items-center gap-2 mb-2">
-        <button onClick={toggle} className="px-3 py-1.5 bg-white/20 rounded" aria-label={playing ? 'Pause' : 'Play'}>
+        <button onClick={toggle} className="btn btn-secondary btn-sm" aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? '⏸' : '▶'}
         </button>
-        <div className="flex-1 h-2 bg-white/20 rounded cursor-pointer" onClick={(e) => {
+        <div className="flex-1 h-2 bg-gray-200 rounded cursor-pointer" onClick={(e) => {
           const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
           const x = e.clientX - rect.left;
           const pct = x / rect.width;
           seek(pct * duration);
         }}>
-          <div className="h-2 bg-white rounded" style={{ width: `${percent}%` }} />
+          <div className="h-2 bg-primary-600 rounded" style={{ width: `${percent}%` }} />
         </div>
         <select
           aria-label="Playback speed"
-          className="bg-white/10 rounded px-2 py-1 text-xs"
+          className="bg-white rounded border border-gray-300 px-2 py-1 text-xs"
           value={speed}
           onChange={(e) => setSpeed(parseFloat(e.target.value))}
         >
@@ -84,7 +84,7 @@ const AudioBriefingCard: React.FC<AudioBriefingCardProps> = ({ audioUrl, duratio
           <option value={1.5}>1.5x</option>
           <option value={2}>2x</option>
         </select>
-        <div className="text-xs opacity-90 w-14 text-right select-none">{formatTime(time)} / {formatTime(duration)}</div>
+        <div className="text-xs text-gray-600 w-14 text-right select-none">{formatTime(time)} / {formatTime(duration)}</div>
       </div>
 
       <div className="flex flex-wrap gap-2 text-xs">
@@ -92,13 +92,13 @@ const AudioBriefingCard: React.FC<AudioBriefingCardProps> = ({ audioUrl, duratio
           <button
             key={c.label}
             onClick={() => seek(c.timestamp)}
-            className="px-2 py-1 bg-white/15 rounded-full hover:bg-white/25"
+            className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200"
           >
             {c.label}
           </button>
         ))}
       </div>
-      <div className="mt-2 text-xs opacity-90">Status: {playing ? '⏵ Playing' : '⏸ Paused'}</div>
+      <div className="mt-2 text-xs text-gray-600">Status: {playing ? '⏵ Playing' : '⏸ Paused'}</div>
     </div>
   );
 };
