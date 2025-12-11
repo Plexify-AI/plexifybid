@@ -13,11 +13,19 @@ export interface Block {
   bold?: boolean;
   italic?: boolean;
   strike?: boolean;
+  citationIds?: string[];
 }
 
 export interface BlockEditorProps {
   initialBlocks?: Block[];
   projectId: string;
+}
+
+export interface Citation {
+  id: string;
+  title: string;
+  source: string;
+  url?: string;
 }
 
 const defaultBlocks: Block[] = [
@@ -43,6 +51,13 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
     return initialBlocks || defaultBlocks;
   });
   const [activeId, setActiveId] = useState<string | null>(blocks[0]?.id || null);
+  const [citations, setCitations] = useState<Citation[]>(() => {
+    try {
+      const raw = localStorage.getItem(storageKey + ':citations');
+      if (raw) return JSON.parse(raw) as Citation[];
+    } catch {}
+    return [];
+  });
   const activeIndex = useMemo(() => blocks.findIndex(b => b.id === activeId), [blocks, activeId]);
 
   const updateBlock = useCallback((id: string, patch: Partial<Block>) => {
@@ -85,6 +100,12 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
       localStorage.setItem(storageKey, JSON.stringify(blocks));
     } catch {}
   }, [blocks, storageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey + ':citations', JSON.stringify(citations));
+    } catch {}
+  }, [citations, storageKey]);
 
   // Drag and drop reordering
   const handleDragEnd = (event: DragEndEvent) => {
@@ -153,6 +174,16 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
             }}
             dangerouslySetInnerHTML={{ __html: block.text.replace(/\n/g, '<br/>') }}
           />
+          {block.citationIds && block.citationIds.length > 0 ? (
+            <span className="ml-2 text-xs text-blue-600 select-none">
+              {block.citationIds.map((cid) => {
+                const idx = citations.findIndex((c) => c.id === cid);
+                return (
+                  <sup key={cid} className="ml-1">[{idx + 1}]</sup>
+                );
+              })}
+            </span>
+          ) : null}
           <button
             className="opacity-0 group-hover:opacity-100 text-red-600 px-2"
             title="Delete block"
@@ -178,6 +209,50 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
         <div className="ml-auto text-xs text-gray-500">{activeIndex >= 0 ? `Block ${activeIndex + 1} of ${blocks.length}` : ''}</div>
       </div>
 
+      {/* AI draft/regenerate hooks (mock) */}
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          className="px-3 py-1.5 rounded bg-[#3b82f6] text-white hover:brightness-110"
+          onClick={() => {
+            // Seed an AI draft with citations
+            const c1: Citation = { id: uuidv4(), title: 'Monthly Field Report – Oct', source: 'Internal Logs' };
+            const c2: Citation = { id: uuidv4(), title: 'City Work Order 24-1102', source: 'City Portal', url: 'https://example.org/work-orders/24-1102' };
+            setCitations((prev) => [...prev, c1, c2]);
+            setBlocks((prev) => {
+              const next = prev.slice();
+              const firstParaIdx = next.findIndex((b) => b.type === 'p');
+              if (firstParaIdx >= 0) {
+                next[firstParaIdx] = {
+                  ...next[firstParaIdx],
+                  text: 'Operations performance improved week-over-week with reduced response times and higher completion rates.',
+                  citationIds: [c1.id, c2.id],
+                };
+              } else {
+                next.push({ id: uuidv4(), type: 'p', text: 'AI draft: Executive summary content.', citationIds: [c1.id, c2.id] });
+              }
+              return next;
+            });
+          }}
+        >
+          ✨ Draft with AI
+        </button>
+        <button
+          className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50"
+          onClick={() => {
+            // Simple regenerate: tweak text and add a new citation
+            const c3: Citation = { id: uuidv4(), title: 'Patrol Metrics Snapshot', source: 'Operations Dashboard' };
+            setCitations((prev) => [...prev, c3]);
+            setBlocks((prev) => prev.map((b, i) =>
+              i === 1 && b.type === 'p'
+                ? { ...b, text: b.text + ' Notably, incident backlog decreased 12% this period.', citationIds: [...(b.citationIds || []), c3.id] }
+                : b
+            ));
+          }}
+        >
+          ↻ Regenerate
+        </button>
+      </div>
+
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
@@ -187,6 +262,28 @@ const BlockEditor: React.FC<BlockEditorProps> = ({ initialBlocks, projectId }) =
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* Citations UI */}
+      {citations.length > 0 ? (
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">References</h3>
+          <ol className="list-decimal pl-5 space-y-1 text-sm text-gray-700">
+            {citations.map((c, i) => (
+              <li key={c.id}>
+                <span className="font-medium">[{i + 1}]</span> {c.title} — {c.source}
+                {c.url ? (
+                  <>
+                    {' '}
+                    <a className="text-blue-600 underline" href={c.url} target="_blank" rel="noreferrer">
+                      source
+                    </a>
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
     </div>
   );
 };
