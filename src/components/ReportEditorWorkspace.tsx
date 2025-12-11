@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AudioBriefingCard from './workspace/AudioBriefingCard';
 import VideoSummaryCard from './workspace/VideoSummaryCard';
 import SourceMaterialsList, { MaterialItem } from './workspace/SourceMaterialsList';
@@ -12,6 +13,7 @@ interface ReportEditorWorkspaceProps {
 
 const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId, isOpen, onClose }) => {
   if (!isOpen) return null;
+  const navigate = useNavigate();
 
   // Close on ESC
   useEffect(() => {
@@ -43,6 +45,26 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
             <button aria-label="Help" className="p-2 hover:bg-white/10 rounded">?</button>
             <button aria-label="Field report" className="px-3 py-2 bg-white/10 rounded hover:bg-white/20">Field report</button>
             <button aria-label="Save" className="px-3 py-2 bg-[#3b82f6] rounded hover:brightness-110">?? Save</button>
+            <button
+              aria-label="Share link"
+              className="px-3 py-2 bg-white/10 rounded hover:bg-white/20"
+              onClick={async () => {
+                const url = `${window.location.origin}/report/${projectId}/print`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  alert('Share link copied');
+                } catch {}
+              }}
+            >
+              Share
+            </button>
+            <button
+              aria-label="Export / Print"
+              className="px-3 py-2 bg-white/10 rounded hover:bg-white/20"
+              onClick={() => navigate(`/report/${projectId}/print`)}
+            >
+              Export
+            </button>
             <button aria-label="Close workspace" onClick={onClose} className="p-2 hover:bg-white/10 rounded">?</button>
           </div>
         </header>

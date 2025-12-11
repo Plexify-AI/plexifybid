@@ -688,3 +688,10 @@
     @apply p-3;
   }
 }
+
+/* Print styles */
+@media print {
+  .sidebar { display: none !important; }
+  .main-content { margin: 0 !important; }
+  .no-print { display: none !important; }
+}

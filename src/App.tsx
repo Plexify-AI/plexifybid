@@ -8,6 +8,7 @@ import FieldView from './features/field/FieldView';
 import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
+import ReportPrintView from './pages/ReportPrintView';
 
 /**
  * Main App Component - Phase 1 Navigation
@@ -65,6 +66,7 @@ const App: React.FC = () => {
                 description="Advanced initiative analytics and insights."
               />
             } />
+            <Route path="/report/:projectId/print" element={<ReportPrintView />} />
             <Route path="/alerts" element={
               <PlaceholderPage
                 title="Alerts"
