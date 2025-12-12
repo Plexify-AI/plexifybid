@@ -153,7 +153,8 @@
   /* App Layout */
   .app-container {
     @apply flex min-h-screen;
-    background: linear-gradient(135deg, #70b180, #e8927c);
+    /* Warm sunrise gradient background (approximation of provided image) */
+    background: radial-gradient(circle at 50% 0%, #f56a2a 0%, #f7a53a 32%, #ffd96a 56%, #e9f3cf 76%, #86d3c5 100%);
   }
 
   /* Sidebar Styles - UPDATED WIDTH: 252px (10% smaller than 280px) */
@@ -285,7 +286,7 @@
 @layer components {
   .field-view {
     @apply min-h-screen;
-    background: linear-gradient(135deg, #70b180, #e8927c);
+    background: radial-gradient(circle at 50% 0%, #f56a2a 0%, #f7a53a 32%, #ffd96a 56%, #e9f3cf 76%, #86d3c5 100%);
     padding-bottom: 80px; /* Space for mobile nav */
   }
 
