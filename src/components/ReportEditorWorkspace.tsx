@@ -33,9 +33,9 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
   ]);
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/50">
+    <div className="fixed inset-0 z-[60] plexi-bg">
       {/* Workspace Container */}
-      <div className="h-full w-full bg-white flex flex-col shadow-2xl">
+      <div className="h-full w-full flex flex-col shadow-2xl bg-transparent">
         {/* Header Bar */}
         <header className="bg-[#1f367d] text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -81,7 +81,7 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
         {/* 3-Column Grid */}
         <div className="flex-1 overflow-hidden grid" style={{ gridTemplateColumns: '25% 50% 25%' }}>
           {/* LEFT PANEL - Inputs & Media Sources */}
-          <aside className="bg-[#f9fafb] border-r border-gray-200 overflow-y-auto p-6">
+          <aside className="bg-transparent border-r border-gray-200 overflow-y-auto p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Inputs & Media Sources</h2>
             <div className="space-y-5">
               <AudioBriefingCard
@@ -105,14 +105,14 @@ const ReportEditorWorkspace: React.FC<ReportEditorWorkspaceProps> = ({ projectId
           </aside>
 
           {/* CENTER PANEL - Block Editor Canvas */}
-          <main className="bg-white overflow-y-auto p-8">
+          <main className="bg-white/95 backdrop-blur-sm overflow-y-auto p-8">
             <h1 className="text-[32px] font-semibold text-gray-900 mb-6">Project {projectId}: Executive Project Report</h1>
             <BlockEditor projectId={projectId} />
             <div className="mt-6 text-xs text-gray-500 text-right">Auto-save: Ready</div>
           </main>
 
           {/* RIGHT PANEL - AI Research Assistant */}
-          <aside className="bg-[#f9fafb] border-l border-gray-200 overflow-y-auto p-6">
+          <aside className="bg-transparent border-l border-gray-200 overflow-y-auto p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900">Plexify AI Assistant</h2>
             <div className="space-y-3">
               <div className="card p-3 text-sm text-gray-800">

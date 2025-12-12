@@ -135,6 +135,13 @@
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   }
   
+  /* Shared Plexify gradient background utility */
+  .plexi-bg {
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
+  }
+  
   /* (Removed problematic blueprint-bg and safety-stripe utilities) */
 }
 
