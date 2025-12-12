@@ -15,7 +15,11 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply text-gray-900;
+    /* Global page background (matches provided image v2: green→yellow→orange with soft corners) */
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -153,8 +157,10 @@
   /* App Layout */
   .app-container {
     @apply flex min-h-screen;
-    /* Warm sunrise gradient background (approximation of provided image) */
-    background: radial-gradient(circle at 50% 0%, #f56a2a 0%, #f7a53a 32%, #ffd96a 56%, #e9f3cf 76%, #86d3c5 100%);
+    /* Page wrapper background (same as body for consistency) */
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
   }
 
   /* Sidebar Styles - UPDATED WIDTH: 252px (10% smaller than 280px) */
@@ -286,7 +292,9 @@
 @layer components {
   .field-view {
     @apply min-h-screen;
-    background: radial-gradient(circle at 50% 0%, #f56a2a 0%, #f7a53a 32%, #ffd96a 56%, #e9f3cf 76%, #86d3c5 100%);
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
     padding-bottom: 80px; /* Space for mobile nav */
   }
 
