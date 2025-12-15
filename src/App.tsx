@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
 import PlaceholderPage from './components/PlaceholderPage';
@@ -9,8 +9,9 @@ import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
 import ReportPrintView from './pages/ReportPrintView';
-import ReportEditorWorkspace from './components/ReportEditorWorkspace';
-import { useWorkspaceStore } from './store/workspaceStore';
+import { bidTheme } from './config/theme';
+import { ReportEditorWorkspace } from 'plexify-shared-ui';
+import { useWorkspaceStore } from 'plexify-shared-ui';
 
 /**
  * Main App Component - Phase 1 Navigation
@@ -19,8 +20,8 @@ import { useWorkspaceStore } from './store/workspaceStore';
  * with professional sidebar navigation system
  */
 const App: React.FC = () => {
-  const isOpen = useWorkspaceStore(s => s.isOpen);
-  const currentProjectId = useWorkspaceStore(s => s.currentProjectId);
+  const isWorkspaceOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
+  const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
 
   return (
@@ -90,9 +91,11 @@ const App: React.FC = () => {
 
         {/* Workspace Overlay */}
         <ReportEditorWorkspace
-          isOpen={isOpen}
-          projectId={currentProjectId || 'project-001'}
+          isOpen={isWorkspaceOpen}
+          projectId={currentProjectId || "project-001"}
           onClose={closeWorkspace}
+          theme={bidTheme}
+          terminology="bid"
         />
       </div>
     </Router>
@@ -100,3 +103,9 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+
+
+
+
+
