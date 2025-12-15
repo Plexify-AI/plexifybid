@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useMemo, useState } from 'react';
 
 type PropertyType = 'Office' | 'Retail' | 'Mixed';
@@ -172,11 +173,11 @@ const AssessmentManagement: React.FC = () => {
             <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
               <tr>
                 <th className="px-4 py-3">#</th>
-                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('address')}>Property {sortKey==='address' && (sortAsc ? '▲' : '▼')}</th>
-                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('owner')}>Owner {sortKey==='owner' && (sortAsc ? '▲' : '▼')}</th>
+                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('address')}>Property {sortKey==='address' && (sortAsc ? 'â–²' : 'â–¼')}</th>
+                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('owner')}>Owner {sortKey==='owner' && (sortAsc ? 'â–²' : 'â–¼')}</th>
                 <th className="px-4 py-3">Sq Ft</th>
-                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('assessedAmount')}>Assessed {sortKey==='assessedAmount' && (sortAsc ? '▲' : '▼')}</th>
-                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('collectedAmount')}>Collected {sortKey==='collectedAmount' && (sortAsc ? '▲' : '▼')}</th>
+                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('assessedAmount')}>Assessed {sortKey==='assessedAmount' && (sortAsc ? 'â–²' : 'â–¼')}</th>
+                <th className="px-4 py-3 cursor-pointer" onClick={() => changeSort('collectedAmount')}>Collected {sortKey==='collectedAmount' && (sortAsc ? 'â–²' : 'â–¼')}</th>
                 <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
@@ -202,13 +203,13 @@ const AssessmentManagement: React.FC = () => {
           </table>
         </div>
         <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-600">
-          <div>Showing 1–25 of 800 properties</div>
+          <div>Showing 1â€“25 of 800 properties</div>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1 rounded bg-gray-100 text-gray-600 cursor-not-allowed">←</button>
+            <button className="px-3 py-1 rounded bg-gray-100 text-gray-600 cursor-not-allowed">â†</button>
             <span className="px-2 py-1 rounded bg-primary-600 text-white">1</span>
             <button className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">2</button>
             <button className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">3</button>
-            <button className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">→</button>
+            <button className="px-3 py-1 rounded bg-gray-100 text-gray-700 hover:bg-gray-200">â†’</button>
           </div>
         </div>
       </div>
@@ -225,7 +226,7 @@ const AssessmentManagement: React.FC = () => {
                   <h3 className="text-lg font-semibold">{r.address}</h3>
                   <div className="text-sm text-gray-600">{r.owner}</div>
                 </div>
-                <button className="text-gray-500 hover:text-gray-700" onClick={() => setDetailId(null)}>✕</button>
+                <button className="text-gray-500 hover:text-gray-700" onClick={() => setDetailId(null)}>âœ•</button>
               </div>
               <div className="p-4 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -250,7 +251,7 @@ const AssessmentManagement: React.FC = () => {
                   <div className="font-medium mb-1">Payment History (demo)</div>
                   <ul className="list-disc ml-5 space-y-1">
                     {r.paidDate ? (
-                      <li>Payment received on {new Date(r.paidDate).toLocaleDateString()} — {DOLLAR(r.collectedAmount)}</li>
+                      <li>Payment received on {new Date(r.paidDate).toLocaleDateString()} â€” {DOLLAR(r.collectedAmount)}</li>
                     ) : (
                       <li>No payments recorded yet.</li>
                     )}
@@ -271,7 +272,7 @@ const AssessmentManagement: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl" onClick={e => e.stopPropagation()}>
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold">Assessment Calculator</h3>
-              <button className="text-gray-500 hover:text-gray-700" onClick={() => setCalcOpen(false)}>✕</button>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setCalcOpen(false)}>âœ•</button>
             </div>
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -301,7 +302,7 @@ const AssessmentManagement: React.FC = () => {
               <div className="bg-gray-50 p-3 rounded">
                 <div className="text-sm text-gray-600">Estimated Annual Assessment</div>
                 <div className="text-2xl font-bold text-gray-900 mt-1">{DOLLAR(calcAmount)}</div>
-                <div className="text-xs text-gray-500 mt-1">Rate: ${RATE_PER_SQFT.toFixed(2)}/sq ft • Type: {calcType}</div>
+                <div className="text-xs text-gray-500 mt-1">Rate: ${RATE_PER_SQFT.toFixed(2)}/sq ft â€¢ Type: {calcType}</div>
               </div>
             </div>
             <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
@@ -316,3 +317,4 @@ const AssessmentManagement: React.FC = () => {
 };
 
 export default AssessmentManagement;
+

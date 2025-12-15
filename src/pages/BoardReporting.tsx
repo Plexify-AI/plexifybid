@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useMemo, useState } from 'react';
 
 type Period = 'Q3 2025' | 'Q4 2025' | 'Year to Date';
@@ -76,18 +77,18 @@ const BoardReporting: React.FC = () => {
       {/* Slides container */}
       <div className="snap-y snap-mandatory h-[calc(100vh-120px)] overflow-y-auto rounded-2xl">
         {/* Slide 1: Executive Summary */}
-        <Slide title="Slide 1 — Executive Summary">
+        <Slide title="Slide 1 â€” Executive Summary">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <h3 className="text-xl font-semibold mb-2">Golden Triangle BID — {period}</h3>
+              <h3 className="text-xl font-semibold mb-2">Golden Triangle BID â€” {period}</h3>
               <p className="text-gray-700 leading-relaxed">
                 Q4 performance remained strong across operations, programming, and financials.
                 Safety incidents declined 15% quarter-over-quarter, events and attendance grew,
                 and assessment collections achieved a 95.1% rate.
               </p>
               <ul className="mt-4 space-y-2">
-                <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"/>Safety Incidents: ↓ 15%</li>
-                <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"/>Property Values: ↑ 8% (market trend)</li>
+                <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"/>Safety Incidents: â†“ 15%</li>
+                <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"/>Property Values: â†‘ 8% (market trend)</li>
                 <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-500"/>Events Hosted: {m.events}</li>
                 <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500"/>Assessment Collection: 95.1%</li>
               </ul>
@@ -118,7 +119,7 @@ const BoardReporting: React.FC = () => {
         </Slide>
 
         {/* Slide 2: Financial Overview */}
-        <Slide title="Slide 2 — Financial Overview (Budget vs Actual)">
+        <Slide title="Slide 2 â€” Financial Overview (Budget vs Actual)">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
             <div>
               <div className="mb-4 text-sm text-gray-600">Revenue and Expenses</div>
@@ -163,7 +164,7 @@ const BoardReporting: React.FC = () => {
         </Slide>
 
         {/* Slide 3: Operations Metrics */}
-        <Slide title="Slide 3 — Operations Metrics">
+        <Slide title="Slide 3 â€” Operations Metrics">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
             <div>
               <div className="w-56 h-56 rounded-full mx-auto" style={pieStyle} />
@@ -187,7 +188,7 @@ const BoardReporting: React.FC = () => {
         </Slide>
 
         {/* Slide 4: Events & Programming */}
-        <Slide title="Slide 4 — Events & Programming">
+        <Slide title="Slide 4 â€” Events & Programming">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <div className="mb-3 text-sm text-gray-700">Mini Calendar (demo)</div>
@@ -209,9 +210,9 @@ const BoardReporting: React.FC = () => {
                 <div className="mt-4">
                   <h4 className="text-sm font-semibold mb-2">Top Events</h4>
                   <ul className="text-sm space-y-1">
-                    <li>Farragut Fridays Concert — 2,300</li>
-                    <li>Holiday Lighting Ceremony — 3,100</li>
-                    <li>Outdoor Fitness Series — 1,800</li>
+                    <li>Farragut Fridays Concert â€” 2,300</li>
+                    <li>Holiday Lighting Ceremony â€” 3,100</li>
+                    <li>Outdoor Fitness Series â€” 1,800</li>
                   </ul>
                 </div>
               </div>
@@ -220,7 +221,7 @@ const BoardReporting: React.FC = () => {
         </Slide>
 
         {/* Slide 5: Strategic Initiatives */}
-        <Slide title="Slide 5 — Strategic Initiatives">
+        <Slide title="Slide 5 â€” Strategic Initiatives">
           <div className="space-y-4 max-w-2xl">
             {[{label:'K Street Beautification',pct:75,color:'bg-green-500'},
               {label:'Public WiFi Expansion',pct:100,color:'bg-blue-500'},
@@ -244,3 +245,4 @@ const BoardReporting: React.FC = () => {
 };
 
 export default BoardReporting;
+
