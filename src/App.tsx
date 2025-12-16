@@ -13,9 +13,6 @@ import ReportPrintView from './pages/ReportPrintView';
 import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
 
-/**
- * Main App Component - Phase 1 Navigation
- */
 const App: React.FC = () => {
   const isOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
@@ -25,10 +22,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <div className="app-container">
-        {/* Sidebar Navigation */}
         <NavigationSidebar />
-
-        {/* Main Content Area */}
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
@@ -38,44 +32,32 @@ const App: React.FC = () => {
             <Route path="/board-reports" element={<BoardReporting />} />
             <Route path="/executive" element={<ExecutiveFeed />} />
             <Route path="/field" element={<FieldView />} />
-            {/* Ask Plexi AI Interface */}
             <Route path="/ask-plexi" element={<AskPlexiInterface />} />
-            <Route path="/upload" element={
-              <PlaceholderPage title="Upload" description="Upload and process district documents with AI." />
-            } />
-            <Route path="/library" element={
-              <PlaceholderPage title="Library" description="Access your district document library." />
-            } />
-            <Route path="/resources" element={
-              <PlaceholderPage title="Resources" description="BID resources and references." />
-            } />
-            <Route path="/settings" element={
-              <PlaceholderPage title="Settings" description="Configure your PlexifyBID preferences." />
-            } />
-            <Route path="/analytics" element={
-              <PlaceholderPage title="Analytics" description="Advanced initiative analytics and insights." />
-            } />
+            <Route path="/upload" element={<PlaceholderPage title="Upload" description="Upload and process district documents with AI." />} />
+            <Route path="/library" element={<PlaceholderPage title="Library" description="Access your district document library." />} />
+            <Route path="/resources" element={<PlaceholderPage title="Resources" description="BID resources and references." />} />
+            <Route path="/settings" element={<PlaceholderPage title="Settings" description="Configure your PlexifyBID preferences." />} />
+            <Route path="/analytics" element={<PlaceholderPage title="Analytics" description="Advanced initiative analytics and insights." />} />
             <Route path="/report/:projectId/print" element={<ReportPrintView />} />
-            <Route path="/alerts" element={
-              <PlaceholderPage title="Alerts" description="Real-time initiative alerts and notifications." />
-            } />
-            <Route path="/scorecards" element={
-              <PlaceholderPage title="Scorecards" description="Initiative performance scorecards and KPIs." />
-            } />
+            <Route path="/alerts" element={<PlaceholderPage title="Alerts" description="Real-time initiative alerts and notifications." />} />
+            <Route path="/scorecards" element={<PlaceholderPage title="Scorecards" description="Initiative performance scorecards and KPIs." />} />
           </Routes>
         </main>
 
-        {/* Workspace Overlay */}
-        <ReportEditorWorkspace
-          isOpen={isOpen}
-          projectId={currentProjectId || 'project-001'}
-          onClose={closeWorkspace}
-          theme={bidTheme}
-          terminology="bid"
-        />
+        {isOpen ? (
+          <div className="fixed inset-0 z-[9999]">
+            <ReportEditorWorkspace
+              isOpen={true}
+              projectId={currentProjectId || 'project-001'}
+              onClose={closeWorkspace}
+              theme={bidTheme}
+              terminology="bid"
+            />
+          </div>
+        ) : null}
 
-        {/* TEMP: debug trigger */}
         <button onClick={openWorkspace} className="fixed bottom-4 right-4 z-[9999] bg-blue-600 text-white text-xs px-3 py-2 rounded shadow" style={{ opacity: 0.5 }}>Open WS</button>
+        <div className="fixed top-2 right-2 z-[9999] bg-black text-white text-xs px-2 py-1 rounded">WS: {isOpen ? 'open' : 'closed'}</div>
       </div>
     </Router>
   );
