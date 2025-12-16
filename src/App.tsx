@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
@@ -92,7 +92,7 @@ const App: React.FC = () => {
 
         {/* Workspace Overlay */}
         <ReportEditorWorkspace
-          isOpen={isWorkspaceOpen}
+          isOpen={isOpen}
           projectId={currentProjectId || "project-001"}
           onClose={closeWorkspace}
           theme={bidTheme}
@@ -104,6 +104,7 @@ const App: React.FC = () => {
 };
 
 export default App;
+
 
 
 
