@@ -21,7 +21,7 @@ import { useWorkspaceStore } from 'plexify-shared-ui';
  * with professional sidebar navigation system
  */
 const App: React.FC = () => {
-  const isWorkspaceOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
+  const isOpen= useWorkspaceStore(s => s.isWorkspaceOpen);
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
 
