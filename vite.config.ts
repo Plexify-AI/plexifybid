@@ -7,6 +7,16 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: { exclude: ['plexify-shared-ui'] },
   resolve: {
+    dedupe: [
+      'react',
+      'react-dom',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      '@dnd-kit/utilities',
+      'zustand',
+      '@tiptap/react',
+      '@tiptap/starter-kit',
+    ],
     alias: {
       '@': resolve(__dirname, 'src'),
       '@components': resolve(__dirname, 'src/components'),
