@@ -13,6 +13,48 @@ import ReportPrintView from './pages/ReportPrintView';
 import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
 
+class WorkspaceErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: unknown }
+> {
+  state = { error: null };
+
+  static getDerivedStateFromError(error: unknown) {
+    return { error };
+  }
+
+  componentDidCatch(error: unknown) {
+    // Ensure we still get a visible error even if the workspace crashes during render.
+    // eslint-disable-next-line no-console
+    console.error('Workspace crashed:', error);
+  }
+
+  render() {
+    if (this.state.error) {
+      const message =
+        this.state.error instanceof Error
+          ? this.state.error.message
+          : String(this.state.error);
+      const stack =
+        this.state.error instanceof Error ? this.state.error.stack : undefined;
+
+      return (
+        <div className="fixed inset-0 z-[9999] bg-white p-6 overflow-auto">
+          <h2 className="text-lg font-semibold text-red-700">
+            Workspace failed to render
+          </h2>
+          <p className="mt-2 text-sm text-gray-700">{message}</p>
+          {stack ? (
+            <pre className="mt-4 text-xs text-gray-800 whitespace-pre-wrap">{stack}</pre>
+          ) : null}
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const App: React.FC = () => {
   const isOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
@@ -46,13 +88,15 @@ const App: React.FC = () => {
 
         {isOpen ? (
           <div className="fixed inset-0 z-[9999]">
-            <ReportEditorWorkspace
-              isOpen={true}
-              projectId={currentProjectId || 'project-001'}
-              onClose={closeWorkspace}
-              theme={bidTheme}
-              terminology="bid"
-            />
+            <WorkspaceErrorBoundary>
+              <ReportEditorWorkspace
+                isOpen={true}
+                projectId={currentProjectId || 'project-001'}
+                onClose={closeWorkspace}
+                theme={bidTheme}
+                terminology="bid"
+              />
+            </WorkspaceErrorBoundary>
           </div>
         ) : null}
 
