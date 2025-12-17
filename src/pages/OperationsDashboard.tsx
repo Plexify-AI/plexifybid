@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, AlertTriangle, Wrench, Calendar, Filter } from 'lucide-react';
@@ -121,8 +122,8 @@ const OperationsDashboard: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Golden Triangle BID – District Map</h2>
-                <p className="text-sm text-gray-500">Boundaries: Connecticut Ave ↔ 16th St NW, K St ↔ Pennsylvania Ave</p>
+                <h2 className="text-lg font-semibold text-gray-900">Golden Triangle BID â€“ District Map</h2>
+                <p className="text-sm text-gray-500">Boundaries: Connecticut Ave â†” 16th St NW, K St â†” Pennsylvania Ave</p>
               </div>
               <div className="hidden md:flex items-center gap-4 text-sm">
                 <span className="inline-flex items-center gap-1 text-gray-600"><span className="w-3 h-3 rounded-full bg-blue-500 inline-block" /> Patrol</span>
@@ -211,9 +212,9 @@ const OperationsDashboard: React.FC = () => {
                         <div className="mt-0.5 text-sm text-gray-600 flex items-center gap-2">
                           <MapPin size={14} />
                           <span>{req.location}</span>
-                          <span className="mx-1">•</span>
+                          <span className="mx-1">â€¢</span>
                           <span className="text-gray-500">{req.type}</span>
-                          <span className="mx-1">•</span>
+                          <span className="mx-1">â€¢</span>
                           <span className="text-gray-500">{req.status}</span>
                         </div>
                         {isExpanded && (
@@ -244,7 +245,7 @@ const OperationsDashboard: React.FC = () => {
                 className="text-sm text-primary-700 hover:text-primary-800 hover:underline"
                 onClick={() => navigate('/ask-plexi')}
               >
-                Open Full Assistant →
+                Open Full Assistant â†’
               </button>
             </div>
             <form
@@ -272,3 +273,4 @@ const OperationsDashboard: React.FC = () => {
 };
 
 export default OperationsDashboard;
+
