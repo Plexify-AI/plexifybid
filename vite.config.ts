@@ -10,6 +10,8 @@ export default defineConfig({
     dedupe: [
       'react',
       'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       '@dnd-kit/core',
       '@dnd-kit/sortable',
       '@dnd-kit/utilities',
@@ -18,6 +20,39 @@ export default defineConfig({
       '@tiptap/starter-kit',
     ],
     alias: {
+      // Force single instances across linked/shared packages.
+      react: resolve(__dirname, 'node_modules/react'),
+      'react-dom': resolve(__dirname, 'node_modules/react-dom'),
+      'react/jsx-runtime': resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
+      'react/jsx-dev-runtime': resolve(
+        __dirname,
+        'node_modules/react/jsx-dev-runtime.js'
+      ),
+      '@dnd-kit/core': resolve(__dirname, 'node_modules/@dnd-kit/core'),
+      '@dnd-kit/sortable': resolve(__dirname, 'node_modules/@dnd-kit/sortable'),
+      '@dnd-kit/utilities': resolve(__dirname, 'node_modules/@dnd-kit/utilities'),
+      zustand: resolve(__dirname, 'node_modules/zustand'),
+      '@tiptap/react': resolve(__dirname, 'node_modules/@tiptap/react'),
+      '@tiptap/starter-kit': resolve(
+        __dirname,
+        'node_modules/@tiptap/starter-kit'
+      ),
+      '@tiptap/extension-placeholder': resolve(
+        __dirname,
+        'node_modules/@tiptap/extension-placeholder'
+      ),
+      '@tiptap/extension-underline': resolve(
+        __dirname,
+        'node_modules/@tiptap/extension-underline'
+      ),
+      '@tiptap/extension-text-align': resolve(
+        __dirname,
+        'node_modules/@tiptap/extension-text-align'
+      ),
+      '@tiptap/extension-highlight': resolve(
+        __dirname,
+        'node_modules/@tiptap/extension-highlight'
+      ),
       '@': resolve(__dirname, 'src'),
       '@components': resolve(__dirname, 'src/components'),
       '@features': resolve(__dirname, 'src/features'),
