@@ -59,7 +59,6 @@ const App: React.FC = () => {
   const isOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
-  const openWorkspace = useWorkspaceStore(s => s.openWorkspace);
 
   return (
     <Router>
@@ -100,8 +99,6 @@ const App: React.FC = () => {
           </div>
         ) : null}
 
-        <button onClick={openWorkspace} className="fixed bottom-4 right-4 z-[9999] bg-blue-600 text-white text-xs px-3 py-2 rounded shadow" style={{ opacity: 0.5 }}>Open WS</button>
-        <div className="fixed top-2 right-2 z-[9999] bg-black text-white text-xs px-2 py-1 rounded">WS: {isOpen ? 'open' : 'closed'}</div>
       </div>
     </Router>
   );
