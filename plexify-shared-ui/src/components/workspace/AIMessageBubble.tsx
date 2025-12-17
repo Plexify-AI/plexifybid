@@ -1,0 +1,155 @@
+import { PlexifyTheme } from '../../types/theme';
+import { Message, SuggestedAction } from '../../types/workspace';
+
+interface AIMessageBubbleProps {
+  message: Message;
+  theme: PlexifyTheme;
+  onSuggestedAction?: (action: SuggestedAction) => void;
+}
+
+export default function AIMessageBubble({
+  message,
+  theme,
+  onSuggestedAction,
+}: AIMessageBubbleProps) {
+  const isAssistant = message.role === 'assistant';
+
+  const formatTimestamp = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    }).format(date);
+  };
+
+  return (
+    <div
+      className={`flex items-start gap-3 ${
+        isAssistant ? '' : 'flex-row-reverse'
+      }`}
+    >
+      {/* Avatar */}
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{
+          backgroundColor: isAssistant ? theme.primaryColor : '#e5e7eb',
+        }}
+      >
+        {isAssistant ? (
+          <svg
+            className="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+        ) : (
+          <svg
+            className="w-4 h-4 text-gray-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+        )}
+      </div>
+
+      {/* Message Content */}
+      <div className={`flex-1 ${isAssistant ? '' : 'text-right'}`}>
+        <div
+          className={`inline-block rounded-lg px-4 py-3 max-w-full ${
+            isAssistant ? 'bg-gray-100 text-gray-900' : 'text-white'
+          }`}
+          style={!isAssistant ? { backgroundColor: theme.primaryColor } : undefined}
+        >
+          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        </div>
+
+        {/* Timestamp */}
+        <p
+          className={`text-xs text-gray-400 mt-1 ${
+            isAssistant ? '' : 'text-right'
+          }`}
+        >
+          {formatTimestamp(message.timestamp)}
+        </p>
+
+        {/* Suggested Actions */}
+        {isAssistant && message.suggestedActions && message.suggestedActions.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {message.suggestedActions.map((action, index) => (
+              <button
+                key={index}
+                onClick={() => onSuggestedAction?.(action)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border transition-colors"
+                style={{
+                  borderColor: theme.primaryColor,
+                  color: theme.primaryColor,
+                }}
+              >
+                {action.action === 'insert' && (
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                )}
+                {action.action === 'replace' && (
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                )}
+                {action.action === 'expand' && (
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                    />
+                  </svg>
+                )}
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
