@@ -48,7 +48,7 @@
         "lucide-react": "^0.544.0",
         "node-fetch": "^3.3.2",
         "pdf-parse": "^2.2.2",
-        "plexify-shared-ui": "file:../plexify-shared-ui",
+        "plexify-shared-ui": "file:./plexify-shared-ui",
         "postcss": "^8.5.6",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
