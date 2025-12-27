@@ -94,7 +94,12 @@ export default function AIMediaSummary() {
       <h3 className="text-sm font-semibold text-slate-700">AI Media Summary</h3>
 
       {/* Audio Briefing Widget */}
-      <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 text-white">
+      <div
+        className="rounded-xl p-4 text-white"
+        style={{
+          background: 'linear-gradient(135deg, #6366f1 0%, #9333ea 100%)',
+        }}
+      >
         <div className="flex items-center gap-2 mb-3">
           <HeadphonesIcon className="w-4 h-4" />
           <span className="text-sm font-semibold">Audio Briefing</span>
@@ -104,7 +109,10 @@ export default function AIMediaSummary() {
           <button
             type="button"
             onClick={() => setIsPlaying((p) => !p)}
-            className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center"
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            }}
           >
             {isPlaying ? (
               <PauseIcon className="w-[18px] h-[18px]" />
@@ -115,13 +123,22 @@ export default function AIMediaSummary() {
 
           <div className="flex-1 flex items-center gap-2 text-xs">
             <span>0:00</span>
-            <div className="flex-1 h-1 bg-white/30 rounded-full">
-              <div className="h-full w-0 bg-white rounded-full" />
+            <div
+              className="flex-1 h-1 rounded-full"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
+            >
+              <div
+                className="h-full w-0 rounded-full"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 1)' }}
+              />
             </div>
             <span>2:00</span>
           </div>
 
-          <select className="bg-white/20 text-xs rounded px-2 py-1 border-none">
+          <select
+            className="text-xs rounded px-2 py-1 border-none"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+          >
             <option>1x</option>
             <option>1.5x</option>
             <option>2x</option>
@@ -137,8 +154,13 @@ export default function AIMediaSummary() {
               className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition ${
                 activeChapter === ch.id
                   ? 'bg-white text-indigo-600'
-                  : 'bg-white/20 hover:bg-white/30'
+                  : ''
               }`}
+              style={
+                activeChapter === ch.id
+                  ? undefined
+                  : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
+              }
             >
               {ch.icon === 'video' ? (
                 <VideoIcon className="w-3 h-3" />
@@ -160,17 +182,35 @@ export default function AIMediaSummary() {
       </div>
 
       {/* Visual Site Summary */}
-      <div className="relative rounded-xl overflow-hidden bg-slate-300 aspect-video">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-500" />
+      <div
+        className="relative rounded-xl overflow-hidden"
+        style={{ aspectRatio: '16 / 9' }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)',
+          }}
+        />
         <button
           type="button"
-          className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition"
+          className="absolute inset-0 flex items-center justify-center transition"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
         >
-          <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+          <div
+            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
+          >
             <PlayIcon className="w-6 h-6 text-slate-700 ml-1" />
           </div>
         </button>
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent">
+        <div
+          className="absolute bottom-0 left-0 right-0 p-3"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
+          }}
+        >
           <span className="text-white text-sm font-medium">Visual Site Summary</span>
         </div>
       </div>
