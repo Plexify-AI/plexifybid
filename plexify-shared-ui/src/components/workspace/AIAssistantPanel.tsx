@@ -125,11 +125,25 @@ export default function AIAssistantPanel({
     }
   };
 
-  const quickPrompts = [
-    'Summarize key findings',
-    'What are the risks?',
-    'Suggest improvements',
-    'Compare to benchmarks',
+  const bidAgentChips = [
+    {
+      id: 'board-brief',
+      label: 'Generate Board Brief',
+      icon: '📋',
+      prompt: 'Generate a Board Brief from the selected sources',
+    },
+    {
+      id: 'assessment-trends',
+      label: 'Extract Assessment Trends',
+      icon: '📊',
+      prompt: 'Extract assessment collection trends from the selected sources',
+    },
+    {
+      id: 'ozrf-section',
+      label: 'Draft OZRF Section',
+      icon: '📝',
+      prompt: 'Draft an OZRF compliance section from the selected sources',
+    },
   ];
 
   return (
@@ -180,13 +194,16 @@ export default function AIAssistantPanel({
               How can I help you with this report?
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              {quickPrompts.map((prompt, index) => (
+              {bidAgentChips.map((chip) => (
                 <button
-                  key={index}
-                  onClick={() => onSendMessage?.(prompt)}
+                  key={chip.id}
+                  onClick={() => onSendMessage?.(chip.prompt)}
                   className="px-3 py-1.5 text-xs rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  {prompt}
+                  <span className="inline-flex items-center gap-1.5">
+                    <span aria-hidden="true">{chip.icon}</span>
+                    <span>{chip.label}</span>
+                  </span>
                 </button>
               ))}
             </div>
