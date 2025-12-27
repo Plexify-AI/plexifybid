@@ -35,6 +35,7 @@ interface ReportEditorWorkspaceProps {
   onSave?: (content: string) => Promise<void>;
   onRegenerate?: (instructions?: string) => Promise<string>;
   onAIMessage?: (message: string) => Promise<Message>;
+  onSourceMaterialsChange?: (materials: SourceMaterial[]) => void;
   onExportPDF?: () => Promise<void>;
   onExportPPTX?: () => Promise<void>;
 }
@@ -57,6 +58,7 @@ export default function ReportEditorWorkspace({
   onSave,
   onRegenerate,
   onAIMessage,
+  onSourceMaterialsChange,
   onExportPDF,
   onExportPPTX,
 }: ReportEditorWorkspaceProps) {
@@ -88,6 +90,21 @@ export default function ReportEditorWorkspace({
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
+  };
+
+  const handleToggleMaterialContext = (materialId: string, selected: boolean) => {
+    setMaterials((prev) => {
+      const next = prev.map((m) =>
+        m.id === materialId ? { ...m, isSelectedForContext: selected } : m
+      );
+      onSourceMaterialsChange?.(next);
+      return next;
+    });
+  };
+
+  const handleReorderMaterials = (nextMaterials: SourceMaterial[]) => {
+    setMaterials(nextMaterials);
+    onSourceMaterialsChange?.(nextMaterials);
   };
 
   const handleSave = async () => {
@@ -309,7 +326,8 @@ export default function ReportEditorWorkspace({
                 theme={theme}
                 materials={materials}
                 title={terminologyConfig.sourceMaterialsLabel}
-                onReorder={setMaterials}
+                onReorder={handleReorderMaterials}
+                onToggleContext={handleToggleMaterialContext}
               />
             )}
           </aside>

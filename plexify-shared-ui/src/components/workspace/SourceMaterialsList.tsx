@@ -24,16 +24,19 @@ interface SourceMaterialsListProps {
   onReorder?: (materials: SourceMaterial[]) => void;
   onMaterialClick?: (material: SourceMaterial) => void;
   onDragToEditor?: (material: SourceMaterial) => void;
+  onToggleContext?: (materialId: string, selected: boolean) => void;
 }
 
 function SortableItem({
   material,
   theme,
   onClick,
+  onToggleContext,
 }: {
   material: SourceMaterial;
   theme: PlexifyTheme;
   onClick?: () => void;
+  onToggleContext?: (materialId: string, selected: boolean) => void;
 }) {
   const {
     attributes,
@@ -143,6 +146,22 @@ function SortableItem({
           {material.count}
         </span>
       )}
+
+      {typeof material.isSelectedForContext === 'boolean' && onToggleContext && (
+        <label
+          className="flex items-center gap-2 text-xs text-gray-600"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={material.isSelectedForContext}
+            onChange={(e) => onToggleContext(material.id, e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          Use
+        </label>
+      )}
       <svg
         className="w-4 h-4 text-gray-400 flex-shrink-0"
         fill="none"
@@ -166,6 +185,7 @@ export default function SourceMaterialsList({
   title = 'Source Materials',
   onReorder,
   onMaterialClick,
+  onToggleContext,
 }: SourceMaterialsListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -215,6 +235,7 @@ export default function SourceMaterialsList({
                 material={material}
                 theme={theme}
                 onClick={() => onMaterialClick?.(material)}
+                onToggleContext={onToggleContext}
               />
             ))}
           </SortableContext>

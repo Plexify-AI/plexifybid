@@ -75,6 +75,21 @@ export default function AIMessageBubble({
           style={!isAssistant ? { backgroundColor: theme.primaryColor } : undefined}
         >
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+
+          {isAssistant && message.citations && message.citations.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {message.citations.map((citation, index) => (
+                <button
+                  key={citation.id}
+                  type="button"
+                  title={`${citation.sourceLabel}${citation.pageNumber ? ` (p. ${citation.pageNumber})` : ''}: ${citation.quote}`}
+                  className="text-[11px] leading-none px-1.5 py-1 rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  [{index + 1}]
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Timestamp */}
@@ -85,6 +100,21 @@ export default function AIMessageBubble({
         >
           {formatTimestamp(message.timestamp)}
         </p>
+
+        {isAssistant &&
+          ((message.referencedSources && message.referencedSources.length > 0) ||
+            typeof message.confidence === 'number') && (
+            <div className="mt-2 text-xs text-gray-500">
+              {message.referencedSources && message.referencedSources.length > 0 ? (
+                <span>Referenced: {message.referencedSources.join(', ')}</span>
+              ) : null}
+              {typeof message.confidence === 'number' ? (
+                <span className={message.referencedSources && message.referencedSources.length > 0 ? 'ml-2' : ''}>
+                  Confidence: {message.confidence}%
+                </span>
+              ) : null}
+            </div>
+          )}
 
         {/* Suggested Actions */}
         {isAssistant && message.suggestedActions && message.suggestedActions.length > 0 && (

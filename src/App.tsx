@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
 import PlaceholderPage from './components/PlaceholderPage';
@@ -12,6 +12,11 @@ import BoardReporting from './pages/BoardReporting';
 import ReportPrintView from './pages/ReportPrintView';
 import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
+import {
+  loadNotebookBDSources,
+  notebookbdAnswer,
+  type NotebookBDSourceDoc,
+} from './services/notebookbdRag';
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -60,6 +65,33 @@ const App: React.FC = () => {
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
 
+  const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
+
+  useEffect(() => {
+    loadNotebookBDSources()
+      .then(setNotebookDocs)
+      .catch((err) => console.error('Failed to load NotebookBD demo sources:', err));
+  }, []);
+
+  const sourceMaterials = useMemo(
+    () => notebookDocs.map((d) => d.material),
+    [notebookDocs]
+  );
+
+  const handleSourceMaterialsChange = (materials) => {
+    setNotebookDocs((prev) => {
+      const nextById = new Map(materials.map((m) => [m.id, m]));
+      return prev.map((d) => ({
+        ...d,
+        material: nextById.get(d.material.id) ?? d.material,
+      }));
+    });
+  };
+
+  const handleAIMessage = async (message: string) => {
+    return notebookbdAnswer({ query: message, docs: notebookDocs });
+  };
+
   return (
     <Router>
       <div className="app-container">
@@ -94,6 +126,9 @@ const App: React.FC = () => {
                 onClose={closeWorkspace}
                 theme={bidTheme}
                 terminology="bid"
+                sourceMaterials={sourceMaterials}
+                onSourceMaterialsChange={handleSourceMaterialsChange}
+                onAIMessage={handleAIMessage}
               />
             </WorkspaceErrorBoundary>
           </div>

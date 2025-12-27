@@ -5,11 +5,20 @@ export interface SourceMaterial {
   date?: string;
   count?: number;
   url?: string;
+  isSelectedForContext?: boolean;
 }
 
 export interface AudioChapter {
   label: string;
   timestamp: number;
+}
+
+export interface Citation {
+  id: string;
+  sourceId: string;
+  sourceLabel: string;
+  quote: string;
+  pageNumber?: number;
 }
 
 export interface Message {
@@ -18,6 +27,9 @@ export interface Message {
   content: string;
   timestamp: Date;
   suggestedActions?: SuggestedAction[];
+  citations?: Citation[];
+  referencedSources?: string[];
+  confidence?: number;
 }
 
 export interface SuggestedAction {
