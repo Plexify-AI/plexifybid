@@ -20,6 +20,10 @@ export default defineConfig({
       '@tiptap/starter-kit',
     ],
     alias: {
+      // During local dev, resolve plexify-shared-ui directly from source so consumers
+      // don't depend on a prebuilt dist/ folder.
+      'plexify-shared-ui': resolve(__dirname, 'plexify-shared-ui/src/index.ts'),
+
       // Force single instances across linked/shared packages.
       react: resolve(__dirname, 'node_modules/react'),
       'react-dom': resolve(__dirname, 'node_modules/react-dom'),
