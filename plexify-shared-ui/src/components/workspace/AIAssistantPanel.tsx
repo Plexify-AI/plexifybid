@@ -2,10 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PlexifyTheme } from '../../types/theme';
 import { Message, SuggestedAction } from '../../types/workspace';
 import AIMessageBubble from './AIMessageBubble';
+import PlexifyLogo from '../shared/PlexifyLogo';
 
 interface AIAssistantPanelProps {
   theme: PlexifyTheme;
   title?: string;
+  embedded?: boolean;
   messages?: Message[];
   onSendMessage?: (message: string) => Promise<void>;
   onSuggestedAction?: (action: SuggestedAction) => void;
@@ -13,9 +15,82 @@ interface AIAssistantPanelProps {
   isLoading?: boolean;
 }
 
+function PaperclipIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21.44 11.05l-8.49 8.49a5 5 0 01-7.07-7.07l8.49-8.49a3.5 3.5 0 014.95 4.95l-8.84 8.84a2 2 0 11-2.83-2.83l8.49-8.49"
+      />
+    </svg>
+  );
+}
+
+function MicIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 10v2a7 7 0 01-14 0v-2"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 19v4m-4 0h8"
+      />
+    </svg>
+  );
+}
+
+function SendIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      aria-hidden="true"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M22 2L11 13"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M22 2l-7 20-4-9-9-4 20-7z"
+      />
+    </svg>
+  );
+}
+
 export default function AIAssistantPanel({
   theme,
-  title = 'AI Research Assistant',
+  title = 'Plexify AI Assistant',
+  embedded = false,
   messages = [],
   onSendMessage,
   onSuggestedAction,
@@ -58,35 +133,23 @@ export default function AIAssistantPanel({
   ];
 
   return (
-    <div className="flex flex-col h-full rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div
+      className={
+        embedded
+          ? 'flex flex-col h-full bg-white'
+          : 'flex flex-col h-full rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden'
+      }
+    >
       {/* Header */}
       <div
-        className="px-4 py-3 border-b border-gray-100 flex items-center gap-3"
-        style={{ backgroundColor: `${theme.primaryColor}10` }}
+        className="flex items-center gap-3 px-4 py-3 border-b border-slate-200"
       >
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: theme.primaryColor }}
-        >
-          <svg
-            className="w-4 h-4 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
+        <PlexifyLogo size={28} />
         <div>
-          <h3 className="font-semibold text-gray-900">{title}</h3>
-          <p className="text-xs text-gray-500">
+          <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+          <span className="text-xs text-green-500">
             {isLoading ? 'Thinking...' : 'Online'}
-          </p>
+          </span>
         </div>
       </div>
 
@@ -121,7 +184,7 @@ export default function AIAssistantPanel({
                 <button
                   key={index}
                   onClick={() => onSendMessage?.(prompt)}
-                  className="px-3 py-1.5 text-xs rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="px-3 py-1.5 text-xs rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   {prompt}
                 </button>
@@ -191,41 +254,45 @@ export default function AIAssistantPanel({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-100">
+      <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200">
         <div className="flex items-end gap-2">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            rows={1}
-            className="flex-1 px-4 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 text-sm"
-            style={
-              {
-                '--tw-ring-color': theme.primaryColor,
-              } as React.CSSProperties
-            }
-          />
+          <div className="flex-1 flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              rows={1}
+              className="flex-1 text-sm outline-none resize-none"
+            />
+            <button
+              type="button"
+              className="p-1.5 text-slate-400 hover:text-slate-600"
+              aria-label="Attach"
+              disabled={isLoading}
+            >
+              <PaperclipIcon className="w-[18px] h-[18px]" />
+            </button>
+            <button
+              type="button"
+              className="p-1.5 text-slate-400 hover:text-slate-600"
+              aria-label="Voice"
+              disabled={isLoading}
+            >
+              <MicIcon className="w-[18px] h-[18px]" />
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="p-2 rounded-lg text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ backgroundColor: theme.primaryColor }}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
-            </svg>
+            <span className="inline-flex items-center gap-2">
+              Send
+              <SendIcon className="w-4 h-4" />
+            </span>
           </button>
         </div>
       </form>

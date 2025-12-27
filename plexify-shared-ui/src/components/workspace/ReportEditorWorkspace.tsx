@@ -8,8 +8,7 @@ import {
   AudioChapter,
   WorkspaceConfig,
 } from '../../types';
-import AudioBriefingCard from './AudioBriefingCard';
-import VideoSummaryCard from './VideoSummaryCard';
+import AIMediaSummary from './AIMediaSummary';
 import SourceMaterialsList from './SourceMaterialsList';
 import BlockEditor from './BlockEditor';
 import RegenerateWithAIButton from './RegenerateWithAIButton';
@@ -63,6 +62,15 @@ export default function ReportEditorWorkspace({
   onExportPPTX,
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
+
+  // These props are reserved for future integration with real media sources.
+  void audioUrl;
+  void audioDuration;
+  void audioChapters;
+  void videoUrl;
+  void videoThumbnail;
+  void videoDuration;
+
   const [content, setContent] = useState(initialContent);
   const [materials, setMaterials] = useState<SourceMaterial[]>(sourceMaterials);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -77,6 +85,8 @@ export default function ReportEditorWorkspace({
     allowExport = true,
     exportFormats = ['pdf', 'pptx'],
   } = config;
+
+  const showAIMediaSummary = showAudioBriefing || showVideoSummary;
 
   // Update content when initialContent changes
   useEffect(() => {
@@ -300,36 +310,34 @@ export default function ReportEditorWorkspace({
         {/* Three Column Layout */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Panel - Sources */}
-          <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto p-4 space-y-4">
-            {showAudioBriefing && audioUrl && (
-              <AudioBriefingCard
-                theme={theme}
-                audioUrl={audioUrl}
-                title="Audio Briefing"
-                duration={audioDuration}
-                chapters={audioChapters}
-              />
-            )}
+          <aside className="w-80 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-200">
+              <h2 className="text-sm font-semibold text-slate-800">
+                Inputs &amp; Media Sources
+              </h2>
+            </div>
 
-            {showVideoSummary && videoUrl && (
-              <VideoSummaryCard
-                theme={theme}
-                videoUrl={videoUrl}
-                thumbnailUrl={videoThumbnail}
-                title="Video Summary"
-                duration={videoDuration}
-              />
-            )}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {showAIMediaSummary ? <AIMediaSummary /> : null}
 
-            {showSourceMaterials && (
-              <SourceMaterialsList
-                theme={theme}
-                materials={materials}
-                title={terminologyConfig.sourceMaterialsLabel}
-                onReorder={handleReorderMaterials}
-                onToggleContext={handleToggleMaterialContext}
-              />
-            )}
+              {showSourceMaterials && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-700">
+                    {terminologyConfig.sourceMaterialsLabel}
+                  </h3>
+                  <p className="text-xs text-slate-500 mb-2">
+                    Draggable materials
+                  </p>
+                  <SourceMaterialsList
+                    theme={theme}
+                    materials={materials}
+                    showHeader={false}
+                    onReorder={handleReorderMaterials}
+                    onToggleContext={handleToggleMaterialContext}
+                  />
+                </div>
+              )}
+            </div>
           </aside>
 
           {/* Center Panel - Editor */}
@@ -359,14 +367,23 @@ export default function ReportEditorWorkspace({
 
           {/* Right Panel - AI Assistant */}
           {showAIAssistant && (
-            <aside className="w-96 flex-shrink-0 border-l border-gray-200 bg-white">
-              <AIAssistantPanel
-                theme={theme}
-                title={terminologyConfig.aiAssistantName}
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                isLoading={isAILoading}
-              />
+            <aside className="w-96 flex-shrink-0 border-l border-slate-200 bg-white flex flex-col overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-200">
+                <h2 className="text-sm font-semibold text-slate-800">
+                  AI Research Assistant
+                </h2>
+              </div>
+
+              <div className="flex-1 flex flex-col m-3 rounded-xl border border-slate-200 overflow-hidden bg-white">
+                <AIAssistantPanel
+                  embedded={true}
+                  theme={theme}
+                  title="Plexify AI Assistant"
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  isLoading={isAILoading}
+                />
+              </div>
             </aside>
           )}
         </div>
