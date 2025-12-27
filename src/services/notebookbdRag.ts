@@ -40,10 +40,10 @@ const scoreText = (queryTokens: string[], text: string) => {
   return hits / queryTokens.length;
 };
 
-const pickBestQuote = (query: string, docs: NotebookBDSourceDoc[]) => {
+const pickCitations = (query: string, docs: NotebookBDSourceDoc[]) => {
   const queryTokens = tokenize(query);
 
-  const citations: Citation[] = [];
+  const scored: Array<{ citation: Citation; score: number }> = [];
 
   for (const doc of docs) {
     const chunks = doc.text
@@ -62,23 +62,28 @@ const pickBestQuote = (query: string, docs: NotebookBDSourceDoc[]) => {
       }
     }
 
-    if (bestScore > 0) {
-      citations.push({
+    scored.push({
+      score: bestScore,
+      citation: {
         id: uuidv4(),
         sourceId: doc.material.id,
         sourceLabel: doc.material.label,
         quote: bestChunk.slice(0, 240),
-      });
-    }
+      },
+    });
   }
 
-  citations.sort((a, b) => {
-    const aLen = a.quote.length;
-    const bLen = b.quote.length;
-    return bLen - aLen;
-  });
+  const matched = scored.filter((s) => s.score > 0);
+  const chosen = (matched.length > 0 ? matched : scored)
+    .sort((a, b) => {
+      // Prefer relevance, then longer snippets.
+      if (b.score !== a.score) return b.score - a.score;
+      return b.citation.quote.length - a.citation.quote.length;
+    })
+    .slice(0, 3)
+    .map((s) => s.citation);
 
-  return citations.slice(0, 3);
+  return { citations: chosen, hasKeywordMatch: matched.length > 0 };
 };
 
 export async function loadNotebookBDSources(): Promise<NotebookBDSourceDoc[]> {
@@ -150,9 +155,16 @@ export async function notebookbdAnswer({
     (d) => d.material.isSelectedForContext !== false
   );
 
-  const citations = pickBestQuote(query, selectedDocs);
+  const { citations, hasKeywordMatch } = pickCitations(query, selectedDocs);
   const referencedSources = citations.map((c) => c.sourceLabel);
-  const confidence = citations.length === 0 ? 30 : citations.length === 1 ? 65 : 82;
+  const confidence =
+    selectedDocs.length === 0
+      ? 30
+      : !hasKeywordMatch
+        ? 55
+        : citations.length === 1
+          ? 70
+          : 85;
 
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined;
 
@@ -166,8 +178,10 @@ export async function notebookbdAnswer({
   }
 
   if (!content) {
-    if (citations.length === 0) {
+    if (selectedDocs.length === 0) {
       content = `I don't have enough source material selected to answer that. Try enabling more Source Materials for context.`;
+    } else if (!hasKeywordMatch) {
+      content = `I couldn’t find a direct keyword match for that prompt, but here’s general context from your selected sources:\n\n- ${citations[0]?.quote ?? ''} [1]\n\nTry asking something specific like “assessment collection rate” or “board priorities for 2025”.`;
     } else {
       content = `Here’s what I found in your sources:\n\n- ${citations[0].quote} [1]\n\nAsk a follow-up and I can dig deeper across the other documents.`;
     }
