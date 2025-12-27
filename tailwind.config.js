@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "./node_modules/plexify-shared-ui/dist/**/*.{js,mjs}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./plexify-shared-ui/src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/plexify-shared-ui/dist/**/*.{js,mjs}",
+  ],
   theme: {
     extend: {
       colors: {
