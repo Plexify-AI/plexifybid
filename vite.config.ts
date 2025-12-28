@@ -1,10 +1,19 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { notebookBDAgentsMiddleware } from './src/server/agentsApi';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'notebookbd-agents-api',
+      configureServer(server) {
+        server.middlewares.use(notebookBDAgentsMiddleware());
+      },
+    },
+  ],
   optimizeDeps: { exclude: ['plexify-shared-ui'] },
   resolve: {
     dedupe: [

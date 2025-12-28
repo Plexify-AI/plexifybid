@@ -1,0 +1,246 @@
+import type { IncomingMessage, ServerResponse } from 'http';
+import path from 'path';
+import fs from 'fs/promises';
+import {
+  type BoardBriefEnvelope,
+  type NotebookBDAgentId,
+  type StructuredOutputSourceRef,
+} from '../types/structuredOutputs';
+
+type AgentsApiRequestBody = {
+  projectId?: string;
+  sourceIds?: string[];
+  instructions?: string;
+};
+
+const DEMO_SOURCES: Array<{
+  id: string;
+  label: string;
+  filename: string;
+}> = [
+  {
+    id: 'gt-annual-2024',
+    label: 'Golden Triangle BID Annual Report 2024',
+    filename: 'Golden_Triangle_BID_Annual_Report_2024.txt',
+  },
+  {
+    id: 'q3-assessment-collections',
+    label: 'Q3 Assessment Collection Summary',
+    filename: 'Q3_Assessment_Collection_Summary.txt',
+  },
+  {
+    id: 'board-minutes-oct-2024',
+    label: 'Board Meeting Minutes (Oct 2024)',
+    filename: 'Board_Meeting_Minutes_October_2024.txt',
+  },
+];
+
+async function readJson<T>(req: IncomingMessage): Promise<T> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString('utf-8');
+  return raw ? (JSON.parse(raw) as T) : ({} as T);
+}
+
+function sendJson(res: ServerResponse, status: number, data: unknown) {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(data));
+}
+
+function extractJsonObject(text: string): unknown {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+async function loadSelectedSourceTexts(sourceIds?: string[]) {
+  const selected =
+    sourceIds && sourceIds.length > 0
+      ? DEMO_SOURCES.filter((s) => sourceIds.includes(s.id))
+      : DEMO_SOURCES;
+
+  const docsDir = path.resolve(process.cwd(), 'public', 'demo-data');
+  const docs = await Promise.all(
+    selected.map(async (s) => {
+      const fullPath = path.join(docsDir, s.filename);
+      const text = await fs.readFile(fullPath, 'utf-8');
+      return { ...s, text };
+    })
+  );
+
+  return docs;
+}
+
+async function generateBoardBriefWithClaude({
+  projectId,
+  sources,
+  instructions,
+}: {
+  projectId: string;
+  sources: Array<{ id: string; label: string; text: string }>;
+  instructions?: string;
+}): Promise<BoardBriefEnvelope> {
+  const apiKey = process.env.VITE_ANTHROPIC_API_KEY;
+
+  const sourcesUsed: StructuredOutputSourceRef[] = sources.map((s) => ({
+    id: s.id,
+    label: s.label,
+  }));
+
+  if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+    return {
+      agentId: 'board-brief',
+      schemaVersion: '1.0',
+      generatedAt: new Date().toISOString(),
+      projectId,
+      sourcesUsed,
+      output: {
+        title: 'Board Brief (Demo)',
+        districtName: 'Golden Triangle BID',
+        reportingPeriod: 'FY 2024',
+        executiveSummary: [
+          'Assessment collections remained strong and supported core programs.',
+          'Priority initiatives include streetscape maintenance, safety coordination, and wayfinding planning.',
+        ],
+        keyMetrics: [
+          { label: 'Assessments billed', value: '$2.44M' },
+          { label: 'Assessments collected', value: '$2.30M' },
+          { label: 'Collection rate', value: '94.2%' },
+        ],
+        highlights: [
+          'Continued streetscape improvements (sidewalk repairs, tree wells, litter abatement).',
+          'Wayfinding signage program planning advanced.',
+        ],
+        risks: ['Delinquency follow-up may impact cashflow if not improved.'],
+        recommendations: [
+          'Increase delinquency follow-up cadence and board-level reporting.',
+          'Finalize wayfinding signage timeline and procurement plan.',
+        ],
+      },
+    };
+  }
+
+  const context = sources
+    .map((s, idx) => {
+      const trimmed = s.text.trim();
+      const snippet = trimmed.length > 2500 ? `${trimmed.slice(0, 2500)}\n…` : trimmed;
+      return `[Source ${idx + 1}] ${s.label}\n${snippet}`;
+    })
+    .join('\n\n');
+
+  const schema = {
+    agentId: 'board-brief',
+    schemaVersion: '1.0',
+    generatedAt: 'ISO_TIMESTAMP',
+    projectId: projectId,
+    sourcesUsed: [{ id: 'string', label: 'string' }],
+    output: {
+      title: 'string',
+      districtName: 'string',
+      reportingPeriod: 'string',
+      executiveSummary: ['string'],
+      keyMetrics: [{ label: 'string', value: 'string' }],
+      highlights: ['string'],
+      risks: ['string'],
+      recommendations: ['string'],
+    },
+  };
+
+  const prompt = `You are a BID operations analyst. Create a concise Board Brief using ONLY the provided sources.\n\n${context}\n\nInstructions (optional): ${instructions ?? 'None'}\n\nReturn ONLY valid JSON (no markdown) matching this schema exactly:\n${JSON.stringify(schema, null, 2)}\n\nNotes:\n- Use short bullets.\n- Use exact figures from sources where available.\n- If a field cannot be supported by sources, use an empty array for that field.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1200,
+      temperature: 0.2,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Anthropic error ${response.status}: ${await response.text()}`);
+  }
+
+  const data = (await response.json()) as { content?: Array<{ text?: string }> };
+  const text = data.content?.[0]?.text ?? '';
+  const parsed = extractJsonObject(text);
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Failed to parse structured JSON from model output');
+  }
+
+  return parsed as BoardBriefEnvelope;
+}
+
+async function handleAgentRequest({
+  agentId,
+  body,
+}: {
+  agentId: NotebookBDAgentId;
+  body: AgentsApiRequestBody;
+}) {
+  const projectId = body.projectId ?? 'project-001';
+  const sources = await loadSelectedSourceTexts(body.sourceIds);
+
+  if (agentId === 'board-brief') {
+    return generateBoardBriefWithClaude({
+      projectId,
+      sources,
+      instructions: body.instructions,
+    });
+  }
+
+  return {
+    agentId,
+    schemaVersion: '1.0',
+    generatedAt: new Date().toISOString(),
+    projectId,
+    sourcesUsed: sources.map((s) => ({ id: s.id, label: s.label })),
+    output: {
+      title: 'Not implemented',
+      summary: ['This agent is not implemented yet.'],
+      trends: [],
+      risks: [],
+      recommendedActions: [],
+    },
+  };
+}
+
+export function notebookBDAgentsMiddleware() {
+  return async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+    try {
+      const url = req.url || '';
+      if (!url.startsWith('/api/agents/')) return next();
+
+      if (req.method !== 'POST') {
+        return sendJson(res, 405, { error: 'Method not allowed' });
+      }
+
+      const agentId = decodeURIComponent(url.replace('/api/agents/', '').split('?')[0]);
+      if (!['board-brief', 'assessment-trends', 'ozrf-section'].includes(agentId)) {
+        return sendJson(res, 404, { error: 'Unknown agent' });
+      }
+
+      const body = await readJson<AgentsApiRequestBody>(req);
+      const result = await handleAgentRequest({
+        agentId: agentId as NotebookBDAgentId,
+        body,
+      });
+      return sendJson(res, 200, result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return sendJson(res, 500, { error: message });
+    }
+  };
+}
