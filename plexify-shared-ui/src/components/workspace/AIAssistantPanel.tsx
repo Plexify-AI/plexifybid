@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PlexifyTheme } from '../../types/theme';
 import { Message, SuggestedAction } from '../../types/workspace';
 import AIMessageBubble from './AIMessageBubble';
-import PlexifyLogo from '../shared/PlexifyLogo';
+// Uses app-level public assets: /public/images/plexify-logo.png
 
 interface AIAssistantPanelProps {
   theme: PlexifyTheme;
@@ -160,7 +160,11 @@ export default function AIAssistantPanel({
       <div
         className="flex items-center gap-3 px-4 py-3 border-b border-slate-200"
       >
-        <PlexifyLogo size={28} />
+        <img
+          src="/images/plexify-logo.png?v=1"
+          alt="Plexify"
+          className="h-7 w-7 object-contain"
+        />
         <div>
           <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
           <span className="text-xs text-green-500">

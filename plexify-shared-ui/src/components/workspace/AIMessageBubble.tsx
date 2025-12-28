@@ -1,6 +1,6 @@
 import { PlexifyTheme } from '../../types/theme';
 import { Message, SuggestedAction } from '../../types/workspace';
-import PlexifyLogo from '../shared/PlexifyLogo';
+// Uses app-level public assets: /public/images/plexify-logo.png
 
 interface AIMessageBubbleProps {
   message: Message;
@@ -37,7 +37,11 @@ export default function AIMessageBubble({
         }}
       >
         {isAssistant ? (
-          <PlexifyLogo size={32} />
+          <img
+            src="/images/plexify-logo.png?v=1"
+            alt="Plexify"
+            className="w-8 h-8 object-contain"
+          />
         ) : (
           <svg
             className="w-4 h-4 text-gray-600"
