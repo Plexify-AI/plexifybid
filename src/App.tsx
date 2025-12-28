@@ -20,6 +20,7 @@ import {
 import { runNotebookBDAgent } from './services/agentService';
 import BoardBriefRenderer from './components/BoardBriefRenderer';
 import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
+import OZRFSectionRenderer from './components/OZRFSectionRenderer';
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -113,6 +114,10 @@ const App: React.FC = () => {
 
     if (data?.agentId === 'assessment-trends') {
       return <AssessmentTrendsRenderer trends={data} />;
+    }
+
+    if (data?.agentId === 'ozrf-section') {
+      return <OZRFSectionRenderer section={data} />;
     }
 
     return (

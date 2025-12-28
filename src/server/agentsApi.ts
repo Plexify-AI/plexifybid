@@ -4,6 +4,7 @@ import fs from 'fs/promises';
 import {
   type BoardBriefEnvelope,
   type AssessmentTrendsEnvelope,
+  type OZRFSectionEnvelope,
   type NotebookBDAgentId,
   type StructuredOutputSourceRef,
   type StructuredCitation,
@@ -384,6 +385,159 @@ async function generateAssessmentTrendsWithClaude({
   return parsed as AssessmentTrendsEnvelope;
 }
 
+async function generateOZRFSectionWithClaude({
+  projectId,
+  sources,
+  instructions,
+}: {
+  projectId: string;
+  sources: Array<{ id: string; label: string; text: string }>;
+  instructions?: string;
+}): Promise<OZRFSectionEnvelope> {
+  const apiKey = process.env.VITE_ANTHROPIC_API_KEY;
+
+  const sourcesUsed: StructuredOutputSourceRef[] = sources.map((s) => ({
+    id: s.id,
+    label: s.label,
+  }));
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+    const demoCitation: StructuredCitation = {
+      number: 1,
+      sourceId: sourcesUsed[0]?.id ?? 'gt-annual-2024',
+      sourceName: sourcesUsed[0]?.label ?? 'Golden Triangle BID Annual Report 2024',
+      quote: 'Demo citation (API key not configured).',
+    };
+
+    return {
+      agentId: 'ozrf-section',
+      schemaVersion: '1.0',
+      generatedAt: new Date().toISOString(),
+      projectId,
+      sourcesUsed,
+      output: {
+        title: 'OZRF Compliance Section (Demo)',
+        metadata: {
+          reportingPeriod: 'Q3 2024',
+          preparedDate: today,
+        },
+        sections: {
+          communityImpact: {
+            jobsCreated: { value: 45, citation: demoCitation },
+            jobsRetained: { value: 120, citation: demoCitation },
+            localHiringRate: { value: '78%', citation: demoCitation },
+          },
+          investmentFacilitation: {
+            totalInvestment: { value: '$12.5M', citation: demoCitation },
+            qofInvestments: { value: 3, citation: demoCitation },
+            businessRelocations: { value: 2, citation: demoCitation },
+          },
+          environmentalSocial: [
+            { metric: 'Brownfield Remediation', value: '2 acres', citation: demoCitation },
+            { metric: 'Affordable Housing Units', value: '15 planned', citation: demoCitation },
+            { metric: 'Community Programs', value: '4 active initiatives', citation: demoCitation },
+          ],
+          disclosureStatement:
+            'This section prepared in accordance with OZRF guidelines. Data sourced from district records and verified against original documentation.',
+        },
+      },
+    };
+  }
+
+  const context = sources
+    .map((s, idx) => {
+      const trimmed = s.text.trim();
+      const snippet = trimmed.length > 3000 ? `${trimmed.slice(0, 3000)}\n…` : trimmed;
+      return `[Source ${idx + 1}] ${s.label}\n${snippet}`;
+    })
+    .join('\n\n');
+
+  const schema = {
+    agentId: 'ozrf-section',
+    schemaVersion: '1.0',
+    generatedAt: 'ISO_TIMESTAMP',
+    projectId: projectId,
+    sourcesUsed: [{ id: 'string', label: 'string' }],
+    output: {
+      title: 'string',
+      metadata: {
+        reportingPeriod: 'string',
+        preparedDate: 'YYYY-MM-DD',
+      },
+      sections: {
+        communityImpact: {
+          jobsCreated: {
+            value: 0,
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+          jobsRetained: {
+            value: 0,
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+          localHiringRate: {
+            value: 'string',
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+        },
+        investmentFacilitation: {
+          totalInvestment: {
+            value: 'string',
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+          qofInvestments: {
+            value: 0,
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+          businessRelocations: {
+            value: 0,
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+        },
+        environmentalSocial: [
+          {
+            metric: 'string',
+            value: 'string',
+            citation: { number: 1, sourceId: 'string', sourceName: 'string', quote: 'string' },
+          },
+        ],
+        disclosureStatement: 'string',
+      },
+    },
+  };
+
+  const prompt = `You are an OZ reporting compliance analyst. Draft an OZRF compliance section using ONLY the provided sources.\n\n${context}\n\nInstructions (optional): ${instructions ?? 'None'}\n\nReturn ONLY valid JSON (no markdown) matching this schema exactly:\n${JSON.stringify(schema, null, 2)}\n\nNotes:\n- Only include metrics that can be supported by sources; otherwise use conservative placeholders with empty citations omitted.\n- Keep disclosureStatement short and compliance-oriented.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1600,
+      temperature: 0.2,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Anthropic error ${response.status}: ${await response.text()}`);
+  }
+
+  const data = (await response.json()) as { content?: Array<{ text?: string }> };
+  const text = data.content?.[0]?.text ?? '';
+  const parsed = extractJsonObject(text);
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Failed to parse structured JSON from model output');
+  }
+
+  return parsed as OZRFSectionEnvelope;
+}
+
 async function handleAgentRequest({
   agentId,
   body,
@@ -410,20 +564,15 @@ async function handleAgentRequest({
     });
   }
 
-  return {
-    agentId,
-    schemaVersion: '1.0',
-    generatedAt: new Date().toISOString(),
-    projectId,
-    sourcesUsed: sources.map((s) => ({ id: s.id, label: s.label })),
-    output: {
-      title: 'Not implemented',
-      summary: ['This agent is not implemented yet.'],
-      trends: [],
-      risks: [],
-      recommendedActions: [],
-    },
-  };
+  if (agentId === 'ozrf-section') {
+    return generateOZRFSectionWithClaude({
+      projectId,
+      sources,
+      instructions: body.instructions,
+    });
+  }
+
+  throw new Error(`Unhandled agentId: ${agentId}`);
 }
 
 export function notebookBDAgentsMiddleware() {

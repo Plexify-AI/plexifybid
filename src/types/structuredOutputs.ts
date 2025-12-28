@@ -86,9 +86,28 @@ export type AssessmentTrendsEnvelope = StructuredOutputEnvelope<AssessmentTrends
 
 export interface OZRFSectionOutput {
   title: string;
-  narrative: string[];
-  complianceChecklist: string[];
-  openItems: string[];
+  metadata: {
+    reportingPeriod: string;
+    preparedDate: string;
+  };
+  sections: {
+    communityImpact: {
+      jobsCreated: { value: number; citation?: StructuredCitation };
+      jobsRetained: { value: number; citation?: StructuredCitation };
+      localHiringRate: { value: string; citation?: StructuredCitation };
+    };
+    investmentFacilitation: {
+      totalInvestment: { value: string; citation?: StructuredCitation };
+      qofInvestments: { value: number; citation?: StructuredCitation };
+      businessRelocations: { value: number; citation?: StructuredCitation };
+    };
+    environmentalSocial: Array<{
+      metric: string;
+      value: string;
+      citation?: StructuredCitation;
+    }>;
+    disclosureStatement: string;
+  };
 }
 
 export type OZRFSectionEnvelope = StructuredOutputEnvelope<OZRFSectionOutput>;
