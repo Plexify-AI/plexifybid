@@ -69,7 +69,7 @@ export default function BlockEditor({
                   key={block.id}
                   className="group relative rounded-lg border border-slate-200 bg-white p-4"
                 >
-                  <div className="absolute -top-10 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-white rounded-lg shadow-md border border-slate-200 p-1 z-10">
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/95 backdrop-blur rounded-lg shadow-md border border-slate-200 p-1 z-10">
                     <button
                       type="button"
                       onClick={() => onStructuredOutputExport?.(block, 'docx')}
