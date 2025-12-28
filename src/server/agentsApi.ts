@@ -3,8 +3,10 @@ import path from 'path';
 import fs from 'fs/promises';
 import {
   type BoardBriefEnvelope,
+  type AssessmentTrendsEnvelope,
   type NotebookBDAgentId,
   type StructuredOutputSourceRef,
+  type StructuredCitation,
 } from '../types/structuredOutputs';
 
 type AgentsApiRequestBody = {
@@ -183,6 +185,205 @@ async function generateBoardBriefWithClaude({
   return parsed as BoardBriefEnvelope;
 }
 
+async function generateAssessmentTrendsWithClaude({
+  projectId,
+  sources,
+  instructions,
+}: {
+  projectId: string;
+  sources: Array<{ id: string; label: string; text: string }>;
+  instructions?: string;
+}): Promise<AssessmentTrendsEnvelope> {
+  const apiKey = process.env.VITE_ANTHROPIC_API_KEY;
+
+  const sourcesUsed: StructuredOutputSourceRef[] = sources.map((s) => ({
+    id: s.id,
+    label: s.label,
+  }));
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+    const demoCitation: StructuredCitation = {
+      number: 1,
+      sourceId: sourcesUsed[0]?.id ?? 'q3-assessment-collections',
+      sourceName: sourcesUsed[0]?.label ?? 'Q3 Assessment Collection Summary',
+      quote: 'Demo citation (API key not configured).',
+    };
+
+    return {
+      agentId: 'assessment-trends',
+      schemaVersion: '1.0',
+      generatedAt: new Date().toISOString(),
+      projectId,
+      sourcesUsed,
+      output: {
+        title: 'Assessment Trends Analysis (Demo)',
+        metadata: {
+          period: 'Q3 2024',
+          preparedDate: today,
+        },
+        sections: {
+          collectionSummary: {
+            rows: [
+              {
+                propertyType: 'Commercial',
+                billed: '$1.2M',
+                collected: '$1.15M',
+                rate: '96%',
+                citation: demoCitation,
+              },
+              {
+                propertyType: 'Retail',
+                billed: '$800K',
+                collected: '$728K',
+                rate: '91%',
+                citation: demoCitation,
+              },
+              {
+                propertyType: 'Residential',
+                billed: '$440K',
+                collected: '$387K',
+                rate: '88%',
+                citation: demoCitation,
+              },
+            ],
+            total: {
+              billed: '$2.44M',
+              collected: '$2.27M',
+              rate: '93%',
+              citation: demoCitation,
+            },
+          },
+          delinquencyAging: [
+            { bucket: '30 days', amount: '$45,000', propertyCount: 12, citation: demoCitation },
+            { bucket: '60 days', amount: '$23,000', propertyCount: 5, citation: demoCitation },
+            { bucket: '90+ days', amount: '$12,000', propertyCount: 3, citation: demoCitation },
+          ],
+          topDelinquent: [
+            { address: '123 Main St', amount: '$8,500', daysOverdue: 120, citation: demoCitation },
+            { address: '456 Oak Ave', amount: '$4,200', daysOverdue: 95, citation: demoCitation },
+            { address: '789 Pine Rd', amount: '$3,800', daysOverdue: 90, citation: demoCitation },
+          ],
+          recommendations: [
+            { content: 'Increase follow-up cadence for 60+ day accounts.' },
+            { content: 'Add weekly delinquency aging snapshot to board reporting.' },
+          ],
+        },
+      },
+    };
+  }
+
+  const context = sources
+    .map((s, idx) => {
+      const trimmed = s.text.trim();
+      const snippet = trimmed.length > 3000 ? `${trimmed.slice(0, 3000)}\n…` : trimmed;
+      return `[Source ${idx + 1}] ${s.label}\n${snippet}`;
+    })
+    .join('\n\n');
+
+  const schema = {
+    agentId: 'assessment-trends',
+    schemaVersion: '1.0',
+    generatedAt: 'ISO_TIMESTAMP',
+    projectId: projectId,
+    sourcesUsed: [{ id: 'string', label: 'string' }],
+    output: {
+      title: 'string',
+      metadata: {
+        period: 'string',
+        preparedDate: 'YYYY-MM-DD',
+      },
+      sections: {
+        collectionSummary: {
+          rows: [
+            {
+              propertyType: 'string',
+              billed: 'string',
+              collected: 'string',
+              rate: 'string',
+              citation: {
+                number: 1,
+                sourceId: 'string',
+                sourceName: 'string',
+                quote: 'string',
+              },
+            },
+          ],
+          total: {
+            billed: 'string',
+            collected: 'string',
+            rate: 'string',
+            citation: {
+              number: 1,
+              sourceId: 'string',
+              sourceName: 'string',
+              quote: 'string',
+            },
+          },
+        },
+        delinquencyAging: [
+          {
+            bucket: 'string',
+            amount: 'string',
+            propertyCount: 0,
+            citation: {
+              number: 1,
+              sourceId: 'string',
+              sourceName: 'string',
+              quote: 'string',
+            },
+          },
+        ],
+        topDelinquent: [
+          {
+            address: 'string',
+            amount: 'string',
+            daysOverdue: 0,
+            citation: {
+              number: 1,
+              sourceId: 'string',
+              sourceName: 'string',
+              quote: 'string',
+            },
+          },
+        ],
+        recommendations: [{ content: 'string' }],
+      },
+    },
+  };
+
+  const prompt = `You are a BID finance analyst. Extract assessment collection trends using ONLY the provided sources.\n\n${context}\n\nInstructions (optional): ${instructions ?? 'None'}\n\nReturn ONLY valid JSON (no markdown) matching this schema exactly:\n${JSON.stringify(schema, null, 2)}\n\nNotes:\n- Fill the collection summary table with the best available breakdown from sources.\n- Provide delinquency aging buckets and top delinquents if available; otherwise use empty arrays.\n- Each numeric/table claim should include a citation when possible.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1600,
+      temperature: 0.2,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Anthropic error ${response.status}: ${await response.text()}`);
+  }
+
+  const data = (await response.json()) as { content?: Array<{ text?: string }> };
+  const text = data.content?.[0]?.text ?? '';
+  const parsed = extractJsonObject(text);
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Failed to parse structured JSON from model output');
+  }
+
+  return parsed as AssessmentTrendsEnvelope;
+}
+
 async function handleAgentRequest({
   agentId,
   body,
@@ -195,6 +396,14 @@ async function handleAgentRequest({
 
   if (agentId === 'board-brief') {
     return generateBoardBriefWithClaude({
+      projectId,
+      sources,
+      instructions: body.instructions,
+    });
+  }
+
+  if (agentId === 'assessment-trends') {
+    return generateAssessmentTrendsWithClaude({
       projectId,
       sources,
       instructions: body.instructions,

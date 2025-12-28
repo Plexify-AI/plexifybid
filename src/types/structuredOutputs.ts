@@ -35,18 +35,51 @@ export interface BoardBriefOutput {
 
 export type BoardBriefEnvelope = StructuredOutputEnvelope<BoardBriefOutput>;
 
-export interface AssessmentTrendDatum {
-  label: string;
-  value: string;
-  note?: string;
+export interface StructuredCitation {
+  number: number;
+  sourceId: string;
+  sourceName: string;
+  quote: string;
 }
 
 export interface AssessmentTrendsOutput {
   title: string;
-  summary: string[];
-  trends: AssessmentTrendDatum[];
-  risks: string[];
-  recommendedActions: string[];
+  metadata: {
+    period: string;
+    preparedDate: string;
+  };
+  sections: {
+    collectionSummary: {
+      rows: Array<{
+        propertyType: string;
+        billed: string;
+        collected: string;
+        rate: string;
+        citation?: StructuredCitation;
+      }>;
+      total: {
+        billed: string;
+        collected: string;
+        rate: string;
+        citation?: StructuredCitation;
+      };
+    };
+    delinquencyAging: Array<{
+      bucket: string;
+      amount: string;
+      propertyCount: number;
+      citation?: StructuredCitation;
+    }>;
+    topDelinquent: Array<{
+      address: string;
+      amount: string;
+      daysOverdue: number;
+      citation?: StructuredCitation;
+    }>;
+    recommendations: Array<{
+      content: string;
+    }>;
+  };
 }
 
 export type AssessmentTrendsEnvelope = StructuredOutputEnvelope<AssessmentTrendsOutput>;
