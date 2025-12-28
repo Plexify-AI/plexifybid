@@ -158,31 +158,31 @@ export default function AIAssistantPanel({
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-4 py-3 border-b border-slate-200"
+        className="flex items-center gap-3 px-5 py-4 border-b border-slate-200"
       >
         <img
           src="/images/plexify-logo.png?v=1"
           alt="Plexify"
-          className="h-7 w-7 object-contain"
+          className="h-8 w-8 object-contain"
         />
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-          <span className="text-xs text-green-500">
+          <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+          <span className="text-sm text-green-500">
             {isLoading ? 'Thinking...' : 'Online'}
           </span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <div
-              className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+              className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
               style={{ backgroundColor: `${theme.primaryColor}20` }}
             >
               <svg
-                className="w-6 h-6"
+                className="w-7 h-7"
                 style={{ color: theme.primaryColor }}
                 fill="none"
                 stroke="currentColor"
@@ -196,7 +196,7 @@ export default function AIAssistantPanel({
                 />
               </svg>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-base text-gray-600 mb-4">
               {isLoading
                 ? 'Generating…'
                 : 'How can I help you with this report?'}
@@ -211,7 +211,7 @@ export default function AIAssistantPanel({
                       : onSendMessage?.(chip.prompt)
                   }
                   disabled={isLoading}
-                  className="px-3 py-1.5 text-xs rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     <span aria-hidden="true">{chip.icon}</span>
@@ -284,9 +284,9 @@ export default function AIAssistantPanel({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-slate-200">
+      <form onSubmit={handleSubmit} className="p-5 border-t border-slate-200">
         <div className="flex items-end gap-2">
-          <div className="flex-1 flex items-center gap-2 p-3 rounded-xl border border-slate-200 bg-white">
+          <div className="flex-1 flex items-center gap-2 p-4 rounded-xl border border-slate-200 bg-white">
             <textarea
               ref={inputRef}
               value={input}
@@ -294,7 +294,7 @@ export default function AIAssistantPanel({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               rows={1}
-              className="flex-1 text-sm outline-none resize-none"
+              className="flex-1 text-base outline-none resize-none"
             />
             <button
               type="button"
@@ -302,7 +302,7 @@ export default function AIAssistantPanel({
               aria-label="Attach"
               disabled={isLoading}
             >
-              <PaperclipIcon className="w-[18px] h-[18px]" />
+              <PaperclipIcon className="w-5 h-5" />
             </button>
             <button
               type="button"
@@ -310,18 +310,18 @@ export default function AIAssistantPanel({
               aria-label="Voice"
               disabled={isLoading}
             >
-              <MicIcon className="w-[18px] h-[18px]" />
+              <MicIcon className="w-5 h-5" />
             </button>
           </div>
 
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-3 bg-indigo-600 text-white rounded-xl text-base font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="inline-flex items-center gap-2">
               Send
-              <SendIcon className="w-4 h-4" />
+              <SendIcon className="w-5 h-5" />
             </span>
           </button>
         </div>

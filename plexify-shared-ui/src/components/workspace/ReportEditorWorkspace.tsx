@@ -390,22 +390,22 @@ export default function ReportEditorWorkspace({
         {/* Three Column Layout */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Panel - Sources */}
-          <aside className="w-80 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-200">
-              <h2 className="text-sm font-semibold text-slate-800">
+          <aside className="w-[30rem] flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200">
+              <h2 className="text-base font-semibold text-slate-800">
                 Inputs &amp; Media Sources
               </h2>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
               {showAIMediaSummary ? <AIMediaSummary /> : null}
 
               {showSourceMaterials && (
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-700">
+                  <h3 className="text-base font-semibold text-slate-700">
                     {terminologyConfig.sourceMaterialsLabel}
                   </h3>
-                  <p className="text-xs text-slate-500 mb-2">
+                  <p className="text-sm text-slate-500 mb-3">
                     Draggable materials
                   </p>
                   <SourceMaterialsList
@@ -453,14 +453,14 @@ export default function ReportEditorWorkspace({
 
           {/* Right Panel - AI Assistant */}
           {showAIAssistant && (
-            <aside className="w-96 flex-shrink-0 border-l border-slate-200 bg-white flex flex-col overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-200">
-                <h2 className="text-sm font-semibold text-slate-800">
+            <aside className="w-[36rem] flex-shrink-0 border-l border-slate-200 bg-white flex flex-col overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200">
+                <h2 className="text-base font-semibold text-slate-800">
                   AI Research Assistant
                 </h2>
               </div>
 
-              <div className="flex-1 flex flex-col m-3 rounded-xl border border-slate-200 overflow-hidden bg-white">
+              <div className="flex-1 flex flex-col m-4 rounded-xl border border-slate-200 overflow-hidden bg-white">
                 <AIAssistantPanel
                   embedded={true}
                   theme={theme}

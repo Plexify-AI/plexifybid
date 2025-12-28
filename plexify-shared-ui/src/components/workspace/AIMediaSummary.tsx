@@ -90,38 +90,38 @@ export default function AIMediaSummary() {
   );
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-slate-700">AI Media Summary</h3>
+    <div className="space-y-4">
+      <h3 className="text-base font-semibold text-slate-700">AI Media Summary</h3>
 
       {/* Audio Briefing Widget */}
       <div
-        className="rounded-xl p-4 text-white"
+        className="rounded-xl p-5 text-white"
         style={{
           background: 'linear-gradient(135deg, #6366f1 0%, #9333ea 100%)',
         }}
       >
         <div className="flex items-center gap-2 mb-3">
-          <HeadphonesIcon className="w-4 h-4" />
-          <span className="text-sm font-semibold">Audio Briefing</span>
+          <HeadphonesIcon className="w-5 h-5" />
+          <span className="text-base font-semibold">Audio Briefing</span>
         </div>
 
         <div className="flex items-center gap-3 mb-3">
           <button
             type="button"
             onClick={() => setIsPlaying((p) => !p)}
-            className="w-10 h-10 rounded-full flex items-center justify-center"
+            className="w-12 h-12 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.2)',
             }}
           >
             {isPlaying ? (
-              <PauseIcon className="w-[18px] h-[18px]" />
+              <PauseIcon className="w-5 h-5" />
             ) : (
-              <PlayIcon className="w-[18px] h-[18px] ml-0.5" />
+              <PlayIcon className="w-5 h-5 ml-0.5" />
             )}
           </button>
 
-          <div className="flex-1 flex items-center gap-2 text-xs">
+          <div className="flex-1 flex items-center gap-2 text-sm">
             <span>0:00</span>
             <div
               className="flex-1 h-1 rounded-full"
@@ -136,7 +136,7 @@ export default function AIMediaSummary() {
           </div>
 
           <select
-            className="text-xs rounded px-2 py-1 border-none"
+            className="text-sm rounded px-2 py-1 border-none"
             style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
           >
             <option>1x</option>
@@ -151,7 +151,7 @@ export default function AIMediaSummary() {
               type="button"
               key={ch.id}
               onClick={() => setActiveChapter(ch.id)}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition ${
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition ${
                 activeChapter === ch.id
                   ? 'bg-white text-indigo-600'
                   : ''
@@ -163,18 +163,18 @@ export default function AIMediaSummary() {
               }
             >
               {ch.icon === 'video' ? (
-                <VideoIcon className="w-3 h-3" />
+                <VideoIcon className="w-4 h-4" />
               ) : (
-                <HeadphonesIcon className="w-3 h-3" />
+                <HeadphonesIcon className="w-4 h-4" />
               )}
               {ch.label}
             </button>
           ))}
         </div>
 
-        <div className="text-xs opacity-80 flex items-center gap-2">
+        <div className="text-sm opacity-80 flex items-center gap-2">
           <span>Ready:</span>
-          <HeadphonesIcon className="w-3 h-3" />
+          <HeadphonesIcon className="w-4 h-4" />
           <span>{activeLabel}</span>
           <span>•</span>
           <span>{isPlaying ? 'Playing' : 'Paused'}</span>
@@ -199,10 +199,10 @@ export default function AIMediaSummary() {
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
         >
           <div
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+            className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
             style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
           >
-            <PlayIcon className="w-6 h-6 text-slate-700 ml-1" />
+            <PlayIcon className="w-7 h-7 text-slate-700 ml-1" />
           </div>
         </button>
         <div

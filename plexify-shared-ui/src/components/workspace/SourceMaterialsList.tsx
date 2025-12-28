@@ -124,7 +124,7 @@ function SortableItem({
       ref={setNodeRef}
       style={style}
       onClick={onClick}
-      className="group flex items-center gap-2 p-3 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors"
+      className="group flex items-center gap-3 p-4 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors"
     >
       <button
         type="button"
@@ -135,14 +135,14 @@ function SortableItem({
         className="p-1 -ml-1 text-slate-400 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
         aria-label="Drag"
       >
-        <GripVerticalIcon className="w-4 h-4" />
+        <GripVerticalIcon className="w-5 h-5" />
       </button>
       <div
-        className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
+        className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: `${theme.primaryColor}20` }}
       >
         <svg
-          className="w-4 h-4"
+          className="w-5 h-5"
           style={{ color: theme.primaryColor }}
           fill="none"
           stroke="currentColor"
@@ -152,16 +152,16 @@ function SortableItem({
         </svg>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-700 truncate">
+        <p className="text-base font-medium text-slate-700 truncate">
           {material.label}
         </p>
         {material.date && (
-          <p className="text-xs text-slate-500">{material.date}</p>
+          <p className="text-sm text-slate-500">{material.date}</p>
         )}
       </div>
       {material.count !== undefined && (
         <span
-          className="text-xs font-medium px-2 py-0.5 rounded-full"
+          className="text-sm font-medium px-2.5 py-1 rounded-full"
           style={{
             backgroundColor: `${theme.primaryColor}20`,
             color: theme.primaryColor,
@@ -173,7 +173,7 @@ function SortableItem({
 
       {typeof material.isSelectedForContext === 'boolean' && onToggleContext && (
         <label
-          className="flex items-center gap-2 text-xs text-slate-600"
+          className="flex items-center gap-2 text-sm text-slate-600"
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         >
@@ -181,7 +181,7 @@ function SortableItem({
             type="checkbox"
             checked={material.isSelectedForContext}
             onChange={(e) => onToggleContext(material.id, e.target.checked)}
-            className="h-4 w-4 rounded border-slate-300"
+            className="h-5 w-5 rounded border-slate-300"
           />
           Use
         </label>
@@ -238,7 +238,7 @@ export default function SourceMaterialsList({
         </div>
       )}
 
-      <div className="p-3 space-y-2 max-h-96 overflow-y-auto">
+      <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
