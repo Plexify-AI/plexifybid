@@ -64,9 +64,9 @@ export default function BlockEditor({
                   {renderStructuredOutputBlock ? (
                     renderStructuredOutputBlock(block)
                   ) : (
-                    <pre className="text-xs text-slate-800 whitespace-pre-wrap">
-                      {JSON.stringify(block.data, null, 2)}
-                    </pre>
+                    <div className="text-sm text-slate-500">
+                      Structured output is not supported in this view.
+                    </div>
                   )}
                 </div>
               );

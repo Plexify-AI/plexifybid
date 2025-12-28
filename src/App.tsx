@@ -111,9 +111,9 @@ const App: React.FC = () => {
     }
 
     return (
-      <pre className="text-xs text-slate-800 whitespace-pre-wrap">
-        {JSON.stringify(data, null, 2)}
-      </pre>
+      <div className="text-sm text-slate-500">
+        Unsupported structured output.
+      </div>
     );
   };
 
