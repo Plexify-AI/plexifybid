@@ -4,6 +4,69 @@ import type {
   StructuredCitation,
 } from '../types/structuredOutputs';
 
+function escapeHtml(s: string) {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+export function ozrfSectionToHtml(section: OZRFSectionEnvelope): string {
+  const { output } = section;
+  const cite = (c?: StructuredCitation) => (c ? ` <sup>[${c.number}]</sup>` : '');
+
+  const { communityImpact, investmentFacilitation, environmentalSocial, disclosureStatement } =
+    output.sections;
+
+  const env = environmentalSocial.length
+    ? `<ul>${environmentalSocial
+        .map(
+          (m) =>
+            `<li><strong>${escapeHtml(m.metric)}:</strong> ${escapeHtml(m.value)}${cite(
+              m.citation
+            )}</li>`
+        )
+        .join('')}</ul>`
+    : '<p><em>No environmental/social outcomes.</em></p>';
+
+  return [
+    `<h1>${escapeHtml(output.title)}</h1>`,
+    `<p><em>Reporting Period: ${escapeHtml(
+      output.metadata.reportingPeriod
+    )} • Prepared ${escapeHtml(output.metadata.preparedDate)}</em></p>`,
+    `<h2>Community Impact Metrics</h2>`,
+    `<ul>`,
+    `<li>Jobs Created: ${communityImpact.jobsCreated.value}${cite(
+      communityImpact.jobsCreated.citation
+    )}</li>`,
+    `<li>Jobs Retained: ${communityImpact.jobsRetained.value}${cite(
+      communityImpact.jobsRetained.citation
+    )}</li>`,
+    `<li>Local Hiring Rate: ${escapeHtml(communityImpact.localHiringRate.value)}${cite(
+      communityImpact.localHiringRate.citation
+    )}</li>`,
+    `</ul>`,
+    `<h2>Investment Facilitation</h2>`,
+    `<ul>`,
+    `<li>Total Investment Attracted: ${escapeHtml(
+      investmentFacilitation.totalInvestment.value
+    )}${cite(investmentFacilitation.totalInvestment.citation)}</li>`,
+    `<li>QOF Investments: ${investmentFacilitation.qofInvestments.value}${cite(
+      investmentFacilitation.qofInvestments.citation
+    )}</li>`,
+    `<li>Business Relocations: ${investmentFacilitation.businessRelocations.value}${cite(
+      investmentFacilitation.businessRelocations.citation
+    )}</li>`,
+    `</ul>`,
+    `<h2>Environmental &amp; Social Outcomes</h2>`,
+    env,
+    `<h2>Disclosure Statement</h2>`,
+    `<p>${escapeHtml(disclosureStatement)}</p>`,
+  ].join('\n');
+}
+
 function CitationMark({ citation }: { citation?: StructuredCitation }) {
   if (!citation) return null;
   return (

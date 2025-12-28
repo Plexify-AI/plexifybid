@@ -18,6 +18,7 @@ import {
   type NotebookBDSourceDoc,
 } from './services/notebookbdRag';
 import { runNotebookBDAgent } from './services/agentService';
+import { exportStructuredOutput } from './services/exportService';
 import BoardBriefRenderer from './components/BoardBriefRenderer';
 import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
 import OZRFSectionRenderer from './components/OZRFSectionRenderer';
@@ -106,6 +107,13 @@ const App: React.FC = () => {
     });
   };
 
+  const handleExportStructuredOutput = async (
+    data: unknown,
+    format: 'docx' | 'pdf'
+  ) => {
+    await exportStructuredOutput(data, format);
+  };
+
   const renderStructuredOutputBlock = (block) => {
     const data = block?.data;
     if (data?.agentId === 'board-brief') {
@@ -165,6 +173,7 @@ const App: React.FC = () => {
                 onSourceMaterialsChange={handleSourceMaterialsChange}
                 onAIMessage={handleAIMessage}
                 onRunAgent={handleRunAgent}
+                onExportStructuredOutput={handleExportStructuredOutput}
                 renderStructuredOutputBlock={renderStructuredOutputBlock}
               />
             </WorkspaceErrorBoundary>

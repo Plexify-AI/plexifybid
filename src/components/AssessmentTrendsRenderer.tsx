@@ -4,6 +4,88 @@ import type {
   StructuredCitation,
 } from '../types/structuredOutputs';
 
+function escapeHtml(s: string) {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+export function assessmentTrendsToHtml(trends: AssessmentTrendsEnvelope): string {
+  const { output } = trends;
+  const { collectionSummary, delinquencyAging, topDelinquent, recommendations } =
+    output.sections;
+
+  const cite = (c?: StructuredCitation) => (c ? ` <sup>[${c.number}]</sup>` : '');
+
+  const summaryTableRows = collectionSummary.rows
+    .map(
+      (r) =>
+        `<tr><td>${escapeHtml(r.propertyType)}${cite(r.citation)}</td><td>${escapeHtml(
+          r.billed
+        )}</td><td>${escapeHtml(r.collected)}</td><td>${escapeHtml(r.rate)}</td></tr>`
+    )
+    .join('');
+
+  const totalRow = `<tr><td><strong>TOTAL</strong>${cite(
+    collectionSummary.total.citation
+  )}</td><td><strong>${escapeHtml(collectionSummary.total.billed)}</strong></td><td><strong>${escapeHtml(
+    collectionSummary.total.collected
+  )}</strong></td><td><strong>${escapeHtml(collectionSummary.total.rate)}</strong></td></tr>`;
+
+  const table = `
+    <table border="1" cellpadding="6" cellspacing="0">
+      <thead><tr><th>Property Type</th><th>Billed</th><th>Collected</th><th>Rate</th></tr></thead>
+      <tbody>${summaryTableRows}${totalRow}</tbody>
+    </table>
+  `;
+
+  const aging = delinquencyAging.length
+    ? `<ul>${delinquencyAging
+        .map(
+          (b) =>
+            `<li><strong>${escapeHtml(b.bucket)}:</strong> ${escapeHtml(b.amount)} (${b.propertyCount} properties)${cite(
+              b.citation
+            )}</li>`
+        )
+        .join('')}</ul>`
+    : '<p><em>No delinquency aging data.</em></p>';
+
+  const top = topDelinquent.length
+    ? `<ol>${topDelinquent
+        .map(
+          (a) =>
+            `<li><strong>${escapeHtml(a.address)}</strong> — ${escapeHtml(a.amount)} (${a.daysOverdue} days)${cite(
+              a.citation
+            )}</li>`
+        )
+        .join('')}</ol>`
+    : '<p><em>No delinquent accounts listed.</em></p>';
+
+  const recs = recommendations.length
+    ? `<ul>${recommendations
+        .map((r) => `<li>${escapeHtml(r.content)}</li>`)
+        .join('')}</ul>`
+    : '<p><em>No recommendations.</em></p>';
+
+  return [
+    `<h1>${escapeHtml(output.title)}</h1>`,
+    `<p><em>${escapeHtml(output.metadata.period)} • Prepared ${escapeHtml(
+      output.metadata.preparedDate
+    )}</em></p>`,
+    `<h2>Collection Summary</h2>`,
+    table,
+    `<h2>Delinquency Aging</h2>`,
+    aging,
+    `<h2>Top Delinquent Accounts</h2>`,
+    top,
+    `<h2>Recommendations</h2>`,
+    recs,
+  ].join('\n');
+}
+
 function CitationMark({ citation }: { citation?: StructuredCitation }) {
   if (!citation) return null;
   return (

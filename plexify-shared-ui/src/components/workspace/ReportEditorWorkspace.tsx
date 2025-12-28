@@ -42,6 +42,7 @@ interface ReportEditorWorkspaceProps {
   onSourceMaterialsChange?: (materials: SourceMaterial[]) => void;
   onExportPDF?: () => Promise<void>;
   onExportPPTX?: () => Promise<void>;
+  onExportStructuredOutput?: (data: unknown, format: 'docx' | 'pdf') => Promise<void>;
   renderStructuredOutputBlock?: (block: EditorBlock) => ReactNode;
 }
 
@@ -67,6 +68,7 @@ export default function ReportEditorWorkspace({
   onSourceMaterialsChange,
   onExportPDF,
   onExportPPTX,
+  onExportStructuredOutput,
   renderStructuredOutputBlock,
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
@@ -201,6 +203,44 @@ export default function ReportEditorWorkspace({
       setBlocks((prev) => [block, ...prev]);
     } catch (error) {
       console.error('Agent generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleExportBlock = async (block: EditorBlock, format: 'docx' | 'pdf') => {
+    if (!onExportStructuredOutput || structuredOutputBusy) return;
+    try {
+      await onExportStructuredOutput(block.data, format);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
+
+  const handleDeleteBlock = (block: EditorBlock) => {
+    if (structuredOutputBusy) return;
+    setBlocks((prev) => prev.filter((b) => b.id !== block.id));
+  };
+
+  const structuredOutputBusy = isGenerating || isAILoading;
+
+  const handleRegenerateBlock = async (block: EditorBlock) => {
+    if (!onRunAgent || structuredOutputBusy) return;
+    const agentId = (block.data as any)?.agentId as string | undefined;
+    if (!agentId) return;
+
+    setIsGenerating(true);
+    try {
+      const sourceIds = materials
+        .filter((m) => m.isSelectedForContext)
+        .map((m) => m.id);
+
+      const output = await onRunAgent(agentId, { projectId, sourceIds });
+      setBlocks((prev) =>
+        prev.map((b) => (b.id === block.id ? { ...b, data: output } : b))
+      );
+    } catch (error) {
+      console.error('Regenerate failed:', error);
     } finally {
       setIsGenerating(false);
     }
@@ -395,6 +435,10 @@ export default function ReportEditorWorkspace({
                 theme={theme}
                 blocks={blocks}
                 renderStructuredOutputBlock={renderStructuredOutputBlock}
+                onStructuredOutputExport={handleExportBlock}
+                onStructuredOutputRegenerate={handleRegenerateBlock}
+                onStructuredOutputDelete={handleDeleteBlock}
+                structuredOutputBusy={structuredOutputBusy}
                 content={content}
                 onChange={handleContentChange}
                 placeholder={`Start writing your ${terminologyConfig.reportTitle.toLowerCase()}...`}
@@ -419,7 +463,7 @@ export default function ReportEditorWorkspace({
                   messages={messages}
                   onSendMessage={handleSendMessage}
                   onRunAgent={handleRunAgent}
-                  isLoading={isAILoading || isGenerating}
+                  isLoading={structuredOutputBusy}
                 />
               </div>
             </aside>
