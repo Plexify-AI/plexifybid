@@ -187,9 +187,10 @@ export default function AIMediaSummary() {
         style={{ aspectRatio: '16 / 9' }}
       >
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 bg-cover bg-center"
           style={{
-            background: 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)',
+            backgroundImage:
+              'url(/images/construction-site-thumbnail.webp)',
           }}
         />
         <button

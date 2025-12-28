@@ -277,6 +277,11 @@ export default function ReportEditorWorkspace({
                 />
               </svg>
             </button>
+            <img
+              src="/images/plexify-logo.png"
+              alt="Plexify"
+              className="h-8 w-auto"
+            />
             <div>
               <h1 className="text-xl font-semibold">
                 {terminologyConfig.reportTitle}
