@@ -278,7 +278,7 @@ export default function ReportEditorWorkspace({
               </svg>
             </button>
             <img
-              src="/images/plexify-logo.png"
+              src="/images/plexify-logo.png?v=1"
               alt="Plexify"
               className="h-8 w-auto"
             />

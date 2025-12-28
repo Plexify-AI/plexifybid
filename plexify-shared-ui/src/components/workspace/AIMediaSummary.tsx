@@ -190,7 +190,7 @@ export default function AIMediaSummary() {
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              'url(/images/construction-site-thumbnail.webp)',
+              'url(/images/construction-site-thumbnail.webp?v=1)',
           }}
         />
         <button
