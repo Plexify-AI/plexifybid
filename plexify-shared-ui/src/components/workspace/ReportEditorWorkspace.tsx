@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   PlexifyTheme,
   TerminologySet,
@@ -7,6 +7,7 @@ import {
   Message,
   AudioChapter,
   WorkspaceConfig,
+  EditorBlock,
 } from '../../types';
 import AIMediaSummary from './AIMediaSummary';
 import SourceMaterialsList from './SourceMaterialsList';
@@ -34,9 +35,14 @@ interface ReportEditorWorkspaceProps {
   onSave?: (content: string) => Promise<void>;
   onRegenerate?: (instructions?: string) => Promise<string>;
   onAIMessage?: (message: string) => Promise<Message>;
+  onRunAgent?: (
+    agentId: string,
+    args: { projectId: string; sourceIds: string[] }
+  ) => Promise<unknown>;
   onSourceMaterialsChange?: (materials: SourceMaterial[]) => void;
   onExportPDF?: () => Promise<void>;
   onExportPPTX?: () => Promise<void>;
+  renderStructuredOutputBlock?: (block: EditorBlock) => ReactNode;
 }
 
 export default function ReportEditorWorkspace({
@@ -57,9 +63,11 @@ export default function ReportEditorWorkspace({
   onSave,
   onRegenerate,
   onAIMessage,
+  onRunAgent,
   onSourceMaterialsChange,
   onExportPDF,
   onExportPPTX,
+  renderStructuredOutputBlock,
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
 
@@ -74,7 +82,9 @@ export default function ReportEditorWorkspace({
   const [content, setContent] = useState(initialContent);
   const [materials, setMaterials] = useState<SourceMaterial[]>(sourceMaterials);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [blocks, setBlocks] = useState<EditorBlock[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -168,6 +178,31 @@ export default function ReportEditorWorkspace({
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsAILoading(false);
+    }
+  };
+
+  const handleRunAgent = async (agentId: string) => {
+    if (!onRunAgent || isGenerating) return;
+    setIsGenerating(true);
+    try {
+      const sourceIds = materials
+        .filter((m) => m.isSelectedForContext)
+        .map((m) => m.id);
+
+      const output = await onRunAgent(agentId, { projectId, sourceIds });
+
+      const block: EditorBlock = {
+        id: `structured-${agentId}-${Date.now()}`,
+        type: 'structured-output',
+        content: '',
+        data: output,
+      };
+
+      setBlocks((prev) => [block, ...prev]);
+    } catch (error) {
+      console.error('Agent generation failed:', error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -358,6 +393,8 @@ export default function ReportEditorWorkspace({
 
               <BlockEditor
                 theme={theme}
+                blocks={blocks}
+                renderStructuredOutputBlock={renderStructuredOutputBlock}
                 content={content}
                 onChange={handleContentChange}
                 placeholder={`Start writing your ${terminologyConfig.reportTitle.toLowerCase()}...`}
@@ -381,7 +418,8 @@ export default function ReportEditorWorkspace({
                   title="Plexify AI Assistant"
                   messages={messages}
                   onSendMessage={handleSendMessage}
-                  isLoading={isAILoading}
+                  onRunAgent={handleRunAgent}
+                  isLoading={isAILoading || isGenerating}
                 />
               </div>
             </aside>

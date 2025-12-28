@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -12,14 +13,17 @@ interface BlockEditorProps {
   placeholder?: string;
   onChange?: (content: string) => void;
   onBlocksChange?: (blocks: EditorBlock[]) => void;
+  renderStructuredOutputBlock?: (block: EditorBlock) => ReactNode;
   readOnly?: boolean;
 }
 
 export default function BlockEditor({
   theme,
   content = '',
+  blocks,
   placeholder = 'Start writing your report...',
   onChange,
+  renderStructuredOutputBlock,
   readOnly = false,
 }: BlockEditorProps) {
   const editor = useEditor({
@@ -48,6 +52,31 @@ export default function BlockEditor({
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+      {blocks && blocks.length > 0 ? (
+        <div className="p-4 border-b border-gray-200 space-y-4">
+          {blocks.map((block) => {
+            if (block.type === 'structured-output') {
+              return (
+                <div
+                  key={block.id}
+                  className="rounded-lg border border-slate-200 bg-white p-4"
+                >
+                  {renderStructuredOutputBlock ? (
+                    renderStructuredOutputBlock(block)
+                  ) : (
+                    <pre className="text-xs text-slate-800 whitespace-pre-wrap">
+                      {JSON.stringify(block.data, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              );
+            }
+
+            return null;
+          })}
+        </div>
+      ) : null}
+
       {!readOnly && editor && (
         <EditorToolbar editor={editor} theme={theme} />
       )}

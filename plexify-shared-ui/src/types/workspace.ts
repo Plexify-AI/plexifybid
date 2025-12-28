@@ -79,7 +79,14 @@ export const terminologyConfigs: Record<TerminologySet, TerminologyConfig> = {
 
 export interface EditorBlock {
   id: string;
-  type: 'heading' | 'paragraph' | 'list' | 'image' | 'chart' | 'table';
+  type:
+    | 'heading'
+    | 'paragraph'
+    | 'list'
+    | 'image'
+    | 'chart'
+    | 'table'
+    | 'structured-output';
   content: string;
   level?: number;
   items?: string[];

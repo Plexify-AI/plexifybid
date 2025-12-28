@@ -10,6 +10,7 @@ interface AIAssistantPanelProps {
   embedded?: boolean;
   messages?: Message[];
   onSendMessage?: (message: string) => Promise<void>;
+  onRunAgent?: (agentId: string) => Promise<void>;
   onSuggestedAction?: (action: SuggestedAction) => void;
   placeholder?: string;
   isLoading?: boolean;
@@ -93,6 +94,7 @@ export default function AIAssistantPanel({
   embedded = false,
   messages = [],
   onSendMessage,
+  onRunAgent,
   onSuggestedAction,
   placeholder = 'Ask me anything about this report...',
   isLoading = false,
@@ -191,14 +193,21 @@ export default function AIAssistantPanel({
               </svg>
             </div>
             <p className="text-sm text-gray-600 mb-4">
-              How can I help you with this report?
+              {isLoading
+                ? 'Generating…'
+                : 'How can I help you with this report?'}
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
               {bidAgentChips.map((chip) => (
                 <button
                   key={chip.id}
-                  onClick={() => onSendMessage?.(chip.prompt)}
-                  className="px-3 py-1.5 text-xs rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                  onClick={() =>
+                    onRunAgent
+                      ? onRunAgent(chip.id)
+                      : onSendMessage?.(chip.prompt)
+                  }
+                  disabled={isLoading}
+                  className="px-3 py-1.5 text-xs rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     <span aria-hidden="true">{chip.icon}</span>

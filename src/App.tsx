@@ -17,6 +17,8 @@ import {
   notebookbdAnswer,
   type NotebookBDSourceDoc,
 } from './services/notebookbdRag';
+import { runNotebookBDAgent } from './services/agentService';
+import BoardBriefRenderer from './components/BoardBriefRenderer';
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -92,6 +94,29 @@ const App: React.FC = () => {
     return notebookbdAnswer({ query: message, docs: notebookDocs });
   };
 
+  const handleRunAgent = async (
+    agentId: string,
+    args: { projectId: string; sourceIds: string[] }
+  ) => {
+    return runNotebookBDAgent(agentId as any, {
+      projectId: args.projectId,
+      sourceIds: args.sourceIds,
+    });
+  };
+
+  const renderStructuredOutputBlock = (block) => {
+    const data = block?.data;
+    if (data?.agentId === 'board-brief') {
+      return <BoardBriefRenderer brief={data} />;
+    }
+
+    return (
+      <pre className="text-xs text-slate-800 whitespace-pre-wrap">
+        {JSON.stringify(data, null, 2)}
+      </pre>
+    );
+  };
+
   return (
     <Router>
       <div className="app-container">
@@ -129,6 +154,8 @@ const App: React.FC = () => {
                 sourceMaterials={sourceMaterials}
                 onSourceMaterialsChange={handleSourceMaterialsChange}
                 onAIMessage={handleAIMessage}
+                onRunAgent={handleRunAgent}
+                renderStructuredOutputBlock={renderStructuredOutputBlock}
               />
             </WorkspaceErrorBoundary>
           </div>
