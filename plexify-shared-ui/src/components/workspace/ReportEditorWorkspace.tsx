@@ -278,7 +278,7 @@ export default function ReportEditorWorkspace({
                 />
               </svg>
             </button>
-            <BrandMark variant="grayP" size={32} />
+            <BrandMark variant="grayP" size={48} />
             <div>
               <h1 className="text-xl font-semibold">
                 {terminologyConfig.reportTitle}
