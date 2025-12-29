@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <title>Plexify Chatburger Mark</title>
+  <rect width="256" height="256" fill="none" />
+  <g>
+    <circle cx="128" cy="128" r="104" fill="#5B21B6" />
+    <path
+      d="M98 72h54c30 0 54 19 54 48 0 30-24 49-54 49h-14v29c0 4-3 7-7 7h-26c-4 0-7-3-7-7V79c0-4 3-7 7-7z"
+      fill="#0B0B0F"
+      opacity="0.92"
+    />
+    <circle cx="126" cy="128" r="12" fill="#A78BFA" />
+    <circle cx="158" cy="128" r="12" fill="#A78BFA" />
+    <circle cx="190" cy="128" r="12" fill="#A78BFA" />
+  </g>
+</svg>

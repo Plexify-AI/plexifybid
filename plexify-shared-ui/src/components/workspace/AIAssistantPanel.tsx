@@ -3,6 +3,7 @@ import { PlexifyTheme } from '../../types/theme';
 import { Message, SuggestedAction } from '../../types/workspace';
 import AIMessageBubble from './AIMessageBubble';
 // Uses app-level public assets: /public/images/plexify-logo.png
+import plexifyChatburger from '../../assets/brand/plexify-chatburger.svg';
 
 interface AIAssistantPanelProps {
   theme: PlexifyTheme;
@@ -178,23 +179,14 @@ export default function AIAssistantPanel({
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <div
-              className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-              style={{ backgroundColor: `${theme.primaryColor}20` }}
+              className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+              style={{ backgroundColor: `${theme.primaryColor}12` }}
             >
-              <svg
-                className="w-7 h-7"
-                style={{ color: theme.primaryColor }}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                />
-              </svg>
+              <img
+                src={plexifyChatburger}
+                alt="Plexify"
+                className="w-10 h-10 object-contain"
+              />
             </div>
             <p className="text-base text-gray-600 mb-4">
               {isLoading
