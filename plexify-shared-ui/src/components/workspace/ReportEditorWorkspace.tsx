@@ -14,6 +14,7 @@ import SourceMaterialsList from './SourceMaterialsList';
 import BlockEditor from './BlockEditor';
 import RegenerateWithAIButton from './RegenerateWithAIButton';
 import AIAssistantPanel from './AIAssistantPanel';
+import BrandMark from '../shared/BrandMark';
 
 interface ReportEditorWorkspaceProps {
   projectId: string;
@@ -277,11 +278,7 @@ export default function ReportEditorWorkspace({
                 />
               </svg>
             </button>
-            <img
-              src="/images/plexify-logo.png?v=1"
-              alt="Plexify"
-              className="h-8 w-auto"
-            />
+            <BrandMark variant="grayP" size={32} />
             <div>
               <h1 className="text-xl font-semibold">
                 {terminologyConfig.reportTitle}
