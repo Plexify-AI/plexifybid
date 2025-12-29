@@ -174,10 +174,10 @@ export default function AIAssistantPanel({
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <div
-              className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+              className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center"
               style={{ backgroundColor: `${theme.primaryColor}12` }}
             >
-              <BrandMark variant="chatburger" size={40} />
+              <BrandMark variant="chatburger" size={60} />
             </div>
             <p className="text-base text-gray-600 mb-4">
               {isLoading
