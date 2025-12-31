@@ -194,7 +194,7 @@ export default function AIAssistantPanel({
                       : onSendMessage?.(chip.prompt)
                   }
                   disabled={isLoading}
-                  className="px-4 py-2 text-sm rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="agent-chip px-4 py-2 text-sm text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="inline-flex items-center gap-1.5">
                     <span aria-hidden="true">{chip.icon}</span>

@@ -124,7 +124,7 @@ function SortableItem({
       ref={setNodeRef}
       style={style}
       onClick={onClick}
-      className="group flex items-center gap-3 p-4 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors"
+      className="source-card group flex items-center gap-3 p-4 cursor-pointer"
     >
       <button
         type="button"

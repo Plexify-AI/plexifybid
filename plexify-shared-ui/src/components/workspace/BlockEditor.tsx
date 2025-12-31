@@ -67,14 +67,14 @@ export default function BlockEditor({
               return (
                 <div
                   key={block.id}
-                  className="group relative rounded-lg border border-slate-200 bg-white p-4"
+                  className="structured-output-block group relative p-4"
                 >
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/95 backdrop-blur rounded-lg shadow-md border border-slate-200 p-1 z-10">
                     <button
                       type="button"
                       onClick={() => onStructuredOutputExport?.(block, 'docx')}
                       disabled={structuredOutputBusy}
-                      className="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       DOCX
                     </button>
@@ -82,7 +82,7 @@ export default function BlockEditor({
                       type="button"
                       onClick={() => onStructuredOutputExport?.(block, 'pdf')}
                       disabled={structuredOutputBusy}
-                      className="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       PDF
                     </button>
@@ -91,7 +91,7 @@ export default function BlockEditor({
                       type="button"
                       onClick={() => onStructuredOutputRegenerate?.(block)}
                       disabled={structuredOutputBusy}
-                      className="px-3 py-1.5 rounded text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Regenerate
                     </button>
@@ -99,7 +99,7 @@ export default function BlockEditor({
                       type="button"
                       onClick={() => onStructuredOutputDelete?.(block)}
                       disabled={structuredOutputBusy}
-                      className="px-2 py-1.5 rounded text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-2 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label="Delete"
                     >
                       Delete
