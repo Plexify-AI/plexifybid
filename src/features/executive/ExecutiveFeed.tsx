@@ -273,7 +273,7 @@ const ExecutiveFeed: React.FC = () => {
           </div>
         ) : (
           filteredReports.map(report => (
-            <div key={report.id} className="intelligence-card">
+            <div key={report.id} className="project-card">
               {/* Card Header */}
               <div className="intelligence-card-header">
                 <div>

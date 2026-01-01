@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
 import PlaceholderPage from './components/PlaceholderPage';
@@ -14,6 +14,16 @@ import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
 import { RealDocsProvider } from './contexts/RealDocsContext';
 import SourcesPanel from './components/SourcesPanel';
+import {
+  loadNotebookBDSources,
+  notebookbdAnswer,
+  type NotebookBDSourceDoc,
+} from './services/notebookbdRag';
+import { runNotebookBDAgent } from './services/agentService';
+import { exportStructuredOutput } from './services/exportService';
+import BoardBriefRenderer from './components/BoardBriefRenderer';
+import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
+import OZRFSectionRenderer from './components/OZRFSectionRenderer';
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -62,11 +72,77 @@ const App: React.FC = () => {
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
 
+  const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
+
+  useEffect(() => {
+    loadNotebookBDSources()
+      .then(setNotebookDocs)
+      .catch((err) => console.error('Failed to load NotebookBD demo sources:', err));
+  }, []);
+
+  const sourceMaterials = useMemo(
+    () => notebookDocs.map((d) => d.material),
+    [notebookDocs]
+  );
+
+  const handleSourceMaterialsChange = (materials) => {
+    setNotebookDocs((prev) => {
+      const nextById = new Map(materials.map((m) => [m.id, m]));
+      return prev.map((d) => ({
+        ...d,
+        material: nextById.get(d.material.id) ?? d.material,
+      }));
+    });
+  };
+
+  const handleAIMessage = async (message: string) => {
+    return notebookbdAnswer({ query: message, docs: notebookDocs });
+  };
+
+  const handleRunAgent = async (
+    agentId: string,
+    args: { projectId: string; sourceIds: string[] }
+  ) => {
+    return runNotebookBDAgent(agentId as any, {
+      projectId: args.projectId,
+      sourceIds: args.sourceIds,
+    });
+  };
+
+  const handleExportStructuredOutput = async (
+    data: unknown,
+    format: 'docx' | 'pdf'
+  ) => {
+    await exportStructuredOutput(data, format);
+  };
+
+  const renderStructuredOutputBlock = (block) => {
+    const data = block?.data;
+    if (data?.agentId === 'board-brief') {
+      return <BoardBriefRenderer brief={data} />;
+    }
+
+    if (data?.agentId === 'assessment-trends') {
+      return <AssessmentTrendsRenderer trends={data} />;
+    }
+
+    if (data?.agentId === 'ozrf-section') {
+      return <OZRFSectionRenderer section={data} />;
+    }
+
+    return (
+      <div className="text-sm text-slate-500">
+        Unsupported structured output.
+      </div>
+    );
+  };
+
   return (
     <RealDocsProvider>
       <Router>
         <div className="app-container">
           <NavigationSidebar />
+
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
@@ -153,6 +229,12 @@ const App: React.FC = () => {
                   onClose={closeWorkspace}
                   theme={bidTheme}
                   terminology="bid"
+                  sourceMaterials={sourceMaterials}
+                  onSourceMaterialsChange={handleSourceMaterialsChange}
+                  onAIMessage={handleAIMessage}
+                  onRunAgent={handleRunAgent}
+                  onExportStructuredOutput={handleExportStructuredOutput}
+                  renderStructuredOutputBlock={renderStructuredOutputBlock}
                   renderSourcesPanel={<SourcesPanel />}
                 />
               </WorkspaceErrorBoundary>

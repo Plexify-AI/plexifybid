@@ -1,5 +1,6 @@
 import { PlexifyTheme } from '../../types/theme';
 import { Message, SuggestedAction } from '../../types/workspace';
+import BrandMark from '../shared/BrandMark';
 
 interface AIMessageBubbleProps {
   message: Message;
@@ -32,23 +33,11 @@ export default function AIMessageBubble({
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
         style={{
-          backgroundColor: isAssistant ? theme.primaryColor : '#e5e7eb',
+          backgroundColor: isAssistant ? 'transparent' : '#e5e7eb',
         }}
       >
         {isAssistant ? (
-          <svg
-            className="w-4 h-4 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
+          <BrandMark variant="grayP" size={32} />
         ) : (
           <svg
             className="w-4 h-4 text-gray-600"
@@ -75,6 +64,21 @@ export default function AIMessageBubble({
           style={!isAssistant ? { backgroundColor: theme.primaryColor } : undefined}
         >
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+
+          {isAssistant && message.citations && message.citations.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {message.citations.map((citation, index) => (
+                <button
+                  key={citation.id}
+                  type="button"
+                  title={`${citation.sourceLabel}${citation.pageNumber ? ` (p. ${citation.pageNumber})` : ''}: ${citation.quote}`}
+                  className="text-[11px] leading-none px-1.5 py-1 rounded border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  [{index + 1}]
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Timestamp */}
@@ -85,6 +89,21 @@ export default function AIMessageBubble({
         >
           {formatTimestamp(message.timestamp)}
         </p>
+
+        {isAssistant &&
+          ((message.referencedSources && message.referencedSources.length > 0) ||
+            typeof message.confidence === 'number') && (
+            <div className="mt-2 text-xs text-gray-500">
+              {message.referencedSources && message.referencedSources.length > 0 ? (
+                <span>Referenced: {message.referencedSources.join(', ')}</span>
+              ) : null}
+              {typeof message.confidence === 'number' ? (
+                <span className={message.referencedSources && message.referencedSources.length > 0 ? 'ml-2' : ''}>
+                  Confidence: {message.confidence}%
+                </span>
+              ) : null}
+            </div>
+          )}
 
         {/* Suggested Actions */}
         {isAssistant && message.suggestedActions && message.suggestedActions.length > 0 && (

@@ -7,13 +7,14 @@ import {
   Message,
   AudioChapter,
   WorkspaceConfig,
+  EditorBlock,
 } from '../../types';
-import AudioBriefingCard from './AudioBriefingCard';
-import VideoSummaryCard from './VideoSummaryCard';
+import AIMediaSummary from './AIMediaSummary';
 import SourceMaterialsList from './SourceMaterialsList';
 import BlockEditor from './BlockEditor';
 import RegenerateWithAIButton from './RegenerateWithAIButton';
 import AIAssistantPanel from './AIAssistantPanel';
+import BrandMark from '../shared/BrandMark';
 
 interface ReportEditorWorkspaceProps {
   projectId: string;
@@ -35,9 +36,16 @@ interface ReportEditorWorkspaceProps {
   onSave?: (content: string) => Promise<void>;
   onRegenerate?: (instructions?: string) => Promise<string>;
   onAIMessage?: (message: string) => Promise<Message>;
+  onRunAgent?: (
+    agentId: string,
+    args: { projectId: string; sourceIds: string[] }
+  ) => Promise<unknown>;
+  onSourceMaterialsChange?: (materials: SourceMaterial[]) => void;
   onExportPDF?: () => Promise<void>;
   onExportPPTX?: () => Promise<void>;
   renderSourcesPanel?: ReactNode;
+  onExportStructuredOutput?: (data: unknown, format: 'docx' | 'pdf') => Promise<void>;
+  renderStructuredOutputBlock?: (block: EditorBlock) => ReactNode;
 }
 
 export default function ReportEditorWorkspace({
@@ -58,15 +66,30 @@ export default function ReportEditorWorkspace({
   onSave,
   onRegenerate,
   onAIMessage,
+  onRunAgent,
+  onSourceMaterialsChange,
   onExportPDF,
   onExportPPTX,
   renderSourcesPanel,
+  onExportStructuredOutput,
+  renderStructuredOutputBlock,
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
+
+  // These props are reserved for future integration with real media sources.
+  void audioUrl;
+  void audioDuration;
+  void audioChapters;
+  void videoUrl;
+  void videoThumbnail;
+  void videoDuration;
+
   const [content, setContent] = useState(initialContent);
   const [materials, setMaterials] = useState<SourceMaterial[]>(sourceMaterials);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [blocks, setBlocks] = useState<EditorBlock[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -77,6 +100,8 @@ export default function ReportEditorWorkspace({
     allowExport = true,
     exportFormats = ['pdf', 'pptx'],
   } = config;
+
+  const showAIMediaSummary = showAudioBriefing || showVideoSummary;
 
   // Update content when initialContent changes
   useEffect(() => {
@@ -90,6 +115,21 @@ export default function ReportEditorWorkspace({
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
+  };
+
+  const handleToggleMaterialContext = (materialId: string, selected: boolean) => {
+    setMaterials((prev) => {
+      const next = prev.map((m) =>
+        m.id === materialId ? { ...m, isSelectedForContext: selected } : m
+      );
+      onSourceMaterialsChange?.(next);
+      return next;
+    });
+  };
+
+  const handleReorderMaterials = (nextMaterials: SourceMaterial[]) => {
+    setMaterials(nextMaterials);
+    onSourceMaterialsChange?.(nextMaterials);
   };
 
   const handleSave = async () => {
@@ -146,6 +186,69 @@ export default function ReportEditorWorkspace({
     }
   };
 
+  const handleRunAgent = async (agentId: string) => {
+    if (!onRunAgent || isGenerating) return;
+    setIsGenerating(true);
+    try {
+      const sourceIds = materials
+        .filter((m) => m.isSelectedForContext)
+        .map((m) => m.id);
+
+      const output = await onRunAgent(agentId, { projectId, sourceIds });
+
+      const block: EditorBlock = {
+        id: `structured-${agentId}-${Date.now()}`,
+        type: 'structured-output',
+        content: '',
+        data: output,
+      };
+
+      setBlocks((prev) => [block, ...prev]);
+    } catch (error) {
+      console.error('Agent generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleExportBlock = async (block: EditorBlock, format: 'docx' | 'pdf') => {
+    if (!onExportStructuredOutput || structuredOutputBusy) return;
+    try {
+      await onExportStructuredOutput(block.data, format);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
+
+  const handleDeleteBlock = (block: EditorBlock) => {
+    if (structuredOutputBusy) return;
+    setBlocks((prev) => prev.filter((b) => b.id !== block.id));
+  };
+
+  const structuredOutputBusy = isGenerating || isAILoading;
+
+  const handleRegenerateBlock = async (block: EditorBlock) => {
+    if (!onRunAgent || structuredOutputBusy) return;
+    const agentId = (block.data as any)?.agentId as string | undefined;
+    if (!agentId) return;
+
+    setIsGenerating(true);
+    try {
+      const sourceIds = materials
+        .filter((m) => m.isSelectedForContext)
+        .map((m) => m.id);
+
+      const output = await onRunAgent(agentId, { projectId, sourceIds });
+      setBlocks((prev) =>
+        prev.map((b) => (b.id === block.id ? { ...b, data: output } : b))
+      );
+    } catch (error) {
+      console.error('Regenerate failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -177,6 +280,7 @@ export default function ReportEditorWorkspace({
                 />
               </svg>
             </button>
+            <BrandMark variant="grayP" size={48} />
             <div>
               <h1 className="text-xl font-semibold">
                 {terminologyConfig.reportTitle}
@@ -285,38 +389,38 @@ export default function ReportEditorWorkspace({
         {/* Three Column Layout */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Panel - Sources */}
-          <aside className="w-80 flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto p-4 space-y-4">
-            {showAudioBriefing && audioUrl && (
-              <AudioBriefingCard
-                theme={theme}
-                audioUrl={audioUrl}
-                title="Audio Briefing"
-                duration={audioDuration}
-                chapters={audioChapters}
-              />
-            )}
+          <aside className="w-[30rem] flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200">
+              <h2 className="text-base font-semibold text-slate-800">
+                Inputs &amp; Media Sources
+              </h2>
+            </div>
 
-            {showVideoSummary && videoUrl && (
-              <VideoSummaryCard
-                theme={theme}
-                videoUrl={videoUrl}
-                thumbnailUrl={videoThumbnail}
-                title="Video Summary"
-                duration={videoDuration}
-              />
-            )}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+              {showAIMediaSummary ? <AIMediaSummary /> : null}
 
-            {showSourceMaterials ? (
-              renderSourcesPanel ? (
-                renderSourcesPanel
-              ) : (
-                <SourceMaterialsList
-                  theme={theme}
-                  materials={materials}
-                  onReorder={setMaterials}
-                />
-              )
-            ) : null}
+              {showSourceMaterials ? (
+                renderSourcesPanel ? (
+                  renderSourcesPanel
+                ) : (
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-700">
+                      {terminologyConfig.sourceMaterialsLabel}
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-3">
+                      Draggable materials
+                    </p>
+                    <SourceMaterialsList
+                      theme={theme}
+                      materials={materials}
+                      showHeader={false}
+                      onReorder={handleReorderMaterials}
+                      onToggleContext={handleToggleMaterialContext}
+                    />
+                  </div>
+                )
+              ) : null}
+            </div>
           </aside>
 
           {/* Center Panel - Editor */}
@@ -337,6 +441,12 @@ export default function ReportEditorWorkspace({
 
               <BlockEditor
                 theme={theme}
+                blocks={blocks}
+                renderStructuredOutputBlock={renderStructuredOutputBlock}
+                onStructuredOutputExport={handleExportBlock}
+                onStructuredOutputRegenerate={handleRegenerateBlock}
+                onStructuredOutputDelete={handleDeleteBlock}
+                structuredOutputBusy={structuredOutputBusy}
                 content={content}
                 onChange={handleContentChange}
                 placeholder={`Start writing your ${terminologyConfig.reportTitle.toLowerCase()}...`}
@@ -346,14 +456,24 @@ export default function ReportEditorWorkspace({
 
           {/* Right Panel - AI Assistant */}
           {showAIAssistant && (
-            <aside className="w-96 flex-shrink-0 border-l border-gray-200 bg-white">
-              <AIAssistantPanel
-                theme={theme}
-                title={terminologyConfig.aiAssistantName}
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                isLoading={isAILoading}
-              />
+            <aside className="w-[36rem] flex-shrink-0 border-l border-slate-200 bg-white flex flex-col overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200">
+                <h2 className="text-base font-semibold text-slate-800">
+                  AI Research Assistant
+                </h2>
+              </div>
+
+              <div className="flex-1 flex flex-col m-4 rounded-xl border border-slate-200 overflow-hidden bg-white">
+                <AIAssistantPanel
+                  embedded={true}
+                  theme={theme}
+                  title="Plexify AI Assistant"
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  onRunAgent={handleRunAgent}
+                  isLoading={structuredOutputBusy}
+                />
+              </div>
             </aside>
           )}
         </div>
