@@ -1,0 +1,55 @@
+{
+  "district": "Golden Triangle BID",
+  "location": "Washington, DC",
+  "documents": [
+    {
+      "id": "gt-strategic-plan-2025",
+      "filename": "golden-triangle-strategic-plan-2025.pdf",
+      "displayName": "Strategic Plan (2025)",
+      "type": "strategic",
+      "agents": ["board-brief"],
+      "uploadedAt": "2025-10-12T14:22:00.000Z",
+      "fileSize": 1843200,
+      "pageCount": 42
+    },
+    {
+      "id": "gt-operations-report-q4-2025",
+      "filename": "operations-report-q4-2025.pdf",
+      "displayName": "Operations Report (Q4 2025)",
+      "type": "operations",
+      "agents": ["board-brief", "ozrf-section"],
+      "uploadedAt": "2025-12-05T09:10:00.000Z",
+      "fileSize": 2560000,
+      "pageCount": 28
+    },
+    {
+      "id": "gt-demographics-2024",
+      "filename": "district-demographics-2024.pdf",
+      "displayName": "District Demographics (2024)",
+      "type": "demographics",
+      "agents": ["board-brief"],
+      "uploadedAt": "2024-11-18T16:35:00.000Z",
+      "fileSize": 942080,
+      "pageCount": 18
+    },
+    {
+      "id": "gt-assessment-collections-2025",
+      "filename": "assessment-collections-2025.xlsx",
+      "displayName": "Assessment Collections (2025)",
+      "type": "financial",
+      "agents": ["assessment-trends"],
+      "uploadedAt": "2025-09-30T12:00:00.000Z",
+      "fileSize": 512000
+    },
+    {
+      "id": "gt-capital-projects-pipeline",
+      "filename": "capital-projects-pipeline.pdf",
+      "displayName": "Capital Projects Pipeline",
+      "type": "capital-project",
+      "agents": ["board-brief", "ozrf-section"],
+      "uploadedAt": "2025-08-22T18:05:00.000Z",
+      "fileSize": 1326080,
+      "pageCount": 12
+    }
+  ]
+}

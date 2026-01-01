@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import {
   PlexifyTheme,
   TerminologySet,
@@ -37,6 +37,7 @@ interface ReportEditorWorkspaceProps {
   onAIMessage?: (message: string) => Promise<Message>;
   onExportPDF?: () => Promise<void>;
   onExportPPTX?: () => Promise<void>;
+  renderSourcesPanel?: ReactNode;
 }
 
 export default function ReportEditorWorkspace({
@@ -59,6 +60,7 @@ export default function ReportEditorWorkspace({
   onAIMessage,
   onExportPDF,
   onExportPPTX,
+  renderSourcesPanel,
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
   const [content, setContent] = useState(initialContent);
@@ -304,14 +306,17 @@ export default function ReportEditorWorkspace({
               />
             )}
 
-            {showSourceMaterials && (
-              <SourceMaterialsList
-                theme={theme}
-                materials={materials}
-                title={terminologyConfig.sourceMaterialsLabel}
-                onReorder={setMaterials}
-              />
-            )}
+            {showSourceMaterials ? (
+              renderSourcesPanel ? (
+                renderSourcesPanel
+              ) : (
+                <SourceMaterialsList
+                  theme={theme}
+                  materials={materials}
+                  onReorder={setMaterials}
+                />
+              )
+            ) : null}
           </aside>
 
           {/* Center Panel - Editor */}
