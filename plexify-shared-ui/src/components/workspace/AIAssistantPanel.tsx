@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PlexifyTheme } from '../../types/theme';
 import { Message, SuggestedAction } from '../../types/workspace';
 import AIMessageBubble from './AIMessageBubble';
-import PlexifyLogo from '../shared/PlexifyLogo';
+import BrandMark from '../shared/BrandMark';
 
 interface AIAssistantPanelProps {
   theme: PlexifyTheme;
@@ -160,7 +160,7 @@ export default function AIAssistantPanel({
       <div
         className="flex items-center gap-3 px-5 py-4 border-b border-slate-200"
       >
-        <PlexifyLogo size={32} />
+        <BrandMark variant="grayP" size={32} />
         <div>
           <h3 className="text-base font-semibold text-slate-800">{title}</h3>
           <span className="text-sm text-green-500">
@@ -177,7 +177,7 @@ export default function AIAssistantPanel({
               className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center"
               style={{ backgroundColor: `${theme.primaryColor}12` }}
             >
-              <PlexifyLogo size={60} />
+              <BrandMark variant="grayP" size={60} />
             </div>
             <p className="text-base text-gray-600 mb-4">
               {isLoading
