@@ -64,6 +64,16 @@ function extractJsonObject(text: string): unknown {
   }
 }
 
+function getAnthropicApiKey() {
+  const raw =
+    process.env.VITE_ANTHROPIC_API_KEY ??
+    process.env.ANTHROPIC_API_KEY ??
+    process.env.ANTHROPIC_APIKEY;
+
+  if (!raw) return undefined;
+  return raw.trim().replace(/^['"]|['"]$/g, '');
+}
+
 async function listAvailablePdfs(districtSlug: string) {
   try {
     const dir = path.resolve(process.cwd(), 'public', 'real-docs', districtSlug);
@@ -143,7 +153,7 @@ async function generateBoardBriefWithClaude({
   sources: Array<{ id: string; label: string; text: string }>;
   instructions?: string;
 }): Promise<BoardBriefEnvelope> {
-  const apiKey = process.env.VITE_ANTHROPIC_API_KEY;
+  const apiKey = getAnthropicApiKey();
 
   const sourcesUsed: StructuredOutputSourceRef[] = sources.map((s) => ({
     id: s.id,
@@ -249,7 +259,7 @@ async function generateAssessmentTrendsWithClaude({
   sources: Array<{ id: string; label: string; text: string }>;
   instructions?: string;
 }): Promise<AssessmentTrendsEnvelope> {
-  const apiKey = process.env.VITE_ANTHROPIC_API_KEY;
+  const apiKey = getAnthropicApiKey();
 
   const sourcesUsed: StructuredOutputSourceRef[] = sources.map((s) => ({
     id: s.id,
@@ -448,7 +458,7 @@ async function generateOZRFSectionWithClaude({
   sources: Array<{ id: string; label: string; text: string }>;
   instructions?: string;
 }): Promise<OZRFSectionEnvelope> {
-  const apiKey = process.env.VITE_ANTHROPIC_API_KEY;
+  const apiKey = getAnthropicApiKey();
 
   const sourcesUsed: StructuredOutputSourceRef[] = sources.map((s) => ({
     id: s.id,

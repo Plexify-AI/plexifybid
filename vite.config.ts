@@ -1,10 +1,18 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { notebookBDAgentsMiddleware } from './src/server/agentsApi';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Ensure .env/.env.local are available to our dev-only server middleware.
+  // (Vite exposes env to client via import.meta.env, but our Node middleware reads process.env.)
+  const env = loadEnv(mode, process.cwd(), '');
+  for (const [k, v] of Object.entries(env)) {
+    if (process.env[k] === undefined) process.env[k] = v;
+  }
+
+  return {
   plugins: [
     react(),
     {
@@ -84,4 +92,5 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  };
 });
