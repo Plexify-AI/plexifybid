@@ -17,6 +17,12 @@ export interface ExtractedDocument {
 
 const pdfCache = new Map<string, Promise<{ text: string; pageCount: number }>>();
 
+const normalizeBase = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/\.pdf$/i, '')
+    .replace(/[^a-z0-9]+/g, '');
+
 function assertSafeSlug(slug: string) {
   if (!/^[a-z0-9-]+$/i.test(slug)) {
     throw new Error('Invalid district slug');
@@ -34,6 +40,40 @@ function assertSafeFilename(filename: string) {
   }
 }
 
+async function resolvePdfPath(districtSlug: string, filename: string) {
+  const dir = path.join(REAL_DOCS_PATH, districtSlug);
+  const base = path.basename(filename);
+  const direct = path.join(dir, base);
+
+  try {
+    await fs.access(direct);
+    return direct;
+  } catch {
+    // fallthrough
+  }
+
+  const entries = await fs.readdir(dir);
+  const lower = base.toLowerCase();
+  const directCaseInsensitive = entries.find((e) => e.toLowerCase() === lower);
+  if (directCaseInsensitive) {
+    return path.join(dir, directCaseInsensitive);
+  }
+
+  const want = normalizeBase(base);
+  const fuzzy = entries.find((e) =>
+    e.toLowerCase().endsWith('.pdf') ? normalizeBase(e) === want : false
+  );
+  if (fuzzy) {
+    return path.join(dir, fuzzy);
+  }
+
+  const err: NodeJS.ErrnoException = new Error(
+    `ENOENT: no such file or directory, open '${direct}'`
+  );
+  err.code = 'ENOENT';
+  throw err;
+}
+
 export async function extractPdfText(
   districtSlug: string,
   filename: string
@@ -41,7 +81,7 @@ export async function extractPdfText(
   assertSafeSlug(districtSlug);
   assertSafeFilename(filename);
 
-  const filePath = path.join(REAL_DOCS_PATH, districtSlug, filename);
+  const filePath = await resolvePdfPath(districtSlug, filename);
 
   const cached = pdfCache.get(filePath);
   if (cached) return cached;
@@ -64,7 +104,7 @@ function clampText(text: string, maxChars = 40_000) {
 export async function loadSelectedDocuments(
   districtSlug: string,
   documentIds: string[]
-): Promise<ExtractedDocument[]> {
+): Promise<{ documents: ExtractedDocument[]; missing: ExtractedDocument[] }> {
   assertSafeSlug(districtSlug);
 
   const indexPath = path.join(REAL_DOCS_PATH, districtSlug, 'index.json');
@@ -75,21 +115,33 @@ export async function loadSelectedDocuments(
   const docs = index.documents.filter((doc) => requested.has(doc.id));
 
   const results: ExtractedDocument[] = [];
+  const missing: ExtractedDocument[] = [];
   for (const doc of docs) {
     if (!doc.filename.toLowerCase().endsWith('.pdf')) {
       // Not supported in Phase 2B-1.
       continue;
     }
 
-    const { text, pageCount } = await extractPdfText(districtSlug, doc.filename);
-    results.push({
-      id: doc.id,
-      filename: doc.filename,
-      displayName: doc.displayName,
-      text: clampText(text),
-      pageCount: doc.pageCount ?? pageCount,
-    });
+    try {
+      const { text, pageCount } = await extractPdfText(districtSlug, doc.filename);
+      results.push({
+        id: doc.id,
+        filename: doc.filename,
+        displayName: doc.displayName,
+        text: clampText(text),
+        pageCount: doc.pageCount ?? pageCount,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      missing.push({
+        id: doc.id,
+        filename: doc.filename,
+        displayName: doc.displayName,
+        text: message,
+        pageCount: doc.pageCount ?? 0,
+      });
+    }
   }
 
-  return results;
+  return { documents: results, missing };
 }

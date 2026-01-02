@@ -94,26 +94,24 @@ async function loadSelectedSourcesForRequest(body: AgentsApiRequestBody) {
       throw err;
     }
 
-    let docs;
-    try {
-      docs = await loadSelectedDocuments(districtSlug, body.documentIds);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      const error = new Error(
-        `Could not load selected PDFs. Verify the filenames in index.json match files in public/real-docs/${districtSlug}/. (${message})`
-      );
-      (error as any).statusCode = 400;
-      throw error;
-    }
-    if (docs.length === 0) {
+    const { documents, missing } = await loadSelectedDocuments(
+      districtSlug,
+      body.documentIds
+    );
+
+    if (documents.length === 0) {
+      const details = missing.length
+        ? ` Missing: ${missing.map((m) => `${m.displayName} (${m.filename})`).join(', ')}`
+        : '';
       const err = new Error(
-        'No supported PDF documents found in selection. Please select at least one PDF.'
+        `Could not load selected PDFs. Verify the filenames in index.json match files in public/real-docs/${districtSlug}/.${details}`
       );
       (err as any).statusCode = 400;
       throw err;
     }
 
-    return docs.map((d) => ({ id: d.id, label: d.displayName, text: d.text }));
+    // Proceed with what we could load; missing files will be silently ignored.
+    return documents.map((d) => ({ id: d.id, label: d.displayName, text: d.text }));
   }
 
   // Backwards compatible: demo-data sources.
