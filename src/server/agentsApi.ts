@@ -64,6 +64,16 @@ function extractJsonObject(text: string): unknown {
   }
 }
 
+async function listAvailablePdfs(districtSlug: string) {
+  try {
+    const dir = path.resolve(process.cwd(), 'public', 'real-docs', districtSlug);
+    const entries = await fs.readdir(dir);
+    return entries.filter((e) => e.toLowerCase().endsWith('.pdf')).slice(0, 25);
+  } catch {
+    return [];
+  }
+}
+
 async function loadSelectedSourceTexts(sourceIds?: string[]) {
   const selected =
     sourceIds && sourceIds.length > 0
@@ -103,8 +113,14 @@ async function loadSelectedSourcesForRequest(body: AgentsApiRequestBody) {
       const details = missing.length
         ? ` Missing: ${missing.map((m) => `${m.displayName} (${m.filename})`).join(', ')}`
         : '';
+
+      const available = await listAvailablePdfs(districtSlug);
+      const availableText = available.length
+        ? ` Available PDFs: ${available.join(', ')}`
+        : ' No PDFs found in the district folder.';
+
       const err = new Error(
-        `Could not load selected PDFs. Verify the filenames in index.json match files in public/real-docs/${districtSlug}/.${details}`
+        `Could not load selected PDFs. Verify the filenames in index.json match files in public/real-docs/${districtSlug}/.${details}${availableText}`
       );
       (err as any).statusCode = 400;
       throw err;
