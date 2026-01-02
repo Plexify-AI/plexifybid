@@ -101,7 +101,12 @@ export default function ReportEditorWorkspace({
     exportFormats = ['pdf', 'pptx'],
   } = config;
 
-  const showAIMediaSummary = showAudioBriefing || showVideoSummary;
+  void showAudioBriefing;
+  void showVideoSummary;
+
+  // Keep the NotebookBD Phase 1B "AI Media Summary" area visible by default.
+  // (Some consumers may not pass config flags, and we still want the demo widgets.)
+  const showAIMediaSummary = true;
 
   // Update content when initialContent changes
   useEffect(() => {
