@@ -211,6 +211,17 @@ export default function ReportEditorWorkspace({
     setMessages((prev) => [...prev, errorMessage]);
   };
 
+  const pushAgentErrorMessage = (err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    const errorMessage: Message = {
+      id: `error-${Date.now()}`,
+      role: 'assistant',
+      content: message || 'Sorry, I couldn\'t generate that. Please try again.',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, errorMessage]);
+  };
+
   const handleRunAgent = async (agentId: string) => {
     if (!onRunAgent || isGenerating) return;
     setIsGenerating(true);
@@ -233,6 +244,7 @@ export default function ReportEditorWorkspace({
       setBlocks((prev) => [block, ...prev]);
     } catch (error) {
       console.error('Agent generation failed:', error);
+      pushAgentErrorMessage(error);
     } finally {
       setIsGenerating(false);
     }
@@ -273,6 +285,7 @@ export default function ReportEditorWorkspace({
       );
     } catch (error) {
       console.error('Regenerate failed:', error);
+      pushAgentErrorMessage(error);
     } finally {
       setIsGenerating(false);
     }

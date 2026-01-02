@@ -94,7 +94,17 @@ async function loadSelectedSourcesForRequest(body: AgentsApiRequestBody) {
       throw err;
     }
 
-    const docs = await loadSelectedDocuments(districtSlug, body.documentIds);
+    let docs;
+    try {
+      docs = await loadSelectedDocuments(districtSlug, body.documentIds);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const error = new Error(
+        `Could not load selected PDFs. Verify the filenames in index.json match files in public/real-docs/${districtSlug}/. (${message})`
+      );
+      (error as any).statusCode = 400;
+      throw error;
+    }
     if (docs.length === 0) {
       const err = new Error(
         'No supported PDF documents found in selection. Please select at least one PDF.'
