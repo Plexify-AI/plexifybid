@@ -177,7 +177,7 @@ export default function AIAssistantPanel({
               className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center"
               style={{ backgroundColor: `${theme.primaryColor}12` }}
             >
-              <BrandMark variant="grayP" size={60} />
+              <BrandMark variant="chatburger" size={60} />
             </div>
             <p className="text-base text-gray-600 mb-4">
               {isLoading
