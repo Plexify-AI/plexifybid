@@ -5,6 +5,8 @@ import type {
 
 export interface RunAgentRequest {
   projectId: string;
+  documentIds?: string[];
+  // Backwards compatible with Phase 1B demo-source IDs.
   sourceIds?: string[];
   instructions?: string;
 }

@@ -12,7 +12,7 @@ import BoardReporting from './pages/BoardReporting';
 import ReportPrintView from './pages/ReportPrintView';
 import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
-import { RealDocsProvider } from './contexts/RealDocsContext';
+import { RealDocsProvider, useRealDocs } from './contexts/RealDocsContext';
 import SourcesPanel from './components/SourcesPanel';
 import {
   loadNotebookBDSources,
@@ -67,10 +67,12 @@ class WorkspaceErrorBoundary extends React.Component<
   }
 }
 
-const App: React.FC = () => {
+const AppBody: React.FC = () => {
   const isOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
+
+  const { state: realDocsState } = useRealDocs();
 
   const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
 
@@ -101,11 +103,11 @@ const App: React.FC = () => {
 
   const handleRunAgent = async (
     agentId: string,
-    args: { projectId: string; sourceIds: string[] }
+    args: { projectId: string; documentIds: string[] }
   ) => {
     return runNotebookBDAgent(agentId as any, {
-      projectId: args.projectId,
-      sourceIds: args.sourceIds,
+      projectId: 'golden-triangle',
+      documentIds: args.documentIds,
     });
   };
 
@@ -138,10 +140,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <RealDocsProvider>
-      <Router>
-        <div className="app-container">
-          <NavigationSidebar />
+    <Router>
+      <div className="app-container">
+        <NavigationSidebar />
 
           <main className="main-content">
             <Routes>
@@ -220,28 +221,36 @@ const App: React.FC = () => {
             </Routes>
           </main>
 
-          {isOpen ? (
-            <div className="fixed inset-0 z-[9999]">
-              <WorkspaceErrorBoundary>
-                <ReportEditorWorkspace
-                  isOpen={true}
-                  projectId={currentProjectId || 'project-001'}
-                  onClose={closeWorkspace}
-                  theme={bidTheme}
-                  terminology="bid"
-                  sourceMaterials={sourceMaterials}
-                  onSourceMaterialsChange={handleSourceMaterialsChange}
-                  onAIMessage={handleAIMessage}
-                  onRunAgent={handleRunAgent}
-                  onExportStructuredOutput={handleExportStructuredOutput}
-                  renderStructuredOutputBlock={renderStructuredOutputBlock}
-                  renderSourcesPanel={<SourcesPanel />}
-                />
-              </WorkspaceErrorBoundary>
-            </div>
-          ) : null}
-        </div>
-      </Router>
+        {isOpen ? (
+          <div className="fixed inset-0 z-[9999]">
+            <WorkspaceErrorBoundary>
+              <ReportEditorWorkspace
+                isOpen={true}
+                projectId={currentProjectId || 'project-001'}
+                onClose={closeWorkspace}
+                theme={bidTheme}
+                terminology="bid"
+                sourceMaterials={sourceMaterials}
+                onSourceMaterialsChange={handleSourceMaterialsChange}
+                onAIMessage={handleAIMessage}
+                onRunAgent={handleRunAgent}
+                onExportStructuredOutput={handleExportStructuredOutput}
+                renderStructuredOutputBlock={renderStructuredOutputBlock}
+                renderSourcesPanel={<SourcesPanel />}
+                selectedDocumentIds={realDocsState.selectedDocuments}
+              />
+            </WorkspaceErrorBoundary>
+          </div>
+        ) : null}
+      </div>
+    </Router>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <RealDocsProvider>
+      <AppBody />
     </RealDocsProvider>
   );
 };

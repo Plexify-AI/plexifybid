@@ -38,8 +38,9 @@ interface ReportEditorWorkspaceProps {
   onAIMessage?: (message: string) => Promise<Message>;
   onRunAgent?: (
     agentId: string,
-    args: { projectId: string; sourceIds: string[] }
+    args: { projectId: string; documentIds: string[] }
   ) => Promise<unknown>;
+  selectedDocumentIds?: string[];
   onSourceMaterialsChange?: (materials: SourceMaterial[]) => void;
   onExportPDF?: () => Promise<void>;
   onExportPPTX?: () => Promise<void>;
@@ -67,6 +68,7 @@ export default function ReportEditorWorkspace({
   onRegenerate,
   onAIMessage,
   onRunAgent,
+  selectedDocumentIds,
   onSourceMaterialsChange,
   onExportPDF,
   onExportPPTX,
@@ -191,15 +193,35 @@ export default function ReportEditorWorkspace({
     }
   };
 
+  const selectedIdsForAgent = () => {
+    if (selectedDocumentIds && Array.isArray(selectedDocumentIds)) {
+      return selectedDocumentIds;
+    }
+
+    return materials.filter((m) => m.isSelectedForContext).map((m) => m.id);
+  };
+
+  const pushSelectionRequiredMessage = () => {
+    const errorMessage: Message = {
+      id: `error-${Date.now()}`,
+      role: 'assistant',
+      content: 'Please select at least one document from the Sources panel.',
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, errorMessage]);
+  };
+
   const handleRunAgent = async (agentId: string) => {
     if (!onRunAgent || isGenerating) return;
     setIsGenerating(true);
     try {
-      const sourceIds = materials
-        .filter((m) => m.isSelectedForContext)
-        .map((m) => m.id);
+      const documentIds = selectedIdsForAgent();
+      if (documentIds.length === 0) {
+        pushSelectionRequiredMessage();
+        return;
+      }
 
-      const output = await onRunAgent(agentId, { projectId, sourceIds });
+      const output = await onRunAgent(agentId, { projectId, documentIds });
 
       const block: EditorBlock = {
         id: `structured-${agentId}-${Date.now()}`,
@@ -239,11 +261,13 @@ export default function ReportEditorWorkspace({
 
     setIsGenerating(true);
     try {
-      const sourceIds = materials
-        .filter((m) => m.isSelectedForContext)
-        .map((m) => m.id);
+      const documentIds = selectedIdsForAgent();
+      if (documentIds.length === 0) {
+        pushSelectionRequiredMessage();
+        return;
+      }
 
-      const output = await onRunAgent(agentId, { projectId, sourceIds });
+      const output = await onRunAgent(agentId, { projectId, documentIds });
       setBlocks((prev) =>
         prev.map((b) => (b.id === block.id ? { ...b, data: output } : b))
       );
@@ -477,6 +501,8 @@ export default function ReportEditorWorkspace({
                   onSendMessage={handleSendMessage}
                   onRunAgent={handleRunAgent}
                   isLoading={structuredOutputBusy}
+                  agentsDisabled={selectedIdsForAgent().length === 0}
+                  agentsDisabledReason="Select at least one document from Source Materials"
                 />
               </div>
             </aside>

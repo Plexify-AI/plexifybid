@@ -14,6 +14,8 @@ interface AIAssistantPanelProps {
   onSuggestedAction?: (action: SuggestedAction) => void;
   placeholder?: string;
   isLoading?: boolean;
+  agentsDisabled?: boolean;
+  agentsDisabledReason?: string;
 }
 
 function PaperclipIcon({ className }: { className?: string }) {
@@ -98,6 +100,8 @@ export default function AIAssistantPanel({
   onSuggestedAction,
   placeholder = 'Ask me anything about this report...',
   isLoading = false,
+  agentsDisabled = false,
+  agentsDisabledReason = 'Select documents first',
 }: AIAssistantPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -193,7 +197,8 @@ export default function AIAssistantPanel({
                       ? onRunAgent(chip.id)
                       : onSendMessage?.(chip.prompt)
                   }
-                  disabled={isLoading}
+                  disabled={isLoading || agentsDisabled}
+                  title={agentsDisabled ? agentsDisabledReason : undefined}
                   className="agent-chip px-4 py-2 text-sm text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -203,6 +208,9 @@ export default function AIAssistantPanel({
                 </button>
               ))}
             </div>
+            {agentsDisabled ? (
+              <p className="mt-3 text-xs text-slate-500">{agentsDisabledReason}</p>
+            ) : null}
           </div>
         ) : (
           messages.map((message) => (

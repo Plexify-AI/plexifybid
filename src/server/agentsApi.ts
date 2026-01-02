@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 import path from 'path';
 import fs from 'fs/promises';
+import { loadSelectedDocuments } from './pdfService';
 import {
   type BoardBriefEnvelope,
   type AssessmentTrendsEnvelope,
@@ -12,6 +13,7 @@ import {
 
 type AgentsApiRequestBody = {
   projectId?: string;
+  documentIds?: string[];
   sourceIds?: string[];
   instructions?: string;
 };
@@ -78,6 +80,34 @@ async function loadSelectedSourceTexts(sourceIds?: string[]) {
   );
 
   return docs;
+}
+
+async function loadSelectedSourcesForRequest(body: AgentsApiRequestBody) {
+  const districtSlug = body.projectId ?? 'golden-triangle';
+
+  if (body.documentIds) {
+    if (body.documentIds.length === 0) {
+      const err = new Error(
+        'No documents selected. Please select at least one document from the Sources panel.'
+      );
+      (err as any).statusCode = 400;
+      throw err;
+    }
+
+    const docs = await loadSelectedDocuments(districtSlug, body.documentIds);
+    if (docs.length === 0) {
+      const err = new Error(
+        'No supported PDF documents found in selection. Please select at least one PDF.'
+      );
+      (err as any).statusCode = 400;
+      throw err;
+    }
+
+    return docs.map((d) => ({ id: d.id, label: d.displayName, text: d.text }));
+  }
+
+  // Backwards compatible: demo-data sources.
+  return loadSelectedSourceTexts(body.sourceIds);
 }
 
 async function generateBoardBriefWithClaude({
@@ -540,19 +570,20 @@ async function generateOZRFSectionWithClaude({
 
 async function handleAgentRequest({
   agentId,
-  body,
+  projectId,
+  sources,
+  instructions,
 }: {
   agentId: NotebookBDAgentId;
-  body: AgentsApiRequestBody;
+  projectId: string;
+  sources: Array<{ id: string; label: string; text: string }>;
+  instructions?: string;
 }) {
-  const projectId = body.projectId ?? 'project-001';
-  const sources = await loadSelectedSourceTexts(body.sourceIds);
-
   if (agentId === 'board-brief') {
     return generateBoardBriefWithClaude({
       projectId,
       sources,
-      instructions: body.instructions,
+      instructions,
     });
   }
 
@@ -560,7 +591,7 @@ async function handleAgentRequest({
     return generateAssessmentTrendsWithClaude({
       projectId,
       sources,
-      instructions: body.instructions,
+      instructions,
     });
   }
 
@@ -568,7 +599,7 @@ async function handleAgentRequest({
     return generateOZRFSectionWithClaude({
       projectId,
       sources,
-      instructions: body.instructions,
+      instructions,
     });
   }
 
@@ -591,14 +622,20 @@ export function notebookBDAgentsMiddleware() {
       }
 
       const body = await readJson<AgentsApiRequestBody>(req);
+
+      const sources = await loadSelectedSourcesForRequest(body);
+
       const result = await handleAgentRequest({
         agentId: agentId as NotebookBDAgentId,
-        body,
+        projectId: body.projectId ?? 'golden-triangle',
+        sources,
+        instructions: body.instructions,
       });
       return sendJson(res, 200, result);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      return sendJson(res, 500, { error: message });
+      const statusCode = (err as any)?.statusCode;
+      return sendJson(res, typeof statusCode === 'number' ? statusCode : 500, { error: message });
     }
   };
 }
