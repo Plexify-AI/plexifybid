@@ -1,9 +1,11 @@
 import path from 'path';
 import fs from 'fs/promises';
-import pdfParse from 'pdf-parse';
+import pdfParseImport from 'pdf-parse';
 import type { RealDocsIndex } from '../types/realDocs';
 
 const REAL_DOCS_PATH = path.join(process.cwd(), 'public', 'real-docs');
+
+const pdfParse: any = (pdfParseImport as any)?.default ?? (pdfParseImport as any);
 
 export interface ExtractedDocument {
   id: string;
