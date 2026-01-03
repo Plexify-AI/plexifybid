@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { AudioChapter } from '../../types';
 
 type ChapterIcon = 'audio' | 'video';
@@ -94,6 +94,11 @@ export default function AIMediaSummary({
   audioIsGenerating = false,
   canGenerateAudio = false,
   onGenerateAudio,
+  podcastCanGenerate = false,
+  podcastHasContent = false,
+  podcastIsGenerating = false,
+  onGeneratePodcast,
+  renderPodcastPlayer,
 }: {
   audioUrl?: string;
   audioDuration?: string;
@@ -101,6 +106,11 @@ export default function AIMediaSummary({
   audioIsGenerating?: boolean;
   canGenerateAudio?: boolean;
   onGenerateAudio?: () => void;
+  podcastCanGenerate?: boolean;
+  podcastHasContent?: boolean;
+  podcastIsGenerating?: boolean;
+  onGeneratePodcast?: () => void;
+  renderPodcastPlayer?: ReactNode;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -312,53 +322,80 @@ export default function AIMediaSummary({
                 <option value={2}>2x</option>
               </select>
             </div>
-
-            <div className="flex flex-wrap gap-2 mb-2">
-              {chapters.map((ch) => (
-                <button
-                  type="button"
-                  key={ch.id}
-                  onClick={() =>
-                    audioUrl ? seekToChapter(ch.id) : setActiveChapter(ch.id)
-                  }
-                  className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition ${
-                    activeChapter === ch.id ? 'bg-white text-indigo-600' : ''
-                  }`}
-                  style={
-                    activeChapter === ch.id
-                      ? undefined
-                      : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
-                  }
-                  disabled={audioIsGenerating}
-                >
-                  {ch.icon === 'video' ? (
-                    <VideoIcon className="w-4 h-4" />
-                  ) : (
-                    <HeadphonesIcon className="w-4 h-4" />
-                  )}
-                  {ch.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="text-sm opacity-80 flex items-center gap-2">
-              <span>Ready:</span>
-              <HeadphonesIcon className="w-4 h-4" />
-              <span>{activeLabel}</span>
-              <span>•</span>
-              <span>
-                {audioIsGenerating
-                  ? 'Generating'
-                  : audioUrl
-                    ? isPlaying
-                      ? 'Playing'
-                      : 'Paused'
-                    : 'No audio'}
-              </span>
-            </div>
           </>
         ) : null}
+
+        <div className="flex flex-wrap gap-2 mb-2">
+          {chapters.map((ch) => (
+            <button
+              type="button"
+              key={ch.id}
+              onClick={() =>
+                audioUrl ? seekToChapter(ch.id) : setActiveChapter(ch.id)
+              }
+              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition ${
+                activeChapter === ch.id ? 'bg-white text-indigo-600' : ''
+              }`}
+              style={
+                activeChapter === ch.id
+                  ? undefined
+                  : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
+              }
+              disabled={audioIsGenerating || !audioUrl}
+            >
+              {ch.icon === 'video' ? (
+                <VideoIcon className="w-4 h-4" />
+              ) : (
+                <HeadphonesIcon className="w-4 h-4" />
+              )}
+              {ch.label}
+            </button>
+          ))}
+
+          {onGeneratePodcast ? (
+            <button
+              type="button"
+              onClick={onGeneratePodcast}
+              disabled={!podcastCanGenerate || podcastIsGenerating}
+              className={`audio-briefing__chapter--podcast flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition disabled:opacity-60 ${
+                podcastHasContent ? 'has-content' : ''
+              }`}
+            >
+              Deep Dive Podcast
+            </button>
+          ) : null}
+        </div>
+
+        <div className="text-sm opacity-80 flex items-center gap-2">
+          <span>Ready:</span>
+          <HeadphonesIcon className="w-4 h-4" />
+          <span>{activeLabel}</span>
+          <span>•</span>
+          <span>
+            {audioIsGenerating
+              ? 'Generating'
+              : audioUrl
+                ? isPlaying
+                  ? 'Playing'
+                  : 'Paused'
+                : 'No audio'}
+          </span>
+          {podcastIsGenerating ? (
+            <>
+              <span>•</span>
+              <span>Generating podcast</span>
+            </>
+          ) : null}
+        </div>
+
+        {!podcastCanGenerate && onGeneratePodcast ? (
+          <p className="mt-2 text-xs text-white/80">
+            Select one or more documents to enable the Deep Dive Podcast.
+          </p>
+        ) : null}
       </div>
+
+      {renderPodcastPlayer ? renderPodcastPlayer : null}
 
       {/* Visual Site Summary */}
       <div

@@ -22,9 +22,11 @@ import {
 import { runNotebookBDAgent } from './services/agentService';
 import { exportStructuredOutput } from './services/exportService';
 import { generateAudioFromContent } from './services/audioService';
+import { generatePodcast } from './services/podcastService';
 import BoardBriefRenderer from './components/BoardBriefRenderer';
 import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
 import OZRFSectionRenderer from './components/OZRFSectionRenderer';
+import PodcastPlayerWidget from './components/PodcastPlayerWidget';
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -79,6 +81,8 @@ const AppBody: React.FC = () => {
   const [audioBriefing, setAudioBriefing] = useState(null);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [latestBoardBrief, setLatestBoardBrief] = useState(null);
+  const [podcast, setPodcast] = useState(null);
+  const [isGeneratingPodcast, setIsGeneratingPodcast] = useState(false);
 
   useEffect(() => {
     loadNotebookBDSources()
@@ -172,6 +176,26 @@ const AppBody: React.FC = () => {
   const handleGenerateFromLatestBoardBrief = async () => {
     if (!latestBoardBrief) return;
     await handleGenerateBoardBriefAudio(latestBoardBrief);
+  };
+
+  const handleGeneratePodcast = async () => {
+    if (isGeneratingPodcast) return;
+    const documentIds = realDocsState.selectedDocuments ?? [];
+    if (!documentIds.length) {
+      alert('Select at least one document to generate a Deep Dive Podcast.');
+      return;
+    }
+
+    setIsGeneratingPodcast(true);
+    try {
+      const result = await generatePodcast(documentIds, 'golden-triangle');
+      setPodcast(result);
+    } catch (err) {
+      console.error('Podcast generation failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to generate podcast');
+    } finally {
+      setIsGeneratingPodcast(false);
+    }
   };
 
   const renderStructuredOutputBlock = (block) => {
@@ -316,6 +340,13 @@ const AppBody: React.FC = () => {
                 audioIsGenerating={isGeneratingAudio}
                 audioCanGenerate={Boolean(latestBoardBrief)}
                 onGenerateAudioBriefing={handleGenerateFromLatestBoardBrief}
+                podcastCanGenerate={Boolean(realDocsState.selectedDocuments?.length)}
+                podcastHasContent={Boolean(podcast?.podcastUrl)}
+                podcastIsGenerating={isGeneratingPodcast}
+                onGeneratePodcast={handleGeneratePodcast}
+                renderPodcastPlayer={
+                  <PodcastPlayerWidget podcast={podcast} isGenerating={isGeneratingPodcast} />
+                }
               />
             </WorkspaceErrorBoundary>
           </div>

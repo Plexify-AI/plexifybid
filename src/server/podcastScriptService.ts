@@ -1,0 +1,179 @@
+import type { DialogueTurn } from './elevenLabsService';
+
+export interface PodcastScript {
+  title: string;
+  description: string;
+  dialogue: DialogueTurn[];
+  wordCount: number;
+}
+
+const PODCAST_SYSTEM_PROMPT = `You are a podcast script writer creating a two-host deep dive discussion about Business Improvement District operations and development opportunities.
+
+PERSONAS:
+- CASSIDY (Host): Warm, curious, professional podcast host. Guides the conversation with insightful questions. Uses natural transitions like "That's fascinating..." or "Help me understand..." or "Our listeners might be wondering...". Asks follow-up questions that board members and stakeholders would want answered.
+
+- MARK (Analyst): BID operations and development expert. Provides detailed, authoritative insights while remaining accessible. References specific data and findings from the source documents. Uses phrases like "What the data shows us..." or "One thing that stands out..." or "From an operational perspective...".
+
+DIALOGUE STYLE:
+- Natural, conversational flow - not stiff or scripted-sounding
+- Include brief reactions: "Right", "Exactly", "That's a great point"
+- Use transitional phrases between topics
+- Include occasional [thoughtful], [enthusiastic], or [concerned] emotional cues where appropriate
+- Vary sentence length for natural rhythm
+- Mark should cite specific numbers and facts from the documents
+- Cassidy should summarize and clarify complex points for the audience
+
+OUTPUT FORMAT:
+Return ONLY a valid JSON object with this structure:
+{
+  "title": "Episode title",
+  "description": "Brief episode description (1-2 sentences)",
+  "dialogue": [
+    {"speaker": "CASSIDY", "text": "Welcome to District Insights..."},
+    {"speaker": "MARK", "text": "Thanks for having me..."}
+  ]
+}
+
+Do not include any text before or after the JSON. No markdown code blocks.`;
+
+function sanitizeEnvValue(value: string) {
+  let v = value.trim();
+  const quoteChars = new Set(['"', "'", '`', '“', '”', '‘', '’']);
+  while (v.length >= 2 && quoteChars.has(v[0]) && quoteChars.has(v[v.length - 1])) {
+    v = v.slice(1, -1).trim();
+  }
+  if (v.endsWith(';')) v = v.slice(0, -1).trim();
+  return v;
+}
+
+function getAnthropicApiKey() {
+  const raw = process.env.VITE_ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+  if (!raw) return undefined;
+  return sanitizeEnvValue(raw);
+}
+
+function getAnthropicModelCandidates() {
+  const raw = process.env.VITE_ANTHROPIC_MODEL ?? process.env.ANTHROPIC_MODEL;
+  const preferred = raw?.trim() ? sanitizeEnvValue(raw) : undefined;
+  const candidates = [
+    preferred,
+    'claude-sonnet-4-20250514',
+    'claude-3-5-sonnet-latest',
+    'claude-3-5-haiku-latest',
+  ].filter(Boolean) as string[];
+  return [...new Set(candidates)];
+}
+
+async function anthropicMessagesCreate(opts: {
+  apiKey: string;
+  models: string[];
+  system: string;
+  prompt: string;
+}) {
+  const { apiKey, models, system, prompt } = opts;
+  const [model, ...rest] = models;
+  if (!model) throw new Error('No Anthropic model available to try');
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 8192,
+      system,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    if (response.status === 404 && text.includes('model') && rest.length > 0) {
+      return anthropicMessagesCreate({ apiKey, models: rest, system, prompt });
+    }
+    throw new Error(`Anthropic error ${response.status}: ${text}`);
+  }
+
+  return response.json();
+}
+
+function extractJsonObject(text: string): unknown {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) return null;
+
+  let json = text.slice(start, end + 1).trim();
+  if (json.startsWith('```json')) json = json.slice(7).trim();
+  if (json.startsWith('```')) json = json.slice(3).trim();
+  if (json.endsWith('```')) json = json.slice(0, -3).trim();
+
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+export async function generatePodcastScript(context: string, districtName = 'Golden Triangle BID') {
+  const apiKey = getAnthropicApiKey();
+  if (!apiKey) throw new Error('Anthropic API key not configured');
+
+  const userPrompt = `Create a 12-15 minute podcast episode (~2500-3000 words of dialogue) discussing the following Business Improvement District:
+
+DISTRICT: ${districtName}
+
+SOURCE DOCUMENTS:
+${context}
+
+EPISODE STRUCTURE:
+1. Opening (30 sec): Cassidy welcomes listeners and introduces Mark as the expert guest
+2. Overview (2 min): Mark provides district background and context
+3. Key Metrics & Achievements (3 min): Discussion of notable accomplishments and numbers
+4. Challenges & Risks (3 min): Honest discussion of obstacles and concerns
+5. Opportunities & Future Outlook (3 min): What's ahead for the district
+6. Recommendations (2 min): Mark's top takeaways for stakeholders
+7. Closing (1 min): Cassidy summarizes and thanks Mark
+
+Generate the complete dialogue script now.`;
+
+  const data = await anthropicMessagesCreate({
+    apiKey,
+    models: getAnthropicModelCandidates(),
+    system: PODCAST_SYSTEM_PROMPT,
+    prompt: userPrompt,
+  });
+
+  const parts: Array<{ type: string; text?: string }> = data?.content ?? [];
+  const textPart = parts.find((p) => p.type === 'text' && typeof p.text === 'string');
+  if (!textPart?.text) throw new Error('No text content in Claude response');
+
+  const parsed = extractJsonObject(textPart.text) as
+    | { title?: string; description?: string; dialogue?: DialogueTurn[] }
+    | null;
+  if (!parsed || !Array.isArray(parsed.dialogue)) {
+    throw new Error('Failed to parse podcast script');
+  }
+
+  const dialogue = parsed.dialogue.filter(
+    (t) =>
+      t &&
+      (t.speaker === 'CASSIDY' || t.speaker === 'MARK') &&
+      typeof t.text === 'string' &&
+      t.text.trim().length > 0
+  );
+
+  const wordCount = dialogue.reduce(
+    (sum, turn) => sum + turn.text.split(/\s+/).filter(Boolean).length,
+    0
+  );
+
+  return {
+    title: parsed.title || `${districtName} Deep Dive`,
+    description: parsed.description || `A deep dive discussion of ${districtName}.`,
+    dialogue,
+    wordCount,
+  } satisfies PodcastScript;
+}

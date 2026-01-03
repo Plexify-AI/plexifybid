@@ -9,6 +9,7 @@ build/
 
 # Generated media
 public/audio/
+public/podcasts/
 
 # Environment variables
 .env

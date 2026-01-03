@@ -32,6 +32,11 @@ interface ReportEditorWorkspaceProps {
   audioIsGenerating?: boolean;
   audioCanGenerate?: boolean;
   onGenerateAudioBriefing?: () => void;
+  podcastCanGenerate?: boolean;
+  podcastHasContent?: boolean;
+  podcastIsGenerating?: boolean;
+  onGeneratePodcast?: () => void;
+  renderPodcastPlayer?: ReactNode;
   videoUrl?: string;
   videoThumbnail?: string;
   videoDuration?: string;
@@ -67,6 +72,11 @@ export default function ReportEditorWorkspace({
   audioIsGenerating = false,
   audioCanGenerate = false,
   onGenerateAudioBriefing,
+  podcastCanGenerate = false,
+  podcastHasContent = false,
+  podcastIsGenerating = false,
+  onGeneratePodcast,
+  renderPodcastPlayer,
   videoUrl,
   videoThumbnail,
   videoDuration,
@@ -450,6 +460,11 @@ export default function ReportEditorWorkspace({
                   audioIsGenerating={audioIsGenerating}
                   canGenerateAudio={audioCanGenerate}
                   onGenerateAudio={onGenerateAudioBriefing}
+                  podcastCanGenerate={podcastCanGenerate}
+                  podcastHasContent={podcastHasContent}
+                  podcastIsGenerating={podcastIsGenerating}
+                  onGeneratePodcast={onGeneratePodcast}
+                  renderPodcastPlayer={renderPodcastPlayer}
                 />
               ) : null}
 
