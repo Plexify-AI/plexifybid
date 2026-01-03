@@ -64,14 +64,39 @@ function extractJsonObject(text: string): unknown {
   }
 }
 
-function getAnthropicApiKey() {
-  const raw =
-    process.env.VITE_ANTHROPIC_API_KEY ??
-    process.env.ANTHROPIC_API_KEY ??
-    process.env.ANTHROPIC_APIKEY;
+function getAnthropicApiKeyInfo():
+  | {
+      key: string;
+      source: 'VITE_ANTHROPIC_API_KEY' | 'ANTHROPIC_API_KEY' | 'ANTHROPIC_APIKEY';
+      startsWithSkAnt: boolean;
+      length: number;
+    }
+  | undefined {
+  const sources: Array<{
+    source: 'VITE_ANTHROPIC_API_KEY' | 'ANTHROPIC_API_KEY' | 'ANTHROPIC_APIKEY';
+    value?: string;
+  }> = [
+    { source: 'VITE_ANTHROPIC_API_KEY', value: process.env.VITE_ANTHROPIC_API_KEY },
+    { source: 'ANTHROPIC_API_KEY', value: process.env.ANTHROPIC_API_KEY },
+    { source: 'ANTHROPIC_APIKEY', value: process.env.ANTHROPIC_APIKEY },
+  ];
 
-  if (!raw) return undefined;
-  return raw.trim().replace(/^['"]|['"]$/g, '');
+  for (const { source, value } of sources) {
+    if (!value) continue;
+    const key = value.trim().replace(/^['"]|['"]$/g, '');
+    return {
+      key,
+      source,
+      startsWithSkAnt: key.startsWith('sk-ant-'),
+      length: key.length,
+    };
+  }
+
+  return undefined;
+}
+
+function getAnthropicApiKey() {
+  return getAnthropicApiKeyInfo()?.key;
 }
 
 function getAnthropicModelCandidates() {
@@ -130,8 +155,11 @@ async function anthropicMessagesCreate(opts: {
     const text = await response.text();
 
     if (response.status === 401) {
+      const info = getAnthropicApiKeyInfo();
       const err: any = new Error(
-        `Anthropic authentication failed (invalid x-api-key). Verify your API key in .env.local and restart the dev server.`
+        `Anthropic authentication failed (invalid x-api-key). ` +
+          `Loaded key from ${info?.source ?? 'unknown'} (length=${info?.length ?? 0}, startsWithSkAnt=${info?.startsWithSkAnt ?? false}). ` +
+          `Verify .env.local contains a valid sk-ant-* key and restart the dev server.`
       );
       err.statusCode = 401;
       throw err;
