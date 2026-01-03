@@ -96,6 +96,9 @@ export async function generateAudioBriefing(
   outputId: string
 ): Promise<TTSResult> {
   const apiKey = getOpenAIApiKey();
+  // Safe diagnostics (no secret bytes).
+  // eslint-disable-next-line no-console
+  console.info('[tts] OPENAI_API_KEY configured:', Boolean(apiKey));
   if (!apiKey) {
     throw new Error('OpenAI API key not configured');
   }
@@ -118,6 +121,8 @@ export async function generateAudioBriefing(
 
   const buffer = Buffer.from(await mp3Response.arrayBuffer());
   await fs.writeFile(outputPath, buffer);
+  // eslint-disable-next-line no-console
+  console.info('[tts] Wrote audio file:', outputPath, `(bytes=${buffer.length})`);
 
   const totalDuration = estimateChapterTimings(chapters);
 

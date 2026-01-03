@@ -78,6 +78,7 @@ const AppBody: React.FC = () => {
   const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
   const [audioBriefing, setAudioBriefing] = useState(null);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [latestBoardBrief, setLatestBoardBrief] = useState(null);
 
   useEffect(() => {
     loadNotebookBDSources()
@@ -108,10 +109,16 @@ const AppBody: React.FC = () => {
     agentId: string,
     args: { projectId: string; documentIds: string[] }
   ) => {
-    return runNotebookBDAgent(agentId as any, {
+    const result = await runNotebookBDAgent(agentId as any, {
       projectId: 'golden-triangle',
       documentIds: args.documentIds,
     });
+
+    if (result?.agentId === 'board-brief') {
+      setLatestBoardBrief(result);
+    }
+
+    return result;
   };
 
   const handleExportStructuredOutput = async (
@@ -160,6 +167,11 @@ const AppBody: React.FC = () => {
     } finally {
       setIsGeneratingAudio(false);
     }
+  };
+
+  const handleGenerateFromLatestBoardBrief = async () => {
+    if (!latestBoardBrief) return;
+    await handleGenerateBoardBriefAudio(latestBoardBrief);
   };
 
   const renderStructuredOutputBlock = (block) => {
@@ -302,6 +314,8 @@ const AppBody: React.FC = () => {
                     : []
                 }
                 audioIsGenerating={isGeneratingAudio}
+                audioCanGenerate={Boolean(latestBoardBrief)}
+                onGenerateAudioBriefing={handleGenerateFromLatestBoardBrief}
               />
             </WorkspaceErrorBoundary>
           </div>

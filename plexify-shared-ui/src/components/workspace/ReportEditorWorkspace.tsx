@@ -30,6 +30,8 @@ interface ReportEditorWorkspaceProps {
   audioDuration?: string;
   audioChapters?: AudioChapter[];
   audioIsGenerating?: boolean;
+  audioCanGenerate?: boolean;
+  onGenerateAudioBriefing?: () => void;
   videoUrl?: string;
   videoThumbnail?: string;
   videoDuration?: string;
@@ -63,6 +65,8 @@ export default function ReportEditorWorkspace({
   audioDuration,
   audioChapters = [],
   audioIsGenerating = false,
+  audioCanGenerate = false,
+  onGenerateAudioBriefing,
   videoUrl,
   videoThumbnail,
   videoDuration,
@@ -444,6 +448,8 @@ export default function ReportEditorWorkspace({
                   audioDuration={audioDuration}
                   audioChapters={audioChapters}
                   audioIsGenerating={audioIsGenerating}
+                  canGenerateAudio={audioCanGenerate}
+                  onGenerateAudio={onGenerateAudioBriefing}
                 />
               ) : null}
 

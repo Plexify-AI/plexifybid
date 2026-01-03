@@ -92,11 +92,15 @@ export default function AIMediaSummary({
   audioDuration,
   audioChapters,
   audioIsGenerating = false,
+  canGenerateAudio = false,
+  onGenerateAudio,
 }: {
   audioUrl?: string;
   audioDuration?: string;
   audioChapters?: AudioChapter[];
   audioIsGenerating?: boolean;
+  canGenerateAudio?: boolean;
+  onGenerateAudio?: () => void;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -210,6 +214,8 @@ export default function AIMediaSummary({
     setPlaybackRate(rate);
   };
 
+  const showGenerateState = !audioUrl;
+
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-slate-700">AI Media Summary</h3>
@@ -226,103 +232,132 @@ export default function AIMediaSummary({
           <span className="text-base font-semibold">Audio Briefing</span>
         </div>
 
-        <audio ref={audioRef} src={audioUrl} preload="metadata" />
-
-        <div className="flex items-center gap-3 mb-3">
-          <button
-            type="button"
-            onClick={togglePlayPause}
-            className="w-12 h-12 rounded-full flex items-center justify-center"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            }}
-            disabled={!audioUrl || audioIsGenerating}
-          >
-            {isPlaying ? (
-              <PauseIcon className="w-5 h-5" />
-            ) : (
-              <PlayIcon className="w-5 h-5 ml-0.5" />
-            )}
-          </button>
-
-          <div className="flex-1 flex items-center gap-2 text-sm">
-            <span>{formatTime(currentTime)}</span>
-            <div
-              className="flex-1 h-1 rounded-full"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
-            >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 1)',
-                  width: `${progress}%`,
-                }}
-              />
-            </div>
-            <span>
-              {audioDuration ??
-                (durationSeconds > 0 ? formatTime(durationSeconds) : '0:00')}
-            </span>
-          </div>
-
-          <select
-            className="text-sm rounded px-2 py-1 border-none"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-            disabled={!audioUrl || audioIsGenerating}
-            value={playbackRate}
-            onChange={(e) => handlePlaybackRateChange(Number(e.target.value))}
-          >
-            <option value={0.75}>0.75x</option>
-            <option value={1}>1x</option>
-            <option value={1.25}>1.25x</option>
-            <option value={1.5}>1.5x</option>
-            <option value={2}>2x</option>
-          </select>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-2">
-          {chapters.map((ch) => (
+        {showGenerateState ? (
+          <div className="space-y-3">
+            <p className="text-sm text-white/90">
+              Generate an audio version of your Board Brief.
+            </p>
             <button
               type="button"
-              key={ch.id}
-              onClick={() => (audioUrl ? seekToChapter(ch.id) : setActiveChapter(ch.id))}
-              className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition ${
-                activeChapter === ch.id
-                  ? 'bg-white text-indigo-600'
-                  : ''
-              }`}
-              style={
-                activeChapter === ch.id
-                  ? undefined
-                  : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
-              }
-              disabled={audioIsGenerating}
+              onClick={onGenerateAudio}
+              disabled={!canGenerateAudio || audioIsGenerating}
+              className="inline-flex items-center gap-2 rounded-md bg-white/20 px-4 py-2 text-sm font-semibold text-white hover:bg-white/30 disabled:opacity-60"
             >
-              {ch.icon === 'video' ? (
-                <VideoIcon className="w-4 h-4" />
-              ) : (
-                <HeadphonesIcon className="w-4 h-4" />
-              )}
-              {ch.label}
+              {audioIsGenerating ? 'Generating…' : 'Generate Audio Briefing'}
             </button>
-          ))}
-        </div>
+            {!canGenerateAudio ? (
+              <p className="text-xs text-white/80">
+                Generate a Board Brief first to enable audio.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
-        <div className="text-sm opacity-80 flex items-center gap-2">
-          <span>Ready:</span>
-          <HeadphonesIcon className="w-4 h-4" />
-          <span>{activeLabel}</span>
-          <span>•</span>
-          <span>
-            {audioIsGenerating
-              ? 'Generating'
-              : audioUrl
-                ? isPlaying
-                  ? 'Playing'
-                  : 'Paused'
-                : 'No audio'}
-          </span>
-        </div>
+        {!showGenerateState ? (
+          <>
+            <audio ref={audioRef} src={audioUrl} preload="metadata" />
+
+            <div className="flex items-center gap-3 mb-3">
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                }}
+                disabled={!audioUrl || audioIsGenerating}
+              >
+                {isPlaying ? (
+                  <PauseIcon className="w-5 h-5" />
+                ) : (
+                  <PlayIcon className="w-5 h-5 ml-0.5" />
+                )}
+              </button>
+
+              <div className="flex-1 flex items-center gap-2 text-sm">
+                <span>{formatTime(currentTime)}</span>
+                <div
+                  className="flex-1 h-1 rounded-full"
+                  style={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
+                >
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 1)',
+                      width: `${progress}%`,
+                    }}
+                  />
+                </div>
+                <span>
+                  {audioDuration ??
+                    (durationSeconds > 0
+                      ? formatTime(durationSeconds)
+                      : '0:00')}
+                </span>
+              </div>
+
+              <select
+                className="text-sm rounded px-2 py-1 border-none"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+                disabled={!audioUrl || audioIsGenerating}
+                value={playbackRate}
+                onChange={(e) =>
+                  handlePlaybackRateChange(Number(e.target.value))
+                }
+              >
+                <option value={0.75}>0.75x</option>
+                <option value={1}>1x</option>
+                <option value={1.25}>1.25x</option>
+                <option value={1.5}>1.5x</option>
+                <option value={2}>2x</option>
+              </select>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-2">
+              {chapters.map((ch) => (
+                <button
+                  type="button"
+                  key={ch.id}
+                  onClick={() =>
+                    audioUrl ? seekToChapter(ch.id) : setActiveChapter(ch.id)
+                  }
+                  className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition ${
+                    activeChapter === ch.id ? 'bg-white text-indigo-600' : ''
+                  }`}
+                  style={
+                    activeChapter === ch.id
+                      ? undefined
+                      : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
+                  }
+                  disabled={audioIsGenerating}
+                >
+                  {ch.icon === 'video' ? (
+                    <VideoIcon className="w-4 h-4" />
+                  ) : (
+                    <HeadphonesIcon className="w-4 h-4" />
+                  )}
+                  {ch.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="text-sm opacity-80 flex items-center gap-2">
+              <span>Ready:</span>
+              <HeadphonesIcon className="w-4 h-4" />
+              <span>{activeLabel}</span>
+              <span>•</span>
+              <span>
+                {audioIsGenerating
+                  ? 'Generating'
+                  : audioUrl
+                    ? isPlaying
+                      ? 'Playing'
+                      : 'Paused'
+                    : 'No audio'}
+              </span>
+            </div>
+          </>
+        ) : null}
       </div>
 
       {/* Visual Site Summary */}
