@@ -74,6 +74,62 @@ function getAnthropicApiKey() {
   return raw.trim().replace(/^['"]|['"]$/g, '');
 }
 
+function getAnthropicModel() {
+  const raw =
+    process.env.VITE_ANTHROPIC_MODEL ??
+    process.env.ANTHROPIC_MODEL ??
+    process.env.ANTHROPIC_MODEL_ID;
+
+  if (raw && raw.trim()) return raw.trim().replace(/^['"]|['"]$/g, '');
+
+  // Default to the newest Sonnet model name we expect to work.
+  return 'claude-sonnet-4-20250514';
+}
+
+async function anthropicMessagesCreate(opts: {
+  apiKey: string;
+  model: string;
+  maxTokens: number;
+  temperature: number;
+  prompt: string;
+}) {
+  const { apiKey, model, maxTokens, temperature, prompt } = opts;
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    // If the configured model isn't available to the account, try a safe fallback.
+    if (response.status === 404 && text.includes('model')) {
+      const fallbackModel = 'claude-3-5-sonnet-latest';
+      if (model !== fallbackModel) {
+        return anthropicMessagesCreate({
+          apiKey,
+          model: fallbackModel,
+          maxTokens,
+          temperature,
+          prompt,
+        });
+      }
+    }
+    throw new Error(`Anthropic error ${response.status}: ${text}`);
+  }
+
+  return response;
+}
+
 async function listAvailablePdfs(districtSlug: string) {
   try {
     const dir = path.resolve(process.cwd(), 'public', 'real-docs', districtSlug);
@@ -221,24 +277,13 @@ async function generateBoardBriefWithClaude({
 
   const prompt = `You are a BID operations analyst. Create a concise Board Brief using ONLY the provided sources.\n\n${context}\n\nInstructions (optional): ${instructions ?? 'None'}\n\nReturn ONLY valid JSON (no markdown) matching this schema exactly:\n${JSON.stringify(schema, null, 2)}\n\nNotes:\n- Use short bullets.\n- Use exact figures from sources where available.\n- If a field cannot be supported by sources, use an empty array for that field.`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1200,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-    }),
+  const response = await anthropicMessagesCreate({
+    apiKey,
+    model: getAnthropicModel(),
+    maxTokens: 1200,
+    temperature: 0.2,
+    prompt,
   });
-
-  if (!response.ok) {
-    throw new Error(`Anthropic error ${response.status}: ${await response.text()}`);
-  }
 
   const data = (await response.json()) as { content?: Array<{ text?: string }> };
   const text = data.content?.[0]?.text ?? '';
@@ -420,24 +465,13 @@ async function generateAssessmentTrendsWithClaude({
 
   const prompt = `You are a BID finance analyst. Extract assessment collection trends using ONLY the provided sources.\n\n${context}\n\nInstructions (optional): ${instructions ?? 'None'}\n\nReturn ONLY valid JSON (no markdown) matching this schema exactly:\n${JSON.stringify(schema, null, 2)}\n\nNotes:\n- Fill the collection summary table with the best available breakdown from sources.\n- Provide delinquency aging buckets and top delinquents if available; otherwise use empty arrays.\n- Each numeric/table claim should include a citation when possible.`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1600,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-    }),
+  const response = await anthropicMessagesCreate({
+    apiKey,
+    model: getAnthropicModel(),
+    maxTokens: 1600,
+    temperature: 0.2,
+    prompt,
   });
-
-  if (!response.ok) {
-    throw new Error(`Anthropic error ${response.status}: ${await response.text()}`);
-  }
 
   const data = (await response.json()) as { content?: Array<{ text?: string }> };
   const text = data.content?.[0]?.text ?? '';
@@ -573,24 +607,13 @@ async function generateOZRFSectionWithClaude({
 
   const prompt = `You are an OZ reporting compliance analyst. Draft an OZRF compliance section using ONLY the provided sources.\n\n${context}\n\nInstructions (optional): ${instructions ?? 'None'}\n\nReturn ONLY valid JSON (no markdown) matching this schema exactly:\n${JSON.stringify(schema, null, 2)}\n\nNotes:\n- Only include metrics that can be supported by sources; otherwise use conservative placeholders with empty citations omitted.\n- Keep disclosureStatement short and compliance-oriented.`;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1600,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-    }),
+  const response = await anthropicMessagesCreate({
+    apiKey,
+    model: getAnthropicModel(),
+    maxTokens: 1600,
+    temperature: 0.2,
+    prompt,
   });
-
-  if (!response.ok) {
-    throw new Error(`Anthropic error ${response.status}: ${await response.text()}`);
-  }
 
   const data = (await response.json()) as { content?: Array<{ text?: string }> };
   const text = data.content?.[0]?.text ?? '';
