@@ -74,26 +74,43 @@ function getAnthropicApiKey() {
   return raw.trim().replace(/^['"]|['"]$/g, '');
 }
 
-function getAnthropicModel() {
+function getAnthropicModelCandidates() {
   const raw =
     process.env.VITE_ANTHROPIC_MODEL ??
     process.env.ANTHROPIC_MODEL ??
     process.env.ANTHROPIC_MODEL_ID;
 
-  if (raw && raw.trim()) return raw.trim().replace(/^['"]|['"]$/g, '');
+  const preferred = raw?.trim() ? raw.trim().replace(/^['"]|['"]$/g, '') : undefined;
 
-  // Default to the newest Sonnet model name we expect to work.
-  return 'claude-sonnet-4-20250514';
+  // Try preferred first (if provided), then fall back through commonly-available models.
+  // (Different Anthropic accounts have different model access.)
+  const candidates = [
+    preferred,
+    'claude-sonnet-4-20250514',
+    'claude-3-5-sonnet-latest',
+    'claude-3-5-haiku-latest',
+    'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307',
+  ].filter(Boolean) as string[];
+
+  // De-dupe preserving order.
+  return [...new Set(candidates)];
 }
 
 async function anthropicMessagesCreate(opts: {
   apiKey: string;
-  model: string;
+  models: string[];
   maxTokens: number;
   temperature: number;
   prompt: string;
 }) {
-  const { apiKey, model, maxTokens, temperature, prompt } = opts;
+  const { apiKey, models, maxTokens, temperature, prompt } = opts;
+
+  const [model, ...rest] = models;
+  if (!model) {
+    throw new Error('No Anthropic model available to try');
+  }
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -111,19 +128,18 @@ async function anthropicMessagesCreate(opts: {
 
   if (!response.ok) {
     const text = await response.text();
-    // If the configured model isn't available to the account, try a safe fallback.
-    if (response.status === 404 && text.includes('model')) {
-      const fallbackModel = 'claude-3-5-sonnet-latest';
-      if (model !== fallbackModel) {
-        return anthropicMessagesCreate({
-          apiKey,
-          model: fallbackModel,
-          maxTokens,
-          temperature,
-          prompt,
-        });
-      }
+
+    // If the model isn't available to the account, try the next fallback.
+    if (response.status === 404 && text.includes('model') && rest.length > 0) {
+      return anthropicMessagesCreate({
+        apiKey,
+        models: rest,
+        maxTokens,
+        temperature,
+        prompt,
+      });
     }
+
     throw new Error(`Anthropic error ${response.status}: ${text}`);
   }
 
@@ -279,7 +295,7 @@ async function generateBoardBriefWithClaude({
 
   const response = await anthropicMessagesCreate({
     apiKey,
-    model: getAnthropicModel(),
+    models: getAnthropicModelCandidates(),
     maxTokens: 1200,
     temperature: 0.2,
     prompt,
@@ -467,7 +483,7 @@ async function generateAssessmentTrendsWithClaude({
 
   const response = await anthropicMessagesCreate({
     apiKey,
-    model: getAnthropicModel(),
+    models: getAnthropicModelCandidates(),
     maxTokens: 1600,
     temperature: 0.2,
     prompt,
@@ -609,7 +625,7 @@ async function generateOZRFSectionWithClaude({
 
   const response = await anthropicMessagesCreate({
     apiKey,
-    model: getAnthropicModel(),
+    models: getAnthropicModelCandidates(),
     maxTokens: 1600,
     temperature: 0.2,
     prompt,
