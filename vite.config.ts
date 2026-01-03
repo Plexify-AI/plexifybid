@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { notebookBDAgentsMiddleware } from './src/server/agentsApi';
+import { notebookBDTtsMiddleware } from './src/server/ttsApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => {
       name: 'notebookbd-agents-api',
       configureServer(server) {
         server.middlewares.use(notebookBDAgentsMiddleware());
+        server.middlewares.use(notebookBDTtsMiddleware());
       },
     },
   ],

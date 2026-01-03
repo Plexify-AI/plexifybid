@@ -29,6 +29,7 @@ interface ReportEditorWorkspaceProps {
   audioUrl?: string;
   audioDuration?: string;
   audioChapters?: AudioChapter[];
+  audioIsGenerating?: boolean;
   videoUrl?: string;
   videoThumbnail?: string;
   videoDuration?: string;
@@ -61,6 +62,7 @@ export default function ReportEditorWorkspace({
   audioUrl,
   audioDuration,
   audioChapters = [],
+  audioIsGenerating = false,
   videoUrl,
   videoThumbnail,
   videoDuration,
@@ -78,10 +80,7 @@ export default function ReportEditorWorkspace({
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
 
-  // These props are reserved for future integration with real media sources.
-  void audioUrl;
-  void audioDuration;
-  void audioChapters;
+  // Video props reserved for future integration with real media sources.
   void videoUrl;
   void videoThumbnail;
   void videoDuration;
@@ -439,7 +438,14 @@ export default function ReportEditorWorkspace({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
-              {showAIMediaSummary ? <AIMediaSummary /> : null}
+              {showAIMediaSummary ? (
+                <AIMediaSummary
+                  audioUrl={audioUrl}
+                  audioDuration={audioDuration}
+                  audioChapters={audioChapters}
+                  audioIsGenerating={audioIsGenerating}
+                />
+              ) : null}
 
               {showSourceMaterials ? (
                 renderSourcesPanel ? (

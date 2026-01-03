@@ -50,6 +50,7 @@
         "js-cookie": "^3.0.5",
         "lucide-react": "^0.544.0",
         "node-fetch": "^3.3.2",
+        "openai": "^6.15.0",
         "pdf-parse": "1.1.1",
         "plexify-shared-ui": "file:./plexify-shared-ui",
         "postcss": "^8.5.6",

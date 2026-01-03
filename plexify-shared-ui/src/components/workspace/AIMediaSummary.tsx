@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { AudioChapter } from '../../types';
 
 type ChapterIcon = 'audio' | 'video';
 
@@ -6,6 +7,7 @@ interface Chapter {
   id: string;
   label: string;
   icon: ChapterIcon;
+  timestamp?: number;
 }
 
 const PlayIcon = ({ className }: { className?: string }) => (
@@ -74,20 +76,139 @@ const VideoIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const chapters: Chapter[] = [
-  { id: 'intro', label: 'Introduction', icon: 'audio' },
-  { id: 'exec', label: 'Executive Summary', icon: 'audio' },
-  { id: 'video', label: 'Video', icon: 'video' },
+const defaultAudioChapters: Chapter[] = [
+  { id: 'intro', label: 'Introduction', icon: 'audio', timestamp: 0 },
+  { id: 'exec', label: 'Executive Summary', icon: 'audio', timestamp: 0 },
 ];
 
-export default function AIMediaSummary() {
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+export default function AIMediaSummary({
+  audioUrl,
+  audioDuration,
+  audioChapters,
+  audioIsGenerating = false,
+}: {
+  audioUrl?: string;
+  audioDuration?: string;
+  audioChapters?: AudioChapter[];
+  audioIsGenerating?: boolean;
+}) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [activeChapter, setActiveChapter] = useState('intro');
+  const [currentTime, setCurrentTime] = useState(0);
+  const [durationSeconds, setDurationSeconds] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
+
+  const chapters: Chapter[] = useMemo(() => {
+    if (audioChapters && audioChapters.length > 0) {
+      return audioChapters.map((c, idx) => ({
+        id: `audio-${idx}`,
+        label: c.label,
+        icon: 'audio',
+        timestamp: c.timestamp,
+      }));
+    }
+
+    return defaultAudioChapters;
+  }, [audioChapters]);
+
+  const [activeChapter, setActiveChapter] = useState(chapters[0]?.id ?? 'intro');
+
+  useEffect(() => {
+    setActiveChapter(chapters[0]?.id ?? 'intro');
+  }, [chapters]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const onTimeUpdate = () => {
+      setCurrentTime(audio.currentTime || 0);
+    };
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setActiveChapter(chapters[0]?.id ?? 'intro');
+    };
+    const onLoaded = () => {
+      if (Number.isFinite(audio.duration)) setDurationSeconds(audio.duration);
+    };
+
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('play', onPlay);
+    audio.addEventListener('pause', onPause);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('loadedmetadata', onLoaded);
+    return () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('play', onPlay);
+      audio.removeEventListener('pause', onPause);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('loadedmetadata', onLoaded);
+    };
+  }, [chapters]);
+
+  useEffect(() => {
+    // Derive active chapter from playback time.
+    const audio = audioRef.current;
+    if (!audioUrl || !audio) return;
+    const playableChapters = chapters.filter((c) => typeof c.timestamp === 'number');
+    if (playableChapters.length === 0) return;
+
+    let nextActive = playableChapters[0].id;
+    for (let i = 0; i < playableChapters.length; i++) {
+      const current = playableChapters[i];
+      const next = playableChapters[i + 1];
+      const start = current.timestamp ?? 0;
+      const end = next?.timestamp ?? Number.POSITIVE_INFINITY;
+      if (currentTime >= start && currentTime < end) {
+        nextActive = current.id;
+        break;
+      }
+    }
+
+    setActiveChapter(nextActive);
+  }, [audioUrl, chapters, currentTime]);
 
   const activeLabel = useMemo(
     () => chapters.find((c) => c.id === activeChapter)?.label ?? 'Introduction',
-    [activeChapter]
+    [chapters, activeChapter]
   );
+
+  const progress = durationSeconds > 0 ? (currentTime / durationSeconds) * 100 : 0;
+
+  const togglePlayPause = () => {
+    const audio = audioRef.current;
+    if (!audio || !audioUrl || audioIsGenerating) return;
+    if (audio.paused) {
+      audio.play();
+    } else {
+      audio.pause();
+    }
+  };
+
+  const seekToChapter = (chapterId: string) => {
+    const audio = audioRef.current;
+    if (!audio || !audioUrl || audioIsGenerating) return;
+    const ch = chapters.find((c) => c.id === chapterId);
+    if (!ch || typeof ch.timestamp !== 'number') return;
+    audio.currentTime = ch.timestamp;
+    audio.play();
+  };
+
+  const handlePlaybackRateChange = (rate: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.playbackRate = rate;
+    setPlaybackRate(rate);
+  };
 
   return (
     <div className="space-y-4">
@@ -105,14 +226,17 @@ export default function AIMediaSummary() {
           <span className="text-base font-semibold">Audio Briefing</span>
         </div>
 
+        <audio ref={audioRef} src={audioUrl} preload="metadata" />
+
         <div className="flex items-center gap-3 mb-3">
           <button
             type="button"
-            onClick={() => setIsPlaying((p) => !p)}
+            onClick={togglePlayPause}
             className="w-12 h-12 rounded-full flex items-center justify-center"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.2)',
             }}
+            disabled={!audioUrl || audioIsGenerating}
           >
             {isPlaying ? (
               <PauseIcon className="w-5 h-5" />
@@ -122,26 +246,37 @@ export default function AIMediaSummary() {
           </button>
 
           <div className="flex-1 flex items-center gap-2 text-sm">
-            <span>0:00</span>
+            <span>{formatTime(currentTime)}</span>
             <div
               className="flex-1 h-1 rounded-full"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }}
             >
               <div
-                className="h-full w-0 rounded-full"
-                style={{ backgroundColor: 'rgba(255, 255, 255, 1)' }}
+                className="h-full rounded-full"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 1)',
+                  width: `${progress}%`,
+                }}
               />
             </div>
-            <span>2:00</span>
+            <span>
+              {audioDuration ??
+                (durationSeconds > 0 ? formatTime(durationSeconds) : '0:00')}
+            </span>
           </div>
 
           <select
             className="text-sm rounded px-2 py-1 border-none"
             style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+            disabled={!audioUrl || audioIsGenerating}
+            value={playbackRate}
+            onChange={(e) => handlePlaybackRateChange(Number(e.target.value))}
           >
-            <option>1x</option>
-            <option>1.5x</option>
-            <option>2x</option>
+            <option value={0.75}>0.75x</option>
+            <option value={1}>1x</option>
+            <option value={1.25}>1.25x</option>
+            <option value={1.5}>1.5x</option>
+            <option value={2}>2x</option>
           </select>
         </div>
 
@@ -150,7 +285,7 @@ export default function AIMediaSummary() {
             <button
               type="button"
               key={ch.id}
-              onClick={() => setActiveChapter(ch.id)}
+              onClick={() => (audioUrl ? seekToChapter(ch.id) : setActiveChapter(ch.id))}
               className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition ${
                 activeChapter === ch.id
                   ? 'bg-white text-indigo-600'
@@ -161,6 +296,7 @@ export default function AIMediaSummary() {
                   ? undefined
                   : { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
               }
+              disabled={audioIsGenerating}
             >
               {ch.icon === 'video' ? (
                 <VideoIcon className="w-4 h-4" />
@@ -177,7 +313,15 @@ export default function AIMediaSummary() {
           <HeadphonesIcon className="w-4 h-4" />
           <span>{activeLabel}</span>
           <span>•</span>
-          <span>{isPlaying ? 'Playing' : 'Paused'}</span>
+          <span>
+            {audioIsGenerating
+              ? 'Generating'
+              : audioUrl
+                ? isPlaying
+                  ? 'Playing'
+                  : 'Paused'
+                : 'No audio'}
+          </span>
         </div>
       </div>
 

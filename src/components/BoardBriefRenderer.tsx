@@ -44,8 +44,14 @@ export function boardBriefToHtml(brief: BoardBriefEnvelope): string {
 
 export default function BoardBriefRenderer({
   brief,
+  onGenerateAudio,
+  isGeneratingAudio = false,
+  hasAudio = false,
 }: {
   brief: BoardBriefEnvelope;
+  onGenerateAudio?: (brief: BoardBriefEnvelope) => void;
+  isGeneratingAudio?: boolean;
+  hasAudio?: boolean;
 }) {
   const { output } = brief;
 
@@ -110,6 +116,23 @@ export default function BoardBriefRenderer({
           ))}
         </ul>
       </section>
+
+      {onGenerateAudio ? (
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => onGenerateAudio(brief)}
+            disabled={isGeneratingAudio}
+            className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {isGeneratingAudio
+              ? 'Generating audio…'
+              : hasAudio
+                ? 'Regenerate audio briefing'
+                : 'Generate audio briefing'}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

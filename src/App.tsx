@@ -21,6 +21,7 @@ import {
 } from './services/notebookbdRag';
 import { runNotebookBDAgent } from './services/agentService';
 import { exportStructuredOutput } from './services/exportService';
+import { generateAudioFromContent } from './services/audioService';
 import BoardBriefRenderer from './components/BoardBriefRenderer';
 import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
 import OZRFSectionRenderer from './components/OZRFSectionRenderer';
@@ -75,6 +76,8 @@ const AppBody: React.FC = () => {
   const { state: realDocsState } = useRealDocs();
 
   const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
+  const [audioBriefing, setAudioBriefing] = useState(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
 
   useEffect(() => {
     loadNotebookBDSources()
@@ -118,10 +121,58 @@ const AppBody: React.FC = () => {
     await exportStructuredOutput(data, format);
   };
 
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const boardBriefToTtsContent = (brief) => {
+    const o = brief.output;
+    const subtitle = [o.districtName, o.reportingPeriod].filter(Boolean).join(' • ');
+    return {
+      title: o.title,
+      subtitle: subtitle || undefined,
+      sections: [
+        { heading: 'Executive Summary', items: o.executiveSummary },
+        {
+          heading: 'Key Metrics',
+          items: o.keyMetrics.map((m) => `${m.label}: ${m.value}`),
+        },
+        { heading: 'Highlights', items: o.highlights },
+        { heading: 'Risks', items: o.risks },
+        { heading: 'Recommendations', items: o.recommendations },
+      ],
+    };
+  };
+
+  const handleGenerateBoardBriefAudio = async (brief) => {
+    if (isGeneratingAudio) return;
+    setIsGeneratingAudio(true);
+    try {
+      const content = boardBriefToTtsContent(brief);
+      const outputId = `board-brief-${brief.generatedAt}`;
+      const result = await generateAudioFromContent(content, outputId);
+      setAudioBriefing(result);
+    } catch (err) {
+      console.error('Audio generation failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to generate audio briefing');
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
   const renderStructuredOutputBlock = (block) => {
     const data = block?.data;
     if (data?.agentId === 'board-brief') {
-      return <BoardBriefRenderer brief={data} />;
+      return (
+        <BoardBriefRenderer
+          brief={data}
+          onGenerateAudio={handleGenerateBoardBriefAudio}
+          isGeneratingAudio={isGeneratingAudio}
+          hasAudio={Boolean(audioBriefing?.audioUrl)}
+        />
+      );
     }
 
     if (data?.agentId === 'assessment-trends') {
@@ -238,6 +289,19 @@ const AppBody: React.FC = () => {
                 renderStructuredOutputBlock={renderStructuredOutputBlock}
                 renderSourcesPanel={<SourcesPanel />}
                 selectedDocumentIds={realDocsState.selectedDocuments}
+                audioUrl={audioBriefing?.audioUrl}
+                audioDuration={
+                  audioBriefing ? formatTime(audioBriefing.totalDuration) : undefined
+                }
+                audioChapters={
+                  audioBriefing
+                    ? audioBriefing.chapters.map((c) => ({
+                        label: c.title,
+                        timestamp: c.startTime,
+                      }))
+                    : []
+                }
+                audioIsGenerating={isGeneratingAudio}
               />
             </WorkspaceErrorBoundary>
           </div>

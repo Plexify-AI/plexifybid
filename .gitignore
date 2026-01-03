@@ -7,6 +7,9 @@ dist/
 build/
 .vite/
 
+# Generated media
+public/audio/
+
 # Environment variables
 .env
 .env.local
