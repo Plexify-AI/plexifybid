@@ -58,7 +58,7 @@ export function notebookBDPodcastMiddleware() {
         });
       }
 
-      if (!process.env.ELEVENLABS_API_KEY) {
+      if (!process.env.ELEVENLABS_API_KEY && !process.env.VITE_ELEVENLABS_API_KEY) {
         return sendJson(res, 500, {
           success: false,
           error: 'ElevenLabs API key not configured',

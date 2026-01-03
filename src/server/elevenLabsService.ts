@@ -32,7 +32,7 @@ function sanitizeEnvValue(value: string) {
 }
 
 function getElevenLabsApiKey() {
-  const raw = process.env.ELEVENLABS_API_KEY;
+  const raw = process.env.ELEVENLABS_API_KEY ?? process.env.VITE_ELEVENLABS_API_KEY;
   if (!raw) return undefined;
   return sanitizeEnvValue(raw);
 }
@@ -51,9 +51,9 @@ export async function generatePodcastAudio(script: DialogueTurn[], outputId: str
   const apiKey = getElevenLabsApiKey();
   // Safe diagnostics.
   // eslint-disable-next-line no-console
-  console.info('[podcast] ELEVENLABS_API_KEY configured:', Boolean(apiKey));
+  console.info('[podcast] ElevenLabs API key configured:', Boolean(apiKey));
   if (!apiKey) {
-    throw new Error('ELEVENLABS_API_KEY not configured');
+    throw new Error('ElevenLabs API key not configured');
   }
 
   await ensurePodcastsDir();
