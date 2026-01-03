@@ -9,7 +9,9 @@ export default defineConfig(({ mode }) => {
   // (Vite exposes env to client via import.meta.env, but our Node middleware reads process.env.)
   const env = loadEnv(mode, process.cwd(), '');
   for (const [k, v] of Object.entries(env)) {
-    if (process.env[k] === undefined) process.env[k] = v;
+    // Prefer values from env files over any pre-existing process env,
+    // so local dev behaves predictably.
+    process.env[k] = v;
   }
 
   return {

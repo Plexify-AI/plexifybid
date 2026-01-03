@@ -129,6 +129,14 @@ async function anthropicMessagesCreate(opts: {
   if (!response.ok) {
     const text = await response.text();
 
+    if (response.status === 401) {
+      const err: any = new Error(
+        `Anthropic authentication failed (invalid x-api-key). Verify your API key in .env.local and restart the dev server.`
+      );
+      err.statusCode = 401;
+      throw err;
+    }
+
     // If the model isn't available to the account, try the next fallback.
     if (response.status === 404 && text.includes('model') && rest.length > 0) {
       return anthropicMessagesCreate({
