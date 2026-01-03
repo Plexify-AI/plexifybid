@@ -64,6 +64,16 @@ function extractJsonObject(text: string): unknown {
   }
 }
 
+function sanitizeEnvValue(value: string) {
+  let v = value.trim();
+  const quoteChars = new Set(['"', "'", '`', '“', '”', '‘', '’']);
+  while (v.length >= 2 && quoteChars.has(v[0]) && quoteChars.has(v[v.length - 1])) {
+    v = v.slice(1, -1).trim();
+  }
+  if (v.endsWith(';')) v = v.slice(0, -1).trim();
+  return v;
+}
+
 function getAnthropicApiKeyInfo():
   | {
       key: string;
@@ -83,7 +93,7 @@ function getAnthropicApiKeyInfo():
 
   for (const { source, value } of sources) {
     if (!value) continue;
-    const key = value.trim().replace(/^['"]|['"]$/g, '');
+    const key = sanitizeEnvValue(value);
     return {
       key,
       source,
@@ -105,7 +115,7 @@ function getAnthropicModelCandidates() {
     process.env.ANTHROPIC_MODEL ??
     process.env.ANTHROPIC_MODEL_ID;
 
-  const preferred = raw?.trim() ? raw.trim().replace(/^['"]|['"]$/g, '') : undefined;
+  const preferred = raw?.trim() ? sanitizeEnvValue(raw) : undefined;
 
   // Try preferred first (if provided), then fall back through commonly-available models.
   // (Different Anthropic accounts have different model access.)
