@@ -21,6 +21,9 @@ export interface PodcastResult {
   script: DialogueTurn[];
 }
 
+// ElevenLabs Text-to-Dialogue hard limit appears to be 5,000 characters total.
+const TEXT_TO_DIALOGUE_MAX_CHARS = 5000;
+
 function sanitizeEnvValue(value: string) {
   let v = value.trim();
   const quoteChars = new Set(['"', "'", '`', '“', '”', '‘', '’']);
@@ -59,6 +62,13 @@ export async function generatePodcastAudio(script: DialogueTurn[], outputId: str
   await ensurePodcastsDir();
 
   const client = new ElevenLabsClient({ apiKey });
+
+  const totalChars = script.reduce((sum, turn) => sum + (turn.text?.length ?? 0), 0);
+  if (totalChars > TEXT_TO_DIALOGUE_MAX_CHARS) {
+    throw new Error(
+      `Podcast script too long for ElevenLabs Text-to-Dialogue (chars=${totalChars}, max=${TEXT_TO_DIALOGUE_MAX_CHARS}). Reduce length or implement chunking/long-form.`
+    );
+  }
 
   const inputs = script.map((turn) => ({
     text: turn.text,
