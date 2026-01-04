@@ -7,6 +7,10 @@ dist/
 build/
 .vite/
 
+# Generated media
+public/audio/
+public/podcasts/
+
 # Environment variables
 .env
 .env.local

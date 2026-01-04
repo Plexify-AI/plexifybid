@@ -21,19 +21,37 @@ interface SourceMaterialsListProps {
   theme: PlexifyTheme;
   materials: SourceMaterial[];
   title?: string;
+  subtitle?: string;
+  showHeader?: boolean;
   onReorder?: (materials: SourceMaterial[]) => void;
   onMaterialClick?: (material: SourceMaterial) => void;
   onDragToEditor?: (material: SourceMaterial) => void;
+  onToggleContext?: (materialId: string, selected: boolean) => void;
+}
+
+function GripVerticalIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M7 4a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0zM7 8a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0zM7 12a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0zM7 16a1 1 0 112 0 1 1 0 01-2 0zm4 0a1 1 0 112 0 1 1 0 01-2 0z" />
+    </svg>
+  );
 }
 
 function SortableItem({
   material,
   theme,
   onClick,
+  onToggleContext,
 }: {
   material: SourceMaterial;
   theme: PlexifyTheme;
   onClick?: () => void;
+  onToggleContext?: (materialId: string, selected: boolean) => void;
 }) {
   const {
     attributes,
@@ -105,17 +123,26 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       onClick={onClick}
-      className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-white hover:border-gray-300 cursor-grab active:cursor-grabbing transition-colors"
+      className="source-card group flex items-center gap-3 p-4 cursor-pointer"
     >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="p-1 -ml-1 text-slate-400 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+        aria-label="Drag"
+      >
+        <GripVerticalIcon className="w-5 h-5" />
+      </button>
       <div
-        className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
+        className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: `${theme.primaryColor}20` }}
       >
         <svg
-          className="w-4 h-4"
+          className="w-5 h-5"
           style={{ color: theme.primaryColor }}
           fill="none"
           stroke="currentColor"
@@ -125,16 +152,16 @@ function SortableItem({
         </svg>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">
+        <p className="text-base font-medium text-slate-700 truncate">
           {material.label}
         </p>
         {material.date && (
-          <p className="text-xs text-gray-500">{material.date}</p>
+          <p className="text-sm text-slate-500">{material.date}</p>
         )}
       </div>
       {material.count !== undefined && (
         <span
-          className="text-xs font-medium px-2 py-0.5 rounded-full"
+          className="text-sm font-medium px-2.5 py-1 rounded-full"
           style={{
             backgroundColor: `${theme.primaryColor}20`,
             color: theme.primaryColor,
@@ -143,19 +170,22 @@ function SortableItem({
           {material.count}
         </span>
       )}
-      <svg
-        className="w-4 h-4 text-gray-400 flex-shrink-0"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 8h16M4 16h16"
-        />
-      </svg>
+
+      {typeof material.isSelectedForContext === 'boolean' && onToggleContext && (
+        <label
+          className="flex items-center gap-2 text-sm text-slate-600"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={material.isSelectedForContext}
+            onChange={(e) => onToggleContext(material.id, e.target.checked)}
+            className="h-5 w-5 rounded border-slate-300"
+          />
+          Use
+        </label>
+      )}
     </div>
   );
 }
@@ -164,8 +194,11 @@ export default function SourceMaterialsList({
   theme,
   materials,
   title = 'Source Materials',
+  subtitle,
+  showHeader = true,
   onReorder,
   onMaterialClick,
+  onToggleContext,
 }: SourceMaterialsListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -190,16 +223,22 @@ export default function SourceMaterialsList({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
-      <div
-        className="px-4 py-3 border-b border-gray-100"
-        style={{ backgroundColor: `${theme.primaryColor}10` }}
-      >
-        <h3 className="font-semibold text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-500">{materials.length} items</p>
-      </div>
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      {showHeader && (
+        <div
+          className="px-4 py-3 border-b border-slate-200"
+          style={{ backgroundColor: `${theme.primaryColor}10` }}
+        >
+          <h3 className="font-semibold text-slate-900">{title}</h3>
+          {subtitle ? (
+            <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
+          ) : (
+            <p className="text-sm text-slate-500">{materials.length} items</p>
+          )}
+        </div>
+      )}
 
-      <div className="p-3 space-y-2 max-h-96 overflow-y-auto">
+      <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -215,13 +254,14 @@ export default function SourceMaterialsList({
                 material={material}
                 theme={theme}
                 onClick={() => onMaterialClick?.(material)}
+                onToggleContext={onToggleContext}
               />
             ))}
           </SortableContext>
         </DndContext>
 
         {materials.length === 0 && (
-          <p className="text-center text-sm text-gray-500 py-4">
+          <p className="text-center text-sm text-slate-500 py-4">
             No source materials available
           </p>
         )}

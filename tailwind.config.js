@@ -1,6 +1,31 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}", "./node_modules/plexify-shared-ui/dist/**/*.{js,mjs}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./plexify-shared-ui/src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/plexify-shared-ui/dist/**/*.{js,mjs}",
+  ],
+  safelist: [
+    // Ensure NotebookBD Phase 1A UI (shared-ui source) always has the required styles
+    'bg-gradient-to-br',
+    'from-indigo-500',
+    'to-purple-600',
+    'text-white',
+    'bg-white/20',
+    'hover:bg-white/30',
+    'bg-white/90',
+    'bg-black/20',
+    'hover:bg-black/30',
+    'from-black/60',
+    'to-transparent',
+    'aspect-video',
+    'bg-slate-300',
+    'from-slate-400',
+    'to-slate-500',
+    'bg-indigo-600',
+    'hover:bg-indigo-700',
+  ],
   theme: {
     extend: {
       colors: {

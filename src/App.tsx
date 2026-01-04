@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
 import PlaceholderPage from './components/PlaceholderPage';
@@ -12,6 +12,21 @@ import BoardReporting from './pages/BoardReporting';
 import ReportPrintView from './pages/ReportPrintView';
 import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
+import { RealDocsProvider, useRealDocs } from './contexts/RealDocsContext';
+import SourcesPanel from './components/SourcesPanel';
+import {
+  loadNotebookBDSources,
+  notebookbdAnswer,
+  type NotebookBDSourceDoc,
+} from './services/notebookbdRag';
+import { runNotebookBDAgent } from './services/agentService';
+import { exportStructuredOutput } from './services/exportService';
+import { generateAudioFromContent } from './services/audioService';
+import { generatePodcast } from './services/podcastService';
+import BoardBriefRenderer from './components/BoardBriefRenderer';
+import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
+import OZRFSectionRenderer from './components/OZRFSectionRenderer';
+import PodcastPlayerWidget from './components/PodcastPlayerWidget';
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -55,35 +70,243 @@ class WorkspaceErrorBoundary extends React.Component<
   }
 }
 
-const App: React.FC = () => {
+const AppBody: React.FC = () => {
   const isOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
+
+  const { state: realDocsState } = useRealDocs();
+
+  const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
+  const [audioBriefing, setAudioBriefing] = useState(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
+  const [latestBoardBrief, setLatestBoardBrief] = useState(null);
+  const [podcast, setPodcast] = useState(null);
+  const [isGeneratingPodcast, setIsGeneratingPodcast] = useState(false);
+
+  useEffect(() => {
+    loadNotebookBDSources()
+      .then(setNotebookDocs)
+      .catch((err) => console.error('Failed to load NotebookBD demo sources:', err));
+  }, []);
+
+  const sourceMaterials = useMemo(
+    () => notebookDocs.map((d) => d.material),
+    [notebookDocs]
+  );
+
+  const handleSourceMaterialsChange = (materials) => {
+    setNotebookDocs((prev) => {
+      const nextById = new Map(materials.map((m) => [m.id, m]));
+      return prev.map((d) => ({
+        ...d,
+        material: nextById.get(d.material.id) ?? d.material,
+      }));
+    });
+  };
+
+  const handleAIMessage = async (message: string) => {
+    return notebookbdAnswer({ query: message, docs: notebookDocs });
+  };
+
+  const handleRunAgent = async (
+    agentId: string,
+    args: { projectId: string; documentIds: string[] }
+  ) => {
+    const result = await runNotebookBDAgent(agentId as any, {
+      projectId: 'golden-triangle',
+      documentIds: args.documentIds,
+    });
+
+    if (result?.agentId === 'board-brief') {
+      setLatestBoardBrief(result);
+    }
+
+    return result;
+  };
+
+  const handleExportStructuredOutput = async (
+    data: unknown,
+    format: 'docx' | 'pdf'
+  ) => {
+    await exportStructuredOutput(data, format);
+  };
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const boardBriefToTtsContent = (brief) => {
+    const o = brief.output;
+    const subtitle = [o.districtName, o.reportingPeriod].filter(Boolean).join(' • ');
+    return {
+      title: o.title,
+      subtitle: subtitle || undefined,
+      sections: [
+        { heading: 'Executive Summary', items: o.executiveSummary },
+        {
+          heading: 'Key Metrics',
+          items: o.keyMetrics.map((m) => `${m.label}: ${m.value}`),
+        },
+        { heading: 'Highlights', items: o.highlights },
+        { heading: 'Risks', items: o.risks },
+        { heading: 'Recommendations', items: o.recommendations },
+      ],
+    };
+  };
+
+  const handleGenerateBoardBriefAudio = async (brief) => {
+    if (isGeneratingAudio) return;
+    setIsGeneratingAudio(true);
+    try {
+      const content = boardBriefToTtsContent(brief);
+      const outputId = `board-brief-${brief.generatedAt}`;
+      const result = await generateAudioFromContent(content, outputId);
+      setAudioBriefing(result);
+    } catch (err) {
+      console.error('Audio generation failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to generate audio briefing');
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
+  const handleGenerateFromLatestBoardBrief = async () => {
+    if (!latestBoardBrief) return;
+    await handleGenerateBoardBriefAudio(latestBoardBrief);
+  };
+
+  const handleGeneratePodcast = async () => {
+    if (isGeneratingPodcast) return;
+    const documentIds = realDocsState.selectedDocuments ?? [];
+    if (!documentIds.length) {
+      alert('Select at least one document to generate a Deep Dive Podcast.');
+      return;
+    }
+
+    setIsGeneratingPodcast(true);
+    try {
+      const result = await generatePodcast(documentIds, 'golden-triangle');
+      setPodcast(result);
+    } catch (err) {
+      console.error('Podcast generation failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to generate podcast');
+    } finally {
+      setIsGeneratingPodcast(false);
+    }
+  };
+
+  const renderStructuredOutputBlock = (block) => {
+    const data = block?.data;
+    if (data?.agentId === 'board-brief') {
+      return (
+        <BoardBriefRenderer
+          brief={data}
+          onGenerateAudio={handleGenerateBoardBriefAudio}
+          isGeneratingAudio={isGeneratingAudio}
+          hasAudio={Boolean(audioBriefing?.audioUrl)}
+        />
+      );
+    }
+
+    if (data?.agentId === 'assessment-trends') {
+      return <AssessmentTrendsRenderer trends={data} />;
+    }
+
+    if (data?.agentId === 'ozrf-section') {
+      return <OZRFSectionRenderer section={data} />;
+    }
+
+    return (
+      <div className="text-sm text-slate-500">
+        Unsupported structured output.
+      </div>
+    );
+  };
 
   return (
     <Router>
       <div className="app-container">
         <NavigationSidebar />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<ExecutiveFeed />} />
-            <Route path="/operations" element={<OperationsDashboard />} />
-            <Route path="/assessments" element={<AssessmentManagement />} />
-            <Route path="/board-reports" element={<BoardReporting />} />
-            <Route path="/executive" element={<ExecutiveFeed />} />
-            <Route path="/field" element={<FieldView />} />
-            <Route path="/ask-plexi" element={<AskPlexiInterface />} />
-            <Route path="/upload" element={<PlaceholderPage title="Upload" description="Upload and process district documents with AI." />} />
-            <Route path="/library" element={<PlaceholderPage title="Library" description="Access your district document library." />} />
-            <Route path="/resources" element={<PlaceholderPage title="Resources" description="BID resources and references." />} />
-            <Route path="/settings" element={<PlaceholderPage title="Settings" description="Configure your PlexifyBID preferences." />} />
-            <Route path="/analytics" element={<PlaceholderPage title="Analytics" description="Advanced initiative analytics and insights." />} />
-            <Route path="/report/:projectId/print" element={<ReportPrintView />} />
-            <Route path="/alerts" element={<PlaceholderPage title="Alerts" description="Real-time initiative alerts and notifications." />} />
-            <Route path="/scorecards" element={<PlaceholderPage title="Scorecards" description="Initiative performance scorecards and KPIs." />} />
-          </Routes>
-        </main>
+
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<ExecutiveFeed />} />
+              <Route path="/operations" element={<OperationsDashboard />} />
+              <Route path="/assessments" element={<AssessmentManagement />} />
+              <Route path="/board-reports" element={<BoardReporting />} />
+              <Route path="/executive" element={<ExecutiveFeed />} />
+              <Route path="/field" element={<FieldView />} />
+              <Route path="/ask-plexi" element={<AskPlexiInterface />} />
+              <Route
+                path="/upload"
+                element={
+                  <PlaceholderPage
+                    title="Upload"
+                    description="Upload and process district documents with AI."
+                  />
+                }
+              />
+              <Route
+                path="/library"
+                element={
+                  <PlaceholderPage
+                    title="Library"
+                    description="Access your district document library."
+                  />
+                }
+              />
+              <Route
+                path="/resources"
+                element={
+                  <PlaceholderPage
+                    title="Resources"
+                    description="BID resources and references."
+                  />
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <PlaceholderPage
+                    title="Settings"
+                    description="Configure your PlexifyBID preferences."
+                  />
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <PlaceholderPage
+                    title="Analytics"
+                    description="Advanced initiative analytics and insights."
+                  />
+                }
+              />
+              <Route path="/report/:projectId/print" element={<ReportPrintView />} />
+              <Route
+                path="/alerts"
+                element={
+                  <PlaceholderPage
+                    title="Alerts"
+                    description="Real-time initiative alerts and notifications."
+                  />
+                }
+              />
+              <Route
+                path="/scorecards"
+                element={
+                  <PlaceholderPage
+                    title="Scorecards"
+                    description="Initiative performance scorecards and KPIs."
+                  />
+                }
+              />
+            </Routes>
+          </main>
 
         {isOpen ? (
           <div className="fixed inset-0 z-[9999]">
@@ -94,13 +317,50 @@ const App: React.FC = () => {
                 onClose={closeWorkspace}
                 theme={bidTheme}
                 terminology="bid"
+                sourceMaterials={sourceMaterials}
+                onSourceMaterialsChange={handleSourceMaterialsChange}
+                onAIMessage={handleAIMessage}
+                onRunAgent={handleRunAgent}
+                onExportStructuredOutput={handleExportStructuredOutput}
+                renderStructuredOutputBlock={renderStructuredOutputBlock}
+                renderSourcesPanel={<SourcesPanel />}
+                selectedDocumentIds={realDocsState.selectedDocuments}
+                audioUrl={audioBriefing?.audioUrl}
+                audioDuration={
+                  audioBriefing ? formatTime(audioBriefing.totalDuration) : undefined
+                }
+                audioChapters={
+                  audioBriefing
+                    ? audioBriefing.chapters.map((c) => ({
+                        label: c.title,
+                        timestamp: c.startTime,
+                      }))
+                    : []
+                }
+                audioIsGenerating={isGeneratingAudio}
+                audioCanGenerate={Boolean(latestBoardBrief)}
+                onGenerateAudioBriefing={handleGenerateFromLatestBoardBrief}
+                podcastCanGenerate={Boolean(realDocsState.selectedDocuments?.length)}
+                podcastHasContent={Boolean(podcast?.podcastUrl)}
+                podcastIsGenerating={isGeneratingPodcast}
+                onGeneratePodcast={handleGeneratePodcast}
+                renderPodcastPlayer={
+                  <PodcastPlayerWidget podcast={podcast} isGenerating={isGeneratingPodcast} />
+                }
               />
             </WorkspaceErrorBoundary>
           </div>
         ) : null}
-
       </div>
     </Router>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <RealDocsProvider>
+      <AppBody />
+    </RealDocsProvider>
   );
 };
 

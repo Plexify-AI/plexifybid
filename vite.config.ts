@@ -1,10 +1,33 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { notebookBDAgentsMiddleware } from './src/server/agentsApi';
+import { notebookBDTtsMiddleware } from './src/server/ttsApi';
+import { notebookBDPodcastMiddleware } from './src/server/podcastApi';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => {
+  // Ensure .env/.env.local are available to our dev-only server middleware.
+  // (Vite exposes env to client via import.meta.env, but our Node middleware reads process.env.)
+  const env = loadEnv(mode, process.cwd(), '');
+  for (const [k, v] of Object.entries(env)) {
+    // Prefer values from env files over any pre-existing process env,
+    // so local dev behaves predictably.
+    process.env[k] = v;
+  }
+
+  return {
+  plugins: [
+    react(),
+    {
+      name: 'notebookbd-agents-api',
+      configureServer(server) {
+        server.middlewares.use(notebookBDAgentsMiddleware());
+        server.middlewares.use(notebookBDTtsMiddleware());
+        server.middlewares.use(notebookBDPodcastMiddleware());
+      },
+    },
+  ],
   optimizeDeps: { exclude: ['plexify-shared-ui'] },
   resolve: {
     dedupe: [
@@ -20,6 +43,10 @@ export default defineConfig({
       '@tiptap/starter-kit',
     ],
     alias: {
+      // During local dev, resolve plexify-shared-ui directly from source so consumers
+      // don't depend on a prebuilt dist/ folder.
+      'plexify-shared-ui': resolve(__dirname, 'plexify-shared-ui/src/index.ts'),
+
       // Force single instances across linked/shared packages.
       react: resolve(__dirname, 'node_modules/react'),
       'react-dom': resolve(__dirname, 'node_modules/react-dom'),
@@ -71,4 +98,5 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  };
 });

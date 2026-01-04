@@ -1,4 +1,5 @@
 export { default as ReportEditorWorkspace } from './ReportEditorWorkspace';
+export { default as AIMediaSummary } from './AIMediaSummary';
 export { default as AudioBriefingCard } from './AudioBriefingCard';
 export { default as VideoSummaryCard } from './VideoSummaryCard';
 export { default as SourceMaterialsList } from './SourceMaterialsList';
