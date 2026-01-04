@@ -90,7 +90,11 @@ export async function extractPdfText(
     const dataBuffer = await fs.readFile(filePath);
     const data = await pdfParse(dataBuffer);
     return { text: data.text ?? '', pageCount: data.numpages ?? 0 };
-  })();
+  })().catch((err: unknown) => {
+    // If parsing fails, don't permanently cache the failure.
+    pdfCache.delete(filePath);
+    throw err;
+  });
 
   pdfCache.set(filePath, promise);
   return promise;
