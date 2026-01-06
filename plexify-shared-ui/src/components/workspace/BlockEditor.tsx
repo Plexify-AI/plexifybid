@@ -18,6 +18,8 @@ interface BlockEditorProps {
   onStructuredOutputRegenerate?: (block: EditorBlock) => void;
   onStructuredOutputDelete?: (block: EditorBlock) => void;
   structuredOutputBusy?: boolean;
+  onExportDocx?: (editorHtml: string) => void;
+  exportDocxBusy?: boolean;
   readOnly?: boolean;
 }
 
@@ -32,6 +34,8 @@ export default function BlockEditor({
   onStructuredOutputRegenerate,
   onStructuredOutputDelete,
   structuredOutputBusy = false,
+  onExportDocx,
+  exportDocxBusy = false,
   readOnly = false,
 }: BlockEditorProps) {
   const editor = useEditor({
@@ -123,7 +127,12 @@ export default function BlockEditor({
       ) : null}
 
       {!readOnly && editor && (
-        <EditorToolbar editor={editor} theme={theme} />
+        <EditorToolbar
+          editor={editor}
+          theme={theme}
+          onExportDocx={onExportDocx}
+          exportDocxBusy={exportDocxBusy}
+        />
       )}
       <div
         className="relative"

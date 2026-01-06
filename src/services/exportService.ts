@@ -8,6 +8,7 @@ import {
   TableCell,
   TextRun,
 } from 'docx';
+import { saveAs } from 'file-saver';
 import { exportReportToPDF } from 'plexify-shared-ui';
 
 import type {
@@ -234,4 +235,42 @@ export async function exportStructuredOutput(
 ): Promise<void> {
   if (format === 'docx') return exportStructuredOutputToDocx(data);
   return exportStructuredOutputToPDF(data);
+}
+
+export interface BoardBriefContent {
+  title: string;
+  subtitle?: string;
+  sections: Array<{
+    heading: string;
+    items?: string[];
+    text?: string;
+    metrics?: Array<{ label: string; value: string }>;
+  }>;
+  citations?: Array<{ text?: string; source: string }>;
+}
+
+export interface ExportBoardReportDocxParams {
+  boardBrief: BoardBriefContent | null;
+  editorContent: string | null;
+  filename?: string;
+}
+
+export async function exportBoardReportDocx(
+  params: ExportBoardReportDocxParams
+): Promise<void> {
+  const { boardBrief, editorContent, filename = 'board-report' } = params;
+
+  const response = await fetch('/api/export/docx', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ boardBrief, editorContent, filename }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error((error as any)?.error || 'Export failed');
+  }
+
+  const blob = await response.blob();
+  saveAs(blob, `${filename}.docx`);
 }

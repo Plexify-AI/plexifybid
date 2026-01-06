@@ -20,7 +20,7 @@ import {
   type NotebookBDSourceDoc,
 } from './services/notebookbdRag';
 import { runNotebookBDAgent } from './services/agentService';
-import { exportStructuredOutput } from './services/exportService';
+import { exportStructuredOutput, exportBoardReportDocx } from './services/exportService';
 import { generateAudioFromContent } from './services/audioService';
 import { generatePodcast } from './services/podcastService';
 import BoardBriefRenderer from './components/BoardBriefRenderer';
@@ -83,6 +83,7 @@ const AppBody: React.FC = () => {
   const [latestBoardBrief, setLatestBoardBrief] = useState(null);
   const [podcast, setPodcast] = useState(null);
   const [isGeneratingPodcast, setIsGeneratingPodcast] = useState(false);
+  const [isExportingDocx, setIsExportingDocx] = useState(false);
 
   useEffect(() => {
     loadNotebookBDSources()
@@ -155,6 +156,51 @@ const AppBody: React.FC = () => {
         { heading: 'Recommendations', items: o.recommendations },
       ],
     };
+  };
+
+  const boardBriefToDocxContent = (brief) => {
+    const o = brief.output;
+    const subtitle = [o.districtName, o.reportingPeriod].filter(Boolean).join(' • ');
+    return {
+      title: o.title,
+      subtitle: subtitle || undefined,
+      sections: [
+        { heading: 'Executive Summary', items: o.executiveSummary },
+        { heading: 'Key Metrics', metrics: o.keyMetrics },
+        { heading: 'Highlights', items: o.highlights },
+        { heading: 'Risks', items: o.risks },
+        { heading: 'Recommendations', items: o.recommendations },
+      ],
+      citations: Array.isArray(brief.sourcesUsed)
+        ? brief.sourcesUsed.map((s) => ({ source: s.label || s.id }))
+        : undefined,
+    };
+  };
+
+  const handleExportDocx = async (editorHtml: string) => {
+    if (isExportingDocx) return;
+
+    const hasNotes = Boolean(editorHtml && editorHtml.trim());
+    const hasBrief = Boolean(latestBoardBrief);
+    if (!hasNotes && !hasBrief) {
+      alert('Nothing to export yet. Generate a Board Brief or add notes in the editor.');
+      return;
+    }
+
+    setIsExportingDocx(true);
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      await exportBoardReportDocx({
+        boardBrief: latestBoardBrief ? boardBriefToDocxContent(latestBoardBrief) : null,
+        editorContent: hasNotes ? editorHtml : null,
+        filename: `board-report-${date}`,
+      });
+    } catch (err) {
+      console.error('DOCX export failed:', err);
+      alert(err instanceof Error ? err.message : 'Failed to export DOCX');
+    } finally {
+      setIsExportingDocx(false);
+    }
   };
 
   const handleGenerateBoardBriefAudio = async (brief) => {
@@ -347,6 +393,8 @@ const AppBody: React.FC = () => {
                 renderPodcastPlayer={
                   <PodcastPlayerWidget podcast={podcast} isGenerating={isGeneratingPodcast} />
                 }
+                onExportDocx={handleExportDocx}
+                exportDocxBusy={isExportingDocx}
               />
             </WorkspaceErrorBoundary>
           </div>
