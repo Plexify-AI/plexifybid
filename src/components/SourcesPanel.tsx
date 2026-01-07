@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useRealDocs } from '../contexts/RealDocsContext';
 import SourceCard from './SourceCard';
+import DemoAssetsPanel from './DemoAssetsPanel';
 
 function arrayMove<T>(arr: T[], from: number, to: number) {
   const next = [...arr];
@@ -89,6 +90,8 @@ export default function SourcesPanel() {
           <div className="text-sm text-gray-600">No documents found.</div>
         ) : null}
       </div>
+
+      <DemoAssetsPanel />
     </div>
   );
 }

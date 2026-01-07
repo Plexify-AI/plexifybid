@@ -450,9 +450,14 @@ export default function ReportEditorWorkspace({
           {/* Left Panel - Sources */}
           <aside className="w-[30rem] flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200">
-              <h2 className="text-base font-semibold text-slate-800">
-                Inputs &amp; Media Sources
-              </h2>
+              <div className="notebookbd-header">
+                <img
+                  src="/images/notebookbd-logo.png"
+                  alt="NotebookBD"
+                  className="notebookbd-header__logo"
+                />
+              </div>
+              <div className="notebookbd-header__subtitle">Inputs &amp; Media Sources</div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
@@ -498,7 +503,8 @@ export default function ReportEditorWorkspace({
 
           {/* Center Panel - Editor */}
           <main className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-4xl mx-auto space-y-4">
+            <div className="editor-workspace-container">
+              <div className="max-w-4xl mx-auto space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">
                   {terminologyConfig.reportTitle}
@@ -526,6 +532,7 @@ export default function ReportEditorWorkspace({
                 onChange={handleContentChange}
                 placeholder={`Start writing your ${terminologyConfig.reportTitle.toLowerCase()}...`}
               />
+              </div>
             </div>
           </main>
 
