@@ -1,0 +1,46 @@
+{
+  "district": "Golden Triangle BID",
+  "location": "Washington, DC",
+  "documents": [
+    {
+      "id": "gt-strategic-plan-2022",
+      "filename": "GT_Strategic_Plan_2022.pdf",
+      "displayName": "Strategic Plan (2022)",
+      "type": "strategic",
+      "agents": ["board-brief", "ozrf-section"],
+      "uploadedAt": "2022-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "gt-business-plan-fy24-28",
+      "filename": "GT_Business_Plan_FY24-28.pdf",
+      "displayName": "Business Plan (FY24–28)",
+      "type": "operations",
+      "agents": ["board-brief", "ozrf-section"],
+      "uploadedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "gt-neighborhood-profile-2024",
+      "filename": "GT_Neighborhood_Profile_2024.pdf",
+      "displayName": "Neighborhood Profile (2024)",
+      "type": "demographics",
+      "agents": ["board-brief"],
+      "uploadedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "gt-fiscal-impact-analysis-2023",
+      "filename": "GT_Fiscal_Impact_Analysis_2023.pdf",
+      "displayName": "Fiscal Impact Analysis (2023)",
+      "type": "financial",
+      "agents": ["assessment-trends", "board-brief"],
+      "uploadedAt": "2023-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "gt-penn-west-vision-report",
+      "filename": "GT_Penn_West_Vision_Report.pdf",
+      "displayName": "Penn West Vision Report",
+      "type": "capital-project",
+      "agents": ["board-brief", "ozrf-section"],
+      "uploadedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
