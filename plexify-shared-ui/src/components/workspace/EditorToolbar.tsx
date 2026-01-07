@@ -5,9 +5,16 @@ import { PlexifyTheme } from '../../types/theme';
 interface EditorToolbarProps {
   editor: Editor;
   theme: PlexifyTheme;
+  onExportDocx?: (editorHtml: string) => void;
+  exportDocxBusy?: boolean;
 }
 
-export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
+export default function EditorToolbar({
+  editor,
+  theme,
+  onExportDocx,
+  exportDocxBusy = false,
+}: EditorToolbarProps) {
   const ToolbarButton = ({
     onClick,
     isActive,
@@ -161,6 +168,18 @@ export default function EditorToolbar({ editor, theme }: EditorToolbarProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a8 8 0 00-8 8v2m18-10l-6 6m6-6l-6-6" />
           </svg>
         </ToolbarButton>
+      </div>
+
+      <div className="ml-auto flex items-center">
+        <button
+          type="button"
+          onClick={() => onExportDocx?.(editor.getHTML())}
+          disabled={!onExportDocx || exportDocxBusy}
+          title="Export as Word Document"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-gradient-to-r from-purple-700 to-purple-500 hover:from-purple-600 hover:to-purple-400 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {exportDocxBusy ? 'Exporting…' : 'Export DOCX'}
+        </button>
       </div>
     </div>
   );

@@ -55,6 +55,8 @@ interface ReportEditorWorkspaceProps {
   renderSourcesPanel?: ReactNode;
   onExportStructuredOutput?: (data: unknown, format: 'docx' | 'pdf') => Promise<void>;
   renderStructuredOutputBlock?: (block: EditorBlock) => ReactNode;
+  onExportDocx?: (editorHtml: string) => void | Promise<void>;
+  exportDocxBusy?: boolean;
 }
 
 export default function ReportEditorWorkspace({
@@ -91,6 +93,8 @@ export default function ReportEditorWorkspace({
   renderSourcesPanel,
   onExportStructuredOutput,
   renderStructuredOutputBlock,
+  onExportDocx,
+  exportDocxBusy = false,
 }: ReportEditorWorkspaceProps) {
   const terminologyConfig = terminologyConfigs[terminology];
 
@@ -516,6 +520,8 @@ export default function ReportEditorWorkspace({
                 onStructuredOutputRegenerate={handleRegenerateBlock}
                 onStructuredOutputDelete={handleDeleteBlock}
                 structuredOutputBusy={structuredOutputBusy}
+                onExportDocx={onExportDocx}
+                exportDocxBusy={exportDocxBusy}
                 content={content}
                 onChange={handleContentChange}
                 placeholder={`Start writing your ${terminologyConfig.reportTitle.toLowerCase()}...`}

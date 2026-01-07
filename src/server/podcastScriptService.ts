@@ -7,6 +7,10 @@ export interface PodcastScript {
   wordCount: number;
 }
 
+// ElevenLabs Text-to-Dialogue has a 5k character limit across input text.
+// Keep a safety margin so generation succeeds reliably in dev.
+const MAX_DIALOGUE_CHARS = 4500;
+
 const PODCAST_SYSTEM_PROMPT = `You are a podcast script writer creating a two-host deep dive discussion about Business Improvement District operations and development opportunities.
 
 PERSONAS:
@@ -121,7 +125,11 @@ export async function generatePodcastScript(context: string, districtName = 'Gol
   const apiKey = getAnthropicApiKey();
   if (!apiKey) throw new Error('Anthropic API key not configured');
 
-  const userPrompt = `Create a 12-15 minute podcast episode (~2500-3000 words of dialogue) discussing the following Business Improvement District:
+  const userPrompt = `Create a SHORT demo podcast episode (about 3-4 minutes) discussing the following Business Improvement District.
+
+IMPORTANT: The output must fit ElevenLabs Text-to-Dialogue limits.
+- Keep the TOTAL length of all dialogue "text" fields combined to <= ${MAX_DIALOGUE_CHARS} characters.
+- Aim for ~700-900 words maximum.
 
 DISTRICT: ${districtName}
 
@@ -129,13 +137,11 @@ SOURCE DOCUMENTS:
 ${context}
 
 EPISODE STRUCTURE:
-1. Opening (30 sec): Cassidy welcomes listeners and introduces Mark as the expert guest
-2. Overview (2 min): Mark provides district background and context
-3. Key Metrics & Achievements (3 min): Discussion of notable accomplishments and numbers
-4. Challenges & Risks (3 min): Honest discussion of obstacles and concerns
-5. Opportunities & Future Outlook (3 min): What's ahead for the district
-6. Recommendations (2 min): Mark's top takeaways for stakeholders
-7. Closing (1 min): Cassidy summarizes and thanks Mark
+1. Opening (20 sec): Cassidy welcomes listeners and introduces Mark
+2. Snapshot (60 sec): Mark gives district background and 2-3 key metrics
+3. What matters (90 sec): 2-3 highlights + 1-2 risks
+4. Recommendations (40 sec): Mark's top takeaways
+5. Closing (20 sec): Cassidy summarizes and thanks Mark
 
 Generate the complete dialogue script now.`;
 
@@ -165,7 +171,29 @@ Generate the complete dialogue script now.`;
       t.text.trim().length > 0
   );
 
-  const wordCount = dialogue.reduce(
+  const clampedDialogue: DialogueTurn[] = [];
+  let usedChars = 0;
+  for (const turn of dialogue) {
+    const text = turn.text.trim();
+    if (!text) continue;
+
+    if (usedChars + text.length > MAX_DIALOGUE_CHARS) {
+      const remaining = MAX_DIALOGUE_CHARS - usedChars;
+      if (remaining <= 0) break;
+      const clipped = text.slice(0, remaining).trim();
+      if (clipped.length > 0) {
+        clampedDialogue.push({ ...turn, text: clipped });
+      }
+      break;
+    }
+
+    clampedDialogue.push({ ...turn, text });
+    usedChars += text.length;
+  }
+
+  const finalDialogue = clampedDialogue.length > 0 ? clampedDialogue : dialogue;
+
+  const wordCount = finalDialogue.reduce(
     (sum, turn) => sum + turn.text.split(/\s+/).filter(Boolean).length,
     0
   );
@@ -173,7 +201,7 @@ Generate the complete dialogue script now.`;
   return {
     title: parsed.title || `${districtName} Deep Dive`,
     description: parsed.description || `A deep dive discussion of ${districtName}.`,
-    dialogue,
+    dialogue: finalDialogue,
     wordCount,
   } satisfies PodcastScript;
 }
