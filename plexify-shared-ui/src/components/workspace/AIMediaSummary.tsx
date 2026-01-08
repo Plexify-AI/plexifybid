@@ -396,41 +396,6 @@ export default function AIMediaSummary({
       </div>
 
       {renderPodcastPlayer ? renderPodcastPlayer : null}
-
-      {/* Visual Site Summary */}
-      <div
-        className="relative rounded-xl overflow-hidden"
-        style={{ aspectRatio: '16 / 9' }}
-      >
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              'url(/images/downtown-district-thumbnail.svg)',
-          }}
-        />
-        <button
-          type="button"
-          className="absolute inset-0 flex items-center justify-center transition"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}
-        >
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
-          >
-            <PlayIcon className="w-7 h-7 text-slate-700 ml-1" />
-          </div>
-        </button>
-        <div
-          className="absolute bottom-0 left-0 right-0 p-3"
-          style={{
-            background:
-              'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%)',
-          }}
-        >
-          <span className="text-white text-sm font-medium">Visual Site Summary</span>
-        </div>
-      </div>
     </div>
   );
 }

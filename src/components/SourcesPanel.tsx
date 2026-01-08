@@ -39,6 +39,8 @@ export default function SourcesPanel() {
 
   return (
     <div className="space-y-4">
+      <DemoAssetsPanel />
+
       <div>
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900">
@@ -90,8 +92,6 @@ export default function SourcesPanel() {
           <div className="text-sm text-gray-600">No documents found.</div>
         ) : null}
       </div>
-
-      <DemoAssetsPanel />
     </div>
   );
 }
