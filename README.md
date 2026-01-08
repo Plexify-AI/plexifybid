@@ -104,7 +104,7 @@ Proprietary - Ken D'Amato / Plexify
 ## Contact
 
 **Ken D'Amato**
-Email: ken@plexify.io
+Email: ken@smartwin.me
 Organization: Plexify AI
 
 ---
