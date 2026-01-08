@@ -1,9 +1,10 @@
 # PlexifyBID
 
-**Operations Management Platform for Business Improvement Districts**
+**Business and Economic Development Management Platform for Business Improvement Districts**
 
-PlexifyBID is a unified operations platform for BID Executive Directors to manage:
-- District operations (security, maintenance, events)
+PlexifyBID is a unified Business and Economic Development Management Platform for BID Executive Directors to manage:
+- Business and Economic Development projects and initiatives 
+- The overseeing of district operations (security, maintenance, events)
 - Property owner assessments and collections
 - Board reporting and stakeholder communications
 - Capital project coordination
@@ -11,8 +12,8 @@ PlexifyBID is a unified operations platform for BID Executive Directors to manag
 ## Part of Plexify Suite
 
 - **PlexifyAEC** - Construction BD platform (discover BID opportunities)
-- **PlexifyBID** - BID operations platform (manage district operations) ← You are here
-- **PlexifyBIZ** - Future small business platform
+- **PlexifyBID** - BID Business and Economic Development platform (manage district BD projects) ← You are here
+- **PlexifyBIZ** - Future district business BD platform
 
 ## Getting Started
 
