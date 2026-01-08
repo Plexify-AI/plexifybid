@@ -5,7 +5,7 @@ interface DemoAsset {
   id: string;
   title: string;
   subtitle: string;
-  type: 'slides' | 'video' | 'infographic' | 'graph' | 'podcast';
+  type: 'slides' | 'video' | 'infographic' | 'graph' | 'podcast' | 'datatable';
   thumbnail: string;
   mediaUrl?: string;
 }
@@ -25,6 +25,7 @@ const DEMO_ASSETS: DemoAsset[] = [
     subtitle: '12 slides • Board Briefing',
     type: 'slides',
     thumbnail: '/demo-assets/slides-thumbnail.png',
+    mediaUrl: '/demo-assets/presentation-deck-golden-triangle.pdf',
   },
   {
     id: 'video',
@@ -48,6 +49,13 @@ const DEMO_ASSETS: DemoAsset[] = [
     type: 'graph',
     thumbnail: '/demo-assets/knowledge-graph.png',
   },
+  {
+    id: 'datatable',
+    title: 'Data Table',
+    subtitle: '12 slides • Board Briefing',
+    type: 'datatable',
+    thumbnail: '/demo-assets/data-table-DC.PNG',
+  },
 ];
 
 export function DemoAssetsPanel() {
@@ -67,7 +75,7 @@ export function DemoAssetsPanel() {
   return (
     <>
       <div className="demo-assets-panel">
-        <h4 className="demo-assets-panel__title">Generated Assets</h4>
+        <h4 className="demo-assets-panel__title">Generated Project Artifacts</h4>
         <div className="demo-assets-grid">
           {DEMO_ASSETS.map((asset) => (
             <div
@@ -118,6 +126,16 @@ export function DemoAssetsPanel() {
               </div>
             )}
 
+            {activeAsset.type === 'slides' && activeAsset.mediaUrl && (
+              <div className="demo-modal__pdf-container">
+                <iframe
+                  className="demo-modal__pdf"
+                  src={activeAsset.mediaUrl}
+                  title={activeAsset.title}
+                />
+              </div>
+            )}
+
             {activeAsset.type === 'podcast' && activeAsset.mediaUrl && (
               <div className="demo-modal__audio-container">
                 <audio
@@ -131,7 +149,8 @@ export function DemoAssetsPanel() {
 
             {(activeAsset.type === 'infographic' ||
               activeAsset.type === 'graph' ||
-              activeAsset.type === 'slides') && (
+              activeAsset.type === 'datatable' ||
+              (activeAsset.type === 'slides' && !activeAsset.mediaUrl)) && (
               <img
                 className="demo-modal__image"
                 src={activeAsset.thumbnail}
