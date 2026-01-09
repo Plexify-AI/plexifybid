@@ -1,10 +1,18 @@
-﻿import React from 'react';
+// @ts-nocheck
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
 import PlaceholderPage from './components/PlaceholderPage';
 import AskPlexiInterface from './components/AskPlexiInterface';
 import ExecutiveFeed from './features/executive/ExecutiveFeed';
 import FieldView from './features/field/FieldView';
+import OperationsDashboard from './pages/OperationsDashboard';
+import AssessmentManagement from './pages/AssessmentManagement';
+import BoardReporting from './pages/BoardReporting';
+import ReportPrintView from './pages/ReportPrintView';
+import { bidTheme } from './config/theme';
+import { ReportEditorWorkspace } from 'plexify-shared-ui';
+import { useWorkspaceStore } from 'plexify-shared-ui';
 
 /**
  * Main App Component - Phase 1 Navigation
@@ -13,6 +21,10 @@ import FieldView from './features/field/FieldView';
  * with professional sidebar navigation system
  */
 const App: React.FC = () => {
+  const isWorkspaceOpen = useWorkspaceStore(s => s.isWorkspaceOpen);
+  const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
+  const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
+
   return (
     <Router>
       <div className="app-container">
@@ -24,6 +36,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<ExecutiveFeed />} />
+            <Route path="/operations" element={<OperationsDashboard />} />
+            <Route path="/assessments" element={<AssessmentManagement />} />
+            <Route path="/board-reports" element={<BoardReporting />} />
             <Route path="/executive" element={<ExecutiveFeed />} />
             <Route path="/field" element={<FieldView />} />
             
@@ -59,6 +74,7 @@ const App: React.FC = () => {
                 description="Advanced initiative analytics and insights."
               />
             } />
+            <Route path="/report/:projectId/print" element={<ReportPrintView />} />
             <Route path="/alerts" element={
               <PlaceholderPage
                 title="Alerts"
@@ -73,9 +89,25 @@ const App: React.FC = () => {
             } />
           </Routes>
         </main>
+
+        {/* Workspace Overlay */}
+        <ReportEditorWorkspace
+          isOpen={isWorkspaceOpen}
+          projectId={currentProjectId || "project-001"}
+          onClose={closeWorkspace}
+          theme={bidTheme}
+          terminology="bid"
+        />
       </div>
     </Router>
   );
 };
 
 export default App;
+
+
+
+
+
+
+

@@ -15,7 +15,11 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply text-gray-900;
+    /* Global page background (matches provided image v2: green→yellow→orange with soft corners) */
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -25,6 +29,16 @@
 
 /* Custom components */
 @layer components {
+  /* Generic card wrapper for consistent panels */
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  }
+
+  /* Small button size helper */
+  .btn-sm {
+    @apply px-2 py-1 text-sm;
+  }
+
   /* Intelligence Card styling */
   .intelligence-card {
     @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden;
@@ -121,6 +135,13 @@
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   }
   
+  /* Shared Plexify gradient background utility */
+  .plexi-bg {
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
+  }
+  
   /* (Removed problematic blueprint-bg and safety-stripe utilities) */
 }
 
@@ -143,14 +164,17 @@
   /* App Layout */
   .app-container {
     @apply flex min-h-screen;
-    background: linear-gradient(135deg, #70b180, #e8927c);
+    /* Page wrapper background (same as body for consistency) */
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
   }
 
   /* Sidebar Styles - UPDATED WIDTH: 252px (10% smaller than 280px) */
   .sidebar {
     @apply fixed left-0 top-0 h-full z-40 transition-all duration-300 ease-in-out flex flex-col;
     width: 252px;
-    background-color: #1e3a8a;
+    background-color: #1f367d;
   }
 
   .sidebar.collapsed {
@@ -275,7 +299,9 @@
 @layer components {
   .field-view {
     @apply min-h-screen;
-    background: linear-gradient(135deg, #70b180, #e8927c);
+    background:
+      radial-gradient(65% 60% at 58% 58%, #ffe38a 0%, #fff2b3 45%, rgba(255, 255, 255, 0) 62%),
+      linear-gradient(115deg, #6bd0a7 0%, #cfeeb9 28%, #ffe17a 55%, #f6a23a 78%, #f06f2a 100%);
     padding-bottom: 80px; /* Space for mobile nav */
   }
 
@@ -687,4 +713,11 @@
   .intelligence-card-footer {
     @apply p-3;
   }
+}
+
+/* Print styles */
+@media print {
+  .sidebar { display: none !important; }
+  .main-content { margin: 0 !important; }
+  .no-print { display: none !important; }
 }
