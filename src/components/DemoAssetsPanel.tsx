@@ -162,12 +162,25 @@ function PlyrAudioPlayer({ src }: { src: string }) {
     const el = audioRef.current;
     if (!el) return;
 
-    playerRef.current?.destroy();
-    playerRef.current = new Plyr(el, {
-      controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings'],
-      settings: ['speed'],
-      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-    });
+    try {
+      playerRef.current?.destroy();
+      playerRef.current = new Plyr(el, {
+        controls: [
+          'play',
+          'progress',
+          'current-time',
+          'duration',
+          'mute',
+          'volume',
+          'settings',
+        ],
+        settings: ['speed'],
+        speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+      });
+    } catch {
+      // If Plyr fails to initialize for any reason, native controls remain.
+      playerRef.current = null;
+    }
 
     // Autoplay when opened.
     void el.play().catch(() => {
@@ -180,7 +193,7 @@ function PlyrAudioPlayer({ src }: { src: string }) {
     };
   }, [src]);
 
-  return <audio ref={audioRef} src={src} />;
+  return <audio ref={audioRef} src={src} controls preload="metadata" />;
 }
 
 function PlyrVideoPlayer({ src }: { src: string }) {
