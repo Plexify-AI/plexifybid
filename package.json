@@ -55,6 +55,7 @@
         "openai": "^6.15.0",
         "pdf-parse": "1.1.1",
         "plexify-shared-ui": "file:./plexify-shared-ui",
+        "plyr": "^3.8.4",
         "postcss": "^8.5.6",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",

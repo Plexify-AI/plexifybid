@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Plyr from 'plyr';
+import 'plyr/dist/plyr.css';
 import './DemoAssetsPanel.css';
 
 interface DemoAsset {
@@ -115,14 +117,7 @@ export function DemoAssetsPanel() {
 
             {activeAsset.type === 'video' && activeAsset.mediaUrl && (
               <div className="demo-modal__video-container">
-                <iframe
-                  className="demo-modal__video"
-                  src={activeAsset.mediaUrl}
-                  title={activeAsset.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+                <PlyrVideoPlayer src={activeAsset.mediaUrl} />
               </div>
             )}
 
@@ -138,12 +133,7 @@ export function DemoAssetsPanel() {
 
             {activeAsset.type === 'podcast' && activeAsset.mediaUrl && (
               <div className="demo-modal__audio-container">
-                <audio
-                  className="demo-modal__audio"
-                  src={activeAsset.mediaUrl}
-                  controls
-                  autoPlay
-                />
+                <PlyrAudioPlayer src={activeAsset.mediaUrl} />
               </div>
             )}
 
@@ -161,6 +151,68 @@ export function DemoAssetsPanel() {
         </div>
       )}
     </>
+  );
+}
+
+function PlyrAudioPlayer({ src }: { src: string }) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playerRef = useRef<Plyr | null>(null);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+
+    playerRef.current?.destroy();
+    playerRef.current = new Plyr(el, {
+      controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings'],
+      settings: ['speed'],
+      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+    });
+
+    // Autoplay when opened.
+    void el.play().catch(() => {
+      // Autoplay can be blocked; controls still available.
+    });
+
+    return () => {
+      playerRef.current?.destroy();
+      playerRef.current = null;
+    };
+  }, [src]);
+
+  return <audio ref={audioRef} src={src} />;
+}
+
+function PlyrVideoPlayer({ src }: { src: string }) {
+  const videoRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<Plyr | null>(null);
+
+  const videoId = src.includes('youtube.com/embed/')
+    ? src.split('youtube.com/embed/')[1].split('?')[0]
+    : src;
+
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+
+    playerRef.current?.destroy();
+    playerRef.current = new Plyr(el, {
+      controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+    });
+
+    return () => {
+      playerRef.current?.destroy();
+      playerRef.current = null;
+    };
+  }, [videoId]);
+
+  return (
+    <div
+      ref={videoRef}
+      data-plyr-provider="youtube"
+      data-plyr-embed-id={videoId}
+      className="plyr-video-wrapper"
+    />
   );
 }
 

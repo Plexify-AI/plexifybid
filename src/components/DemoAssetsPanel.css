@@ -93,38 +93,39 @@
   color: #6b7280;
 }
 
-/* Modal Styles */
+/* Modal Styles - UPDATED for larger media display */
 .demo-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  padding: 24px;
+  padding: 20px;
 }
 
 .demo-modal {
   background: white;
   border-radius: 16px;
   padding: 24px;
-  max-width: 95vw;
-  max-height: 95vh;
+  width: 90vw;
+  max-width: 1000px;
+  max-height: 90vh;
   overflow: auto;
   position: relative;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
 }
 
 .demo-modal__close {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border: none;
   background: #f3f4f6;
   border-radius: 50%;
@@ -144,40 +145,46 @@
 }
 
 .demo-modal__title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   margin-bottom: 20px;
-  padding-right: 48px;
+  padding-right: 50px;
   color: #1f2937;
 }
 
 .demo-modal__video-container {
-  position: relative;
   width: 100%;
   max-width: 900px;
-  padding-bottom: 56.25%;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
 }
 
-.demo-modal__video {
-  position: absolute;
-  top: 0;
-  left: 0;
+.plyr-video-wrapper {
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+}
+
+/* Plyr video theme */
+.plyr--video .plyr__control--overlaid {
+  background: rgba(124, 58, 237, 0.9);
+}
+
+.plyr--video .plyr__control--overlaid:hover {
+  background: #7c3aed;
 }
 
 .demo-modal__pdf-container {
   width: 100%;
-  max-width: 900px;
-  height: 80vh;
+  height: 75vh;
+  min-height: 500px;
 }
 
 .demo-modal__pdf {
   width: 100%;
   height: 100%;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
+  background: #f5f5f5;
 }
 
 .demo-modal__image {
@@ -189,12 +196,29 @@
 }
 
 .demo-modal__audio-container {
-  padding: 20px 0;
+  width: 100%;
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
 }
 
-.demo-modal__audio {
-  width: 100%;
-  max-width: 500px;
-  display: block;
-  margin: 0 auto;
+/* Plyr theme customization for PlexifyBID branding */
+.plyr--audio .plyr__controls {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.plyr--audio .plyr__control--overlaid,
+.plyr--audio .plyr__control:hover {
+  background: #7c3aed;
+}
+
+.plyr--audio .plyr__progress__buffer,
+.plyr--audio .plyr__volume__progress {
+  background: rgba(124, 58, 237, 0.3);
+}
+
+.plyr--audio .plyr__progress__container input[type="range"]::-webkit-slider-thumb {
+  background: #7c3aed;
 }
