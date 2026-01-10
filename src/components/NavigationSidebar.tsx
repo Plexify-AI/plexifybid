@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { 
   Home, Upload, Folder, Grid, Settings,
-  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText
+  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText, Link2
 } from 'lucide-react';
 
 const NavigationSidebar: React.FC = () => {
@@ -37,7 +37,8 @@ const NavigationSidebar: React.FC = () => {
         { path: '/upload', label: 'Upload', icon: Upload },
         { path: '/library', label: 'Library', icon: Folder },
         { path: '/resources', label: 'Resources', icon: Grid },
-        { path: '/settings', label: 'Settings', icon: Settings }
+        { path: '/settings', label: 'Settings', icon: Settings },
+        { path: '/integrations', label: 'Integrations', icon: Link2 }
       ]
     },
     {

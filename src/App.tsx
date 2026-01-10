@@ -10,6 +10,7 @@ import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
 import ReportPrintView from './pages/ReportPrintView';
+import IntegrationsPage from './pages/IntegrationsPage';
 import { bidTheme } from './config/theme';
 import { ReportEditorWorkspace, useWorkspaceStore } from 'plexify-shared-ui';
 import { RealDocsProvider, useRealDocs } from './contexts/RealDocsContext';
@@ -323,6 +324,7 @@ const AppBody: React.FC = () => {
                   />
                 }
               />
+              <Route path="/integrations" element={<IntegrationsPage />} />
               <Route
                 path="/analytics"
                 element={
