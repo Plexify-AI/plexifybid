@@ -1,0 +1,82 @@
+.integrations-page {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.integrations-page__header {
+  margin-bottom: 32px;
+}
+
+.integrations-page__header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.integrations-page__header p {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.integration-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.integration-card:hover,
+.integration-card:focus-visible {
+  border-color: #7c3aed;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+  transform: translateY(-2px);
+}
+
+.integration-card__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.integration-card__logo img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.integration-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.integration-card__name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.integration-card__category {
+  font-size: 13px;
+  color: #6b7280;
+}
