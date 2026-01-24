@@ -16,6 +16,7 @@ public/podcasts/
 .env.local
 .env.production
 .env.development
+.env.procore
 
 # IDE
 .vscode/
