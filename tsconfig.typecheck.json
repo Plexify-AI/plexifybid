@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noResolve": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@components/*": ["src/components/*"],
+      "@features/*": ["src/features/*"],
+      "@services/*": ["src/services/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  },
+  "files": [
+    "src/App.tsx",
+    "src/features/executive/ExecutiveFeed.tsx",
+    "src/config/theme.ts",
+    "src/pages/OperationsDashboard.tsx",
+    "src/pages/AssessmentManagement.tsx",
+    "src/pages/BoardReporting.tsx",
+    "src/pages/ReportPrintView.tsx",
+    "src/types/shims.d.ts"
+  ]
+}
