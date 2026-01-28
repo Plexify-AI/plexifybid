@@ -208,14 +208,6 @@ const ExecutiveFeed: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <button
-        className="new-project-btn"
-        onClick={() => setShowNewProjectModal(true)}
-        aria-label="Create new project"
-      >
-        <span className="new-project-btn__icon">+</span>
-      </button>
-
       {showNewProjectModal && (
         <div
           className="new-project-modal-overlay"
@@ -305,6 +297,15 @@ const ExecutiveFeed: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Add Project Button - fixed position */}
+      <button
+        className="new-project-btn"
+        onClick={() => setShowNewProjectModal(true)}
+        aria-label="Create new project"
+      >
+        <span className="new-project-btn__icon">+</span>
+      </button>
 
       {/* Header with status */}
       <div className="mb-6">

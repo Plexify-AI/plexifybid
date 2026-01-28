@@ -1009,32 +1009,39 @@
 /* Home - New Project Button + Modal */
 .new-project-btn {
   position: fixed;
-  top: 24px;
-  right: 24px;
-  width: 64px;
-  height: 64px;
+  top: 48px;
+  right: 48px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  background: #1a1a2e;
-  border: none;
+  background: transparent;
+  border: 3px solid #000000;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
-  z-index: 100;
+  z-index: 50;
 }
 
 .new-project-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: rgba(124, 58, 237, 0.08);
+  border-color: #7C3AED;
+}
+
+.new-project-btn:hover .new-project-btn__icon {
+  color: #7C3AED;
 }
 
 .new-project-btn__icon {
-  font-size: 32px;
-  font-weight: 300;
-  color: white;
+  font-size: 85px;
+  font-weight: 100;
+  color: #000000;
   line-height: 1;
+  margin: 0;
+  margin-top: -8px;
+  padding: 0;
+  transition: color 0.2s ease;
 }
 
 .new-project-modal-overlay {
