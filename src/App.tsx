@@ -6,6 +6,7 @@ import PlaceholderPage from './components/PlaceholderPage';
 import AskPlexiInterface from './components/AskPlexiInterface';
 import ExecutiveFeed from './features/executive/ExecutiveFeed';
 import FieldView from './features/field/FieldView';
+import { PlaceGraph } from './features/ecosystem';
 import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
@@ -287,6 +288,7 @@ const AppBody: React.FC = () => {
               <Route path="/board-reports" element={<BoardReporting />} />
               <Route path="/executive" element={<ExecutiveFeed />} />
               <Route path="/field" element={<FieldView />} />
+              <Route path="/ecosystem" element={<PlaceGraph />} />
               <Route path="/ask-plexi" element={<AskPlexiInterface />} />
               <Route
                 path="/upload"
