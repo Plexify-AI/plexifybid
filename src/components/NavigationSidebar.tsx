@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { 
+import {
   Home, Upload, Folder, Grid, Settings,
-  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText, Link2
+  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText, Link2, Map
 } from 'lucide-react';
 
 const NavigationSidebar: React.FC = () => {
@@ -25,7 +25,7 @@ const NavigationSidebar: React.FC = () => {
       title: 'AI REPORTS',
       items: [
         { path: '/home', label: 'Home', icon: Home },
-        { path: '/operations', label: 'Operations', icon: Activity },
+        { path: '/ecosystem', label: 'Place Graph', icon: Map },
         { path: '/assessments', label: 'Assessments', icon: Table },
         { path: '/board-reports', label: 'Board Reports', icon: FileText },
         { 
