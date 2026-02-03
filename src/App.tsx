@@ -1,12 +1,16 @@
 // @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
 import NavigationSidebar from './components/NavigationSidebar';
 import PlaceholderPage from './components/PlaceholderPage';
 import AskPlexiInterface from './components/AskPlexiInterface';
 import ExecutiveFeed from './features/executive/ExecutiveFeed';
 import FieldView from './features/field/FieldView';
 import { PlaceGraph } from './features/ecosystem';
+import { AgentManagement } from './features/agent-management/AgentManagement';
+import { AgentGrid, AgentDetail } from './features/agent-management/components/AgentRegistry';
+import { SessionList, SessionStartForm, SessionDetail } from './features/agent-management/components/SessionTracker';
+import { TemplateListPlaceholder, TemplateEditorPlaceholder } from './features/agent-management/components/PromptTemplates';
 import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
@@ -29,6 +33,62 @@ import BoardBriefRenderer from './components/BoardBriefRenderer';
 import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
 import OZRFSectionRenderer from './components/OZRFSectionRenderer';
 import PodcastPlayerWidget from './components/PodcastPlayerWidget';
+
+// Agent Management route wrappers
+function SessionListWrapper() {
+  const navigate = useNavigate();
+  return (
+    <SessionList
+      onSessionClick={(id) => navigate(`/agents/sessions/${id}`)}
+      onStartSession={() => navigate('/agents/sessions/new')}
+    />
+  );
+}
+
+function SessionStartFormWrapper() {
+  const navigate = useNavigate();
+  return (
+    <SessionStartForm
+      onBack={() => navigate('/agents/sessions')}
+      onSessionStarted={(id) => navigate(`/agents/sessions/${id}`)}
+    />
+  );
+}
+
+function SessionDetailWrapper() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  if (!id) return null;
+  return (
+    <SessionDetail
+      sessionId={id}
+      onBack={() => navigate('/agents/sessions')}
+      onCompleted={() => navigate('/agents/sessions')}
+    />
+  );
+}
+
+function AgentDetailWrapper() {
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  if (!slug) return null;
+  return (
+    <AgentDetail
+      slug={slug}
+      onBack={() => navigate('/agents')}
+    />
+  );
+}
+
+function AgentGridWrapper() {
+  const navigate = useNavigate();
+  return (
+    <AgentGrid
+      onAgentClick={(slug) => navigate(`/agents/${slug}`)}
+      onNewAgent={() => navigate('/agents/new')}
+    />
+  );
+}
 
 class WorkspaceErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -289,6 +349,15 @@ const AppBody: React.FC = () => {
               <Route path="/executive" element={<ExecutiveFeed />} />
               <Route path="/field" element={<FieldView />} />
               <Route path="/ecosystem" element={<PlaceGraph />} />
+              <Route path="/agents" element={<AgentManagement />}>
+                <Route index element={<AgentGridWrapper />} />
+                <Route path=":slug" element={<AgentDetailWrapper />} />
+                <Route path="templates" element={<TemplateListPlaceholder />} />
+                <Route path="templates/:slug" element={<TemplateEditorPlaceholder />} />
+                <Route path="sessions" element={<SessionListWrapper />} />
+                <Route path="sessions/new" element={<SessionStartFormWrapper />} />
+                <Route path="sessions/:id" element={<SessionDetailWrapper />} />
+              </Route>
               <Route path="/ask-plexi" element={<AskPlexiInterface />} />
               <Route
                 path="/upload"
