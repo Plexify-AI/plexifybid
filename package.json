@@ -8,7 +8,9 @@
         "preview": "vite preview",
         "assets:check": "node scripts/assets-check.mjs",
         "assets:fix": "node scripts/assets-check.mjs --fix",
-        "test": "echo \"No tests yet\"",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
         "type-check": "tsc -p tsconfig.typecheck.json --noEmit"
     },
     "keywords": [
@@ -29,6 +31,7 @@
         "@dnd-kit/sortable": "^8.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@elevenlabs/elevenlabs-js": "^2.28.0",
+        "@supabase/supabase-js": "^2.93.3",
         "@tiptap/extension-highlight": "^2.1.0",
         "@tiptap/extension-placeholder": "^2.1.0",
         "@tiptap/extension-text-align": "^2.1.0",
@@ -51,6 +54,7 @@
         "helmet": "^8.1.0",
         "js-cookie": "^3.0.5",
         "lucide-react": "^0.544.0",
+        "mapbox-gl": "^3.18.1",
         "node-fetch": "^3.3.2",
         "openai": "^6.15.0",
         "pdf-parse": "1.1.1",
@@ -60,6 +64,7 @@
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
         "react-h5-audio-player": "^3.10.1",
+        "react-map-gl": "^8.1.0",
         "react-router-dom": "^7.9.1",
         "tailwindcss": "^3.4.17",
         "typescript": "^5.9.2",
@@ -74,6 +79,7 @@
         "@types/js-cookie": "^3.0.6",
         "@types/node": "^24.7.0",
         "@types/pdf-parse": "^1.1.5",
-        "svgo": "^3.3.2"
+        "svgo": "^3.3.2",
+        "vitest": "^4.0.18"
     }
 }

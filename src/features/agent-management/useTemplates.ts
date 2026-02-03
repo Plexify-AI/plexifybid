@@ -5,8 +5,8 @@ import type {
   TemplateFilters,
   CreateTemplateRequest,
   UpdateTemplateRequest,
-  TemplateVariable,
 } from './AgentManagement.types';
+import { renderTemplateSimple } from './useTemplateRenderer';
 
 // Generate slug from name (kebab-case)
 function toSlug(name: string): string {
@@ -167,17 +167,8 @@ export function useTemplates(filters?: TemplateFilters): UseTemplatesReturn {
       return null;
     }
 
-    // Render using simple string replacement
-    let rendered = template.template_body;
-    const variableSchema = template.variables as TemplateVariable[];
-
-    for (const varDef of variableSchema) {
-      const value = variables[varDef.name] ?? varDef.default_value ?? '';
-      const placeholder = new RegExp(`\\{\\{${varDef.name}\\}\\}`, 'g');
-      rendered = rendered.replace(placeholder, String(value));
-    }
-
-    return rendered;
+    // Use extracted pure function for rendering
+    return renderTemplateSimple(template.template_body, variables, template.variables);
   }, []);
 
   const incrementUsage = useCallback(async (id: string): Promise<void> => {
