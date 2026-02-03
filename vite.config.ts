@@ -6,6 +6,7 @@ import { notebookBDTtsMiddleware } from './src/server/ttsApi';
 import { notebookBDPodcastMiddleware } from './src/server/podcastApi';
 import { notebookBDDocxMiddleware } from './src/server/docxApi';
 import { healthMiddleware } from './src/server/healthApi';
+import { agentManagementMiddleware } from './src/server/agentManagementApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -29,6 +30,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(notebookBDPodcastMiddleware());
         server.middlewares.use(notebookBDDocxMiddleware());
         server.middlewares.use(healthMiddleware());
+        server.middlewares.use(agentManagementMiddleware());
       },
     },
   ],
@@ -96,9 +98,7 @@ export default defineConfig(({ mode }) => {
   },
   server: {
     port: 3000,
-    host: '0.0.0.0',
-    strictPort: true,
-    open: true,
+    strictPort: true
   },
   build: {
     outDir: 'dist',
