@@ -11,6 +11,7 @@ import { useTemplates } from '../../useTemplates';
 import { useAgents } from '../../useAgents';
 import { VariableEditor } from './VariableEditor';
 import { TemplatePreview } from './TemplatePreview';
+import { LoadingSkeleton, NotFoundState } from '../shared';
 
 export interface TemplateEditorProps {
   /** Slug of template to edit (undefined = create new) */
@@ -205,10 +206,17 @@ export function TemplateEditor({ slug, onBack, onSaved }: TemplateEditorProps) {
 
   // Loading state
   if (loading) {
+    return <LoadingSkeleton variant="form" />;
+  }
+
+  // Not found state (when editing and template doesn't exist)
+  if (slug && !existingTemplate && error) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-      </div>
+      <NotFoundState
+        resourceType="Template"
+        onBack={onBack}
+        message="The template you're looking for doesn't exist or has been removed."
+      />
     );
   }
 

@@ -3,7 +3,7 @@ import { Plus, FileText, Clock, Play, Link as LinkIcon } from 'lucide-react';
 import type { PromptTemplate, TemplateCategory, TemplateFilters } from '../../AgentManagement.types';
 import { useTemplates } from '../../useTemplates';
 import { useAgents } from '../../useAgents';
-import { FilterBar, type FilterConfig } from '../shared';
+import { FilterBar, type FilterConfig, ErrorState } from '../shared';
 import { TemplateRenderModal } from './TemplateRenderModal';
 
 export interface TemplateListProps {
@@ -86,7 +86,7 @@ export function TemplateList({ onNew, onEdit }: TemplateListProps) {
     return f;
   }, [filterValues]);
 
-  const { data: templates, loading, error, incrementUsage } = useTemplates(filters);
+  const { data: templates, loading, error, incrementUsage, refetch } = useTemplates(filters);
   const { data: agents } = useAgents();
 
   // Create agent lookup map
@@ -147,13 +147,11 @@ export function TemplateList({ onNew, onEdit }: TemplateListProps) {
   // Error state
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-          <FileText size={32} className="text-red-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Error loading templates</h3>
-        <p className="text-sm text-gray-600 text-center max-w-md">{error.message}</p>
-      </div>
+      <ErrorState
+        title="Error loading templates"
+        message={error.message}
+        onRetry={refetch}
+      />
     );
   }
 

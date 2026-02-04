@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Plus, Bot } from 'lucide-react';
 import { useAgents } from '../../useAgents';
 import type { AgentFilters, ProductLine, AgentStatus, AgentType } from '../../AgentManagement.types';
-import { FilterBar, type FilterConfig } from '../shared';
+import { FilterBar, type FilterConfig, ErrorState } from '../shared';
 import { AgentCard } from './AgentCard';
 
 export interface AgentGridProps {
@@ -83,7 +83,7 @@ export function AgentGrid({ onAgentClick, onNewAgent }: AgentGridProps) {
     agent_type: filterValues.agent_type as AgentType | undefined,
   }), [filterValues]);
 
-  const { data: agents, loading, error } = useAgents(filters);
+  const { data: agents, loading, error, refetch } = useAgents(filters);
 
   const handleFilterChange = useCallback((key: string, value: string) => {
     setFilterValues((prev) => ({
@@ -103,10 +103,11 @@ export function AgentGrid({ onAgentClick, onNewAgent }: AgentGridProps) {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">Error loading agents</p>
-        <p className="text-sm mt-1">{error.message}</p>
-      </div>
+      <ErrorState
+        title="Error loading agents"
+        message={error.message}
+        onRetry={refetch}
+      />
     );
   }
 

@@ -3,7 +3,7 @@ import { Plus, Play, Eye, Calendar } from 'lucide-react';
 import { useSessions } from '../../useSessions';
 import { useAgents } from '../../useAgents';
 import type { SessionFilters, SessionStatus, SessionType, AgentSession, Agent } from '../../AgentManagement.types';
-import { FilterBar, type FilterConfig } from '../shared';
+import { FilterBar, type FilterConfig, ErrorState } from '../shared';
 import { SessionStatusBadge } from './SessionStatusBadge';
 import { HandoffDisplay } from './HandoffDisplay';
 
@@ -121,7 +121,7 @@ export function SessionList({ onSessionClick, onStartSession }: SessionListProps
     to: filterValues.to || undefined,
   }), [filterValues]);
 
-  const { data: sessions, loading, error, getSessionAgents } = useSessions(filters);
+  const { data: sessions, loading, error, getSessionAgents, refetch } = useSessions(filters);
 
   // Fetch agents for each session
   useEffect(() => {
@@ -157,10 +157,11 @@ export function SessionList({ onSessionClick, onStartSession }: SessionListProps
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">Error loading sessions</p>
-        <p className="text-sm mt-1">{error.message}</p>
-      </div>
+      <ErrorState
+        title="Error loading sessions"
+        message={error.message}
+        onRetry={refetch}
+      />
     );
   }
 
