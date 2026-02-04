@@ -18,3 +18,6 @@ export type { SessionDetailProps } from './SessionDetail';
 
 export { GitDiffButton } from './GitDiffButton';
 export type { GitDiffButtonProps } from './GitDiffButton';
+
+export { AbandonSessionModal } from './AbandonSessionModal';
+export type { AbandonSessionModalProps } from './AbandonSessionModal';

@@ -5,6 +5,7 @@ import type { AgentSession, Agent } from '../../AgentManagement.types';
 import { SessionStatusBadge } from './SessionStatusBadge';
 import { SessionCompleteForm } from './SessionCompleteForm';
 import { HandoffDisplay } from './HandoffDisplay';
+import { AbandonSessionModal } from './AbandonSessionModal';
 
 export interface SessionDetailProps {
   /** Session ID to display */
@@ -71,8 +72,7 @@ export function SessionDetail({ sessionId, onBack, onCompleted }: SessionDetailP
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
   const [abandoning, setAbandoning] = useState(false);
-  const [abandonReason, setAbandonReason] = useState('');
-  const [showAbandonForm, setShowAbandonForm] = useState(false);
+  const [showAbandonModal, setShowAbandonModal] = useState(false);
 
   // Fetch session and agents
   useEffect(() => {
@@ -115,18 +115,18 @@ export function SessionDetail({ sessionId, onBack, onCompleted }: SessionDetailP
     }
   }, [session, complete, onCompleted]);
 
-  const handleAbandon = useCallback(async () => {
-    if (!session || !abandonReason.trim()) return;
+  const handleAbandon = useCallback(async (reason: string) => {
+    if (!session) return;
 
     setAbandoning(true);
-    const result = await abandon(session.id, abandonReason.trim());
+    const result = await abandon(session.id, reason);
     setAbandoning(false);
 
     if (result) {
       setSession(result);
-      setShowAbandonForm(false);
+      setShowAbandonModal(false);
     }
-  }, [session, abandonReason, abandon]);
+  }, [session, abandon]);
 
   if (loading) {
     return <LoadingSkeleton />;
@@ -249,53 +249,24 @@ export function SessionDetail({ sessionId, onBack, onCompleted }: SessionDetailP
 
           {/* Abandon option */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-            {!showAbandonForm ? (
-              <button
-                type="button"
-                onClick={() => setShowAbandonForm(true)}
-                className="text-sm text-red-600 hover:text-red-700"
-              >
-                Abandon session instead
-              </button>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-gray-700">
-                  Why are you abandoning this session?
-                </p>
-                <textarea
-                  value={abandonReason}
-                  onChange={(e) => setAbandonReason(e.target.value)}
-                  rows={2}
-                  placeholder="Reason for abandoning..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm
-                             focus:outline-none focus:ring-2 focus:ring-red-200"
-                />
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleAbandon}
-                    disabled={!abandonReason.trim() || abandoning}
-                    className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded
-                               hover:bg-red-700 disabled:opacity-50"
-                  >
-                    {abandoning ? 'Abandoning...' : 'Confirm Abandon'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAbandonForm(false);
-                      setAbandonReason('');
-                    }}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-800"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowAbandonModal(true)}
+              className="text-sm text-red-600 hover:text-red-700"
+            >
+              Abandon session instead
+            </button>
           </div>
         </div>
       )}
+
+      {/* Abandon Session Modal */}
+      <AbandonSessionModal
+        isOpen={showAbandonModal}
+        onClose={() => setShowAbandonModal(false)}
+        onConfirm={handleAbandon}
+        loading={abandoning}
+      />
 
       {/* Completed Session: Show summary + handoff */}
       {session.status === 'completed' && (
