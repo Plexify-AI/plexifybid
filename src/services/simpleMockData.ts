@@ -33,18 +33,18 @@ const daysFromNow = (days: number): Date => {
 
 // Simplified mock data for executive feed demo
 export const mockDailyReports: UnifiedDailyIntelligence[] = [
-  // Hospital Project - On track, no issues
+  // Golden Triangle DC BID - In progress
   {
-    id: 'report-hospital-001',
-    projectId: 'project-hospital',
-    projectName: 'Memorial Regional Medical Center',
-    projectPhase: 'Structural Steel / MEP Rough-in',
+    id: 'report-golden-triangle-001',
+    projectId: 'project-golden-triangle',
+    projectName: 'Golden Triangle DC BID',
+    projectPhase: 'Market Street District • February 2025',
     reportDate: new Date(),
     
     superintendent: {
-      name: 'John Smith',
-      id: 'super-001',
-      contact: 'john.smith@construction.com'
+      name: 'Sarah Chen',
+      id: 'super-gt-001',
+      contact: 'sarah.chen@construction.com'
     },
     
     context: {
@@ -64,20 +64,7 @@ export const mockDailyReports: UnifiedDailyIntelligence[] = [
         }
       ],
       activeRFIs: [
-        {
-          id: 'rfi-h-001',
-          number: 'RFI-H-042',
-          title: 'Structural Steel Connection Detail',
-          description: 'Need clarification on connection detail at column H-12 where beam transitions to transfer girder.',
-          status: 'open',
-          dateSubmitted: daysAgo(3),
-          dateNeeded: daysFromNow(1),
-          submittedBy: 'John Smith',
-          assignedTo: 'Sarah Johnson',
-          costImpact: false,
-          scheduleImpact: true,
-          attachments: ['drawing-s-201.pdf', 'photo-steel-connection.jpg']
-        }
+        // Intentionally empty for this BID demo card
       ],
       openIssues: [],
       weatherForecast: {
@@ -99,19 +86,19 @@ export const mockDailyReports: UnifiedDailyIntelligence[] = [
     fieldReport: {
       workCompleted: [
         {
-          id: 'work-h-001',
-          description: 'Structural steel erection at North Wing',
-          location: 'North Wing - Column Lines 3-7',
-          quantity: 15,
-          unit: 'tons',
+          id: 'work-gt-001',
+          description: 'Executed $68.5M construction contract and mobilized project teams',
+          location: '456 Market Street (Market Street District)',
+          quantity: 1,
+          unit: 'contract',
           startTime: new Date(new Date().setHours(7, 0, 0, 0)),
           endTime: new Date(new Date().setHours(15, 30, 0, 0)),
           status: 'completed',
-          trades: ['Ironworkers', 'Crane Operators'],
-          equipment: ['200-ton crawler crane', 'Man lifts (2)'],
-          materials: ['A992 steel beams', 'A325 bolts'],
-          notes: 'Completed erection of columns and beams at gridlines 3-7/A-C. All connections torqued and inspected.',
-          photos: ['steel-erection-1.jpg', 'steel-erection-2.jpg']
+          trades: ['Development', 'Construction Management'],
+          equipment: [],
+          materials: [],
+          notes: 'Major commercial development underway at 456 Market Street. Six-story office building (85,000 SF) with a 120-space parking garage. Project commenced February 2025 with substantial completion targeted for June 2027.',
+          photos: []
         }
       ],
       issuesEncountered: [],
@@ -147,28 +134,18 @@ export const mockDailyReports: UnifiedDailyIntelligence[] = [
     },
     
     narratives: {
-      technical: 'Today the structural steel erection continued at the North Wing between column lines 3-7/A-C. A total of 15 tons of A992 steel was erected, including 8 columns and 12 beams. All connections were made with A325 high-strength bolts and torqued to specification. The steel erection is approximately 65% complete for the North Wing and remains on the critical path.',
-      
-      executive: 'North Wing structural steel erection progressed well today with 65% completion, keeping this critical path activity on schedule. The team is working double shifts to maintain the timeline. All quality inspections passed with no deficiencies noted. The project remains on schedule for the targeted completion date with no significant budget impacts identified today.',
-      
-      owner: 'The North Wing structural steel frame is taking shape nicely, with 65% of the steel now in place. This critical milestone remains on schedule, and the building\'s form is now clearly visible from the campus main entrance. Quality remains a top priority, with all inspections passing successfully today.',
-      
-      public: 'Construction continues to progress well on the new hospital wing. This week, the community can see the building\'s steel frame taking shape as crews work diligently to complete this important milestone.'
+      technical: 'Project mobilization and preconstruction coordination are underway for 456 Market Street (Market Street District). The $68.5M contract has been executed and the project team is sequencing early packages to maintain the February 2025 start. Current scope includes a six-story office building (85,000 SF) and a 120-space parking garage, with substantial completion targeted for June 2027.',
+
+      executive:
+        'Major commercial development underway at 456 Market Street with $68.5M construction contract. Six-story office building with 85,000 SF and 120-space parking garage in progress. Project commenced February 2025 with substantial completion targeted for June 2027.',
+
+      owner: 'Project kickoff is complete and execution is underway at 456 Market Street. The $68.5M contract supports a six-story, 85,000 SF office building and a 120-space parking garage. The schedule remains aligned to a February 2025 start with substantial completion targeted for June 2027.',
+
+      public: 'A major commercial development is underway at 456 Market Street. Work has begun on a new six-story office building and structured parking, with completion targeted for 2027.'
     },
     
     media: {
-      photos: [
-        {
-          id: 'photo-h-001',
-          url: '/assets/mock-photos/hospital-steel-1.jpg',
-          caption: 'North Wing steel erection at column line 5',
-          location: 'North Wing - Level 3',
-          dateTime: new Date(new Date().setHours(10, 30, 0, 0)),
-          takenBy: 'John Smith',
-          tags: ['structural', 'steel', 'progress'],
-          category: 'progress'
-        }
-      ],
+      photos: [],
       markups: [],
       modelViews: []
     },

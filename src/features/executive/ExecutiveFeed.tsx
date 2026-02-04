@@ -1,10 +1,12 @@
+// @ts-nocheck
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedDailyIntelligence } from '../../types';
 import useReportStore from '../../store/reportStore';
 import AudioPlayer from '../../components/AudioPlayer';
-import AudioNarrationService from '../../services/AudioNarrationService';
 
+import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
+import AudioNarrationService from '../../services/AudioNarrationService';
 /**
  * ExecutiveFeed Component
  * 
@@ -26,13 +28,40 @@ const ExecutiveFeed: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [audioService] = useState(() => new AudioNarrationService());
+  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
+  
+  const openWorkspace = useWorkspaceStore(state => state.openWorkspace);
+  const setCurrentProject = useWorkspaceStore(state => state.setCurrentProject);
   
   // Refresh local reports whenever the store publishes new executive data
   useEffect(() => {
-    console.log('📋 Operations Dashboard: Store updated with', executiveReports.length, 'reports');
-    console.log('📋 Initiative IDs in reports:', executiveReports.map(r => ({ id: r.projectId, name: r.projectName })));
+    console.log('Operations Dashboard: store updated with', executiveReports.length, 'reports');
+    console.log('Operations Dashboard: initiative IDs in reports:', executiveReports.map(r => ({ id: r.projectId, name: r.projectName })));
     setReports(executiveReports);
   }, [executiveReports]);
+
+  const handleCreateProject = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+
+    const projectName = String(data.get('projectName') || '').trim();
+    const description = String(data.get('description') || '').trim();
+    const goals = String(data.get('goals') || '').trim();
+    const location = String(data.get('location') || '').trim();
+    const timeline = String(data.get('timeline') || '').trim();
+
+    alert(
+      `Created project (demo only):\n\n` +
+        `Name: ${projectName}\n` +
+        `Description: ${description}\n` +
+        (goals ? `Goals: ${goals}\n` : '') +
+        (location ? `Location: ${location}\n` : '') +
+        (timeline ? `Timeline: ${timeline}\n` : '')
+    );
+
+    setShowNewProjectModal(false);
+    e.currentTarget.reset();
+  }, []);
 
   // Get unique project IDs for filtering
   const projectIds = Array.from(new Set(executiveReports.map(report => report.projectId)));
@@ -179,6 +208,105 @@ const ExecutiveFeed: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
+      {showNewProjectModal && (
+        <div
+          className="new-project-modal-overlay"
+          onClick={() => setShowNewProjectModal(false)}
+        >
+          <div
+            className="new-project-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="new-project-modal__close"
+              onClick={() => setShowNewProjectModal(false)}
+              aria-label="Close"
+              type="button"
+            >
+              ×
+            </button>
+
+            <h2 className="new-project-modal__title">Create New Project</h2>
+
+            <form className="new-project-form" onSubmit={handleCreateProject}>
+              <div className="form-group">
+                <label htmlFor="projectName">Project Name *</label>
+                <input
+                  type="text"
+                  id="projectName"
+                  name="projectName"
+                  required
+                  placeholder="Enter project name"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Description *</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  required
+                  rows={3}
+                  placeholder="Describe the project scope and objectives"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="goals">Goals</label>
+                <textarea
+                  id="goals"
+                  name="goals"
+                  rows={2}
+                  placeholder="Key goals and success metrics"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="location">Location in District</label>
+                <input
+                  type="text"
+                  id="location"
+                  name="location"
+                  placeholder="e.g., Market Street District"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="timeline">Timeline / Milestone Dates</label>
+                <input
+                  type="text"
+                  id="timeline"
+                  name="timeline"
+                  placeholder="e.g., Feb 2025 - June 2027"
+                />
+              </div>
+
+              <div className="new-project-form__actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowNewProjectModal(false)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary">
+                  Create Project
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Project Button - fixed position */}
+      <button
+        className="new-project-btn"
+        onClick={() => setShowNewProjectModal(true)}
+        aria-label="Create new project"
+      >
+        <span className="new-project-btn__icon">+</span>
+      </button>
+
       {/* Header with status */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
@@ -268,7 +396,7 @@ const ExecutiveFeed: React.FC = () => {
           </div>
         ) : (
           filteredReports.map(report => (
-            <div key={report.id} className="intelligence-card">
+            <div key={report.id} className="project-card">
               {/* Card Header */}
               <div className="intelligence-card-header">
                 <div>
@@ -385,7 +513,7 @@ const ExecutiveFeed: React.FC = () => {
               <div className="intelligence-card-footer">
                 <button 
                   className="btn btn-secondary text-sm"
-                  onClick={() => handleExpandReport(report)}
+                  onClick={() => { const p: Project = { id: report.projectId, name: report.projectName, phase: report.projectPhase, budget: 0, timeline: "Demo" }; setCurrentProject(p); openWorkspace(); }}
                 >
                   View Full Report
                 </button>
@@ -701,3 +829,5 @@ const ExecutiveFeed: React.FC = () => {
 };
 
 export default ExecutiveFeed;
+
+

@@ -619,7 +619,7 @@ const FieldReportWizard: React.FC = () => {
           {projects.map(project => (
             <div 
               key={project.id}
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+              className={`project-card p-4 cursor-pointer transition-colors ${
                 report.projectId === project.id 
                   ? 'border-primary-500 bg-primary-50' 
                   : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
