@@ -3,6 +3,7 @@ import { CheckCircle, AlertCircle } from 'lucide-react';
 import type { AgentSession, SessionDecision, SessionBlocker } from '../../AgentManagement.types';
 import { JsonArrayEditor } from '../shared';
 import { renderTemplate } from '../../useTemplateRenderer';
+import { GitDiffButton } from './GitDiffButton';
 
 export interface SessionCompleteFormProps {
   /** The active session to complete */
@@ -179,10 +180,17 @@ export function SessionCompleteForm({ session, onComplete, saving = false }: Ses
 
       {/* Files Changed */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Files Changed
-          <span className="font-normal text-gray-500 ml-2">(one per line)</span>
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Files Changed
+            <span className="font-normal text-gray-500 ml-2">(one per line)</span>
+          </label>
+          <GitDiffButton
+            onFilesDetected={setFilesText}
+            appendMode={true}
+            currentFiles={filesText}
+          />
+        </div>
         <textarea
           value={filesText}
           onChange={(e) => setFilesText(e.target.value)}

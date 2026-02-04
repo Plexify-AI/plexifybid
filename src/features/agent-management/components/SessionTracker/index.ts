@@ -15,3 +15,6 @@ export type { SessionCompleteFormProps } from './SessionCompleteForm';
 
 export { SessionDetail } from './SessionDetail';
 export type { SessionDetailProps } from './SessionDetail';
+
+export { GitDiffButton } from './GitDiffButton';
+export type { GitDiffButtonProps } from './GitDiffButton';
