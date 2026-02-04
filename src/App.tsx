@@ -10,7 +10,7 @@ import { PlaceGraph } from './features/ecosystem';
 import { AgentManagement } from './features/agent-management/AgentManagement';
 import { AgentGrid, AgentDetail } from './features/agent-management/components/AgentRegistry';
 import { SessionList, SessionStartForm, SessionDetail } from './features/agent-management/components/SessionTracker';
-import { TemplateListPlaceholder, TemplateEditorPlaceholder } from './features/agent-management/components/PromptTemplates';
+import { TemplateList, TemplateEditor } from './features/agent-management/components/PromptTemplates';
 import OperationsDashboard from './pages/OperationsDashboard';
 import AssessmentManagement from './pages/AssessmentManagement';
 import BoardReporting from './pages/BoardReporting';
@@ -86,6 +86,28 @@ function AgentGridWrapper() {
     <AgentGrid
       onAgentClick={(slug) => navigate(`/agents/${slug}`)}
       onNewAgent={() => navigate('/agents/new')}
+    />
+  );
+}
+
+function TemplateListWrapper() {
+  const navigate = useNavigate();
+  return (
+    <TemplateList
+      onNew={() => navigate('/agents/templates/new')}
+      onEdit={(template) => navigate(`/agents/templates/${template.slug}`)}
+    />
+  );
+}
+
+function TemplateEditorWrapper() {
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  return (
+    <TemplateEditor
+      slug={slug}
+      onBack={() => navigate('/agents/templates')}
+      onSaved={() => navigate('/agents/templates')}
     />
   );
 }
@@ -352,8 +374,9 @@ const AppBody: React.FC = () => {
               <Route path="/agents" element={<AgentManagement />}>
                 <Route index element={<AgentGridWrapper />} />
                 <Route path=":slug" element={<AgentDetailWrapper />} />
-                <Route path="templates" element={<TemplateListPlaceholder />} />
-                <Route path="templates/:slug" element={<TemplateEditorPlaceholder />} />
+                <Route path="templates" element={<TemplateListWrapper />} />
+                <Route path="templates/new" element={<TemplateEditorWrapper />} />
+                <Route path="templates/:slug" element={<TemplateEditorWrapper />} />
                 <Route path="sessions" element={<SessionListWrapper />} />
                 <Route path="sessions/new" element={<SessionStartFormWrapper />} />
                 <Route path="sessions/:id" element={<SessionDetailWrapper />} />
