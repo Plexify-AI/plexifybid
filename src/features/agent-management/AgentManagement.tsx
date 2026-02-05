@@ -45,7 +45,15 @@ export function AgentManagement() {
   const activeTab = getActiveTab();
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div
+      className="min-h-full"
+      style={{
+        backgroundImage: "url('/demo-bg.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       {/* Page Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-6">
