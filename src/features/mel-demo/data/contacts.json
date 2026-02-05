@@ -1,0 +1,644 @@
+[
+  {
+    "id": "contact-001",
+    "name": "Sarah Chen",
+    "title": "Project Executive",
+    "company": "Tishman Construction Corp",
+    "email": "sarah.chen@tishman.com",
+    "phone": "(212) 708-6400",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Mike Rodriguez",
+    "linkedInMutualCompany": "Turner",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "event", "date": "2025-10-15", "description": "Attended ENR NY Awards Gala" }
+    ]
+  },
+  {
+    "id": "contact-002",
+    "name": "James O'Brien",
+    "title": "VP of Operations",
+    "company": "Skanska USA Building",
+    "email": "james.obrien@skanska.com",
+    "phone": "(212) 382-3600",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "whitepaper", "date": "2025-11-01", "description": "Downloaded Forensic Documentation whitepaper", "count": 3 },
+      { "type": "webinar", "date": "2025-09-22", "description": "Attended 'Documentation ROI for Megaprojects' webinar" }
+    ]
+  },
+  {
+    "id": "contact-003",
+    "name": "David Park",
+    "title": "Senior PM",
+    "company": "Turner Construction",
+    "email": "david.park@tcco.com",
+    "phone": "(212) 229-6000",
+    "linkedInConnected": true,
+    "linkedInDegree": 1,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": [
+      { "type": "event", "date": "2025-11-08", "description": "Met at ENR Awards 2025" },
+      { "type": "email", "date": "2025-12-02", "description": "Replied to cold email — asked to reconnect Q1" }
+    ]
+  },
+  {
+    "id": "contact-004",
+    "name": "Rachel Kim",
+    "title": "VP Construction",
+    "company": "Turner Construction",
+    "email": "rachel.kim@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Mike Rodriguez",
+    "linkedInMutualCompany": "Turner",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-005",
+    "name": "Marcus Johnson",
+    "title": "Project Director",
+    "company": "Turner Construction",
+    "email": "marcus.johnson@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "webinar", "date": "2025-08-14", "description": "Attended 'Mixed-Use Documentation Challenges' webinar" }
+    ]
+  },
+  {
+    "id": "contact-006",
+    "name": "Dr. Lisa Huang",
+    "title": "Facilities Director",
+    "company": "NYU Langone Health",
+    "email": "lisa.huang@nyulangone.org",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Jennifer Walsh",
+    "linkedInMutualCompany": "Turner",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "whitepaper", "date": "2025-10-05", "description": "Downloaded Healthcare Construction Documentation guide" }
+    ]
+  },
+  {
+    "id": "contact-007",
+    "name": "Tom Brennan",
+    "title": "Project Manager",
+    "company": "Turner Construction",
+    "email": "tom.brennan@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Mike Rodriguez",
+    "linkedInMutualCompany": "Turner",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-008",
+    "name": "Amanda Foster",
+    "title": "Preconstruction Director",
+    "company": "Turner Construction",
+    "email": "amanda.foster@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-009",
+    "name": "Kevin Patel",
+    "title": "Senior PM",
+    "company": "Turner Construction",
+    "email": "kevin.patel@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-010",
+    "name": "Jennifer Walsh",
+    "title": "Healthcare PM",
+    "company": "Turner Construction",
+    "email": "jennifer.walsh@tcco.com",
+    "linkedInConnected": true,
+    "linkedInDegree": 1,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "meeting", "date": "2025-07-20", "description": "Coffee meeting at Turner NYC office" }
+    ]
+  },
+  {
+    "id": "contact-011",
+    "name": "Robert Torres",
+    "title": "Project Executive",
+    "company": "Turner Construction",
+    "email": "robert.torres@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Mike Rodriguez",
+    "linkedInMutualCompany": "Turner",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-012",
+    "name": "Natalie Green",
+    "title": "Project Manager",
+    "company": "Turner Construction",
+    "email": "natalie.green@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-013",
+    "name": "William Chang",
+    "title": "Academic Projects PM",
+    "company": "Turner Construction",
+    "email": "william.chang@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": [
+      { "type": "whitepaper", "date": "2025-06-12", "description": "Downloaded Campus Construction Best Practices" }
+    ]
+  },
+  {
+    "id": "contact-014",
+    "name": "Carlos Rivera",
+    "title": "Project Manager",
+    "company": "Turner Construction",
+    "email": "carlos.rivera@tcco.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Mike Rodriguez",
+    "linkedInMutualCompany": "Turner",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-015",
+    "name": "Thomas McAllister",
+    "title": "Infrastructure Director",
+    "company": "Skanska USA Civil",
+    "email": "thomas.mcallister@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Susan Park",
+    "linkedInMutualCompany": "Skanska",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-016",
+    "name": "Maria Santos",
+    "title": "Healthcare Division Lead",
+    "company": "Skanska USA Building",
+    "email": "maria.santos@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "whitepaper", "date": "2025-09-10", "description": "Downloaded Healthcare MEP Documentation guide" }
+    ]
+  },
+  {
+    "id": "contact-017",
+    "name": "Brian Kelly",
+    "title": "Project Manager",
+    "company": "Skanska USA Building",
+    "email": "brian.kelly@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-018",
+    "name": "Susan Park",
+    "title": "Aviation Program Director",
+    "company": "Skanska USA Building",
+    "email": "susan.park@skanska.com",
+    "linkedInConnected": true,
+    "linkedInDegree": 1,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "meeting", "date": "2025-05-18", "description": "Met at ACI-NA Conference" },
+      { "type": "email", "date": "2025-11-30", "description": "Exchanged emails about LaGuardia scope" }
+    ]
+  },
+  {
+    "id": "contact-019",
+    "name": "Derek Williams",
+    "title": "VP NYC Operations",
+    "company": "Skanska USA Building",
+    "email": "derek.williams@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-020",
+    "name": "Katherine Liu",
+    "title": "Senior PM",
+    "company": "Skanska USA Building",
+    "email": "katherine.liu@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Katherine Liu",
+    "linkedInMutualCompany": "Skanska",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-021",
+    "name": "Andrew Hoffman",
+    "title": "Project Director",
+    "company": "Skanska USA Building",
+    "email": "andrew.hoffman@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": [
+      { "type": "webinar", "date": "2025-07-08", "description": "Attended 'Laser Scanning for Renovations' webinar" }
+    ]
+  },
+  {
+    "id": "contact-022",
+    "name": "Patricia Gonzalez",
+    "title": "Project Manager",
+    "company": "Skanska USA Building",
+    "email": "patricia.gonzalez@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-023",
+    "name": "Ryan Mitchell",
+    "title": "Project Executive",
+    "company": "Skanska USA Building",
+    "email": "ryan.mitchell@skanska.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Katherine Liu",
+    "linkedInMutualCompany": "Skanska",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-024",
+    "name": "Daniel Kim",
+    "title": "Residential Director",
+    "company": "Lendlease",
+    "email": "daniel.kim@lendlease.com",
+    "linkedInConnected": true,
+    "linkedInDegree": 1,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "meeting", "date": "2025-09-15", "description": "Lunch meeting — discussed residential documentation needs" },
+      { "type": "email", "date": "2025-12-10", "description": "Sent case study on 432 Park forensic documentation" }
+    ]
+  },
+  {
+    "id": "contact-025",
+    "name": "Michelle Taylor",
+    "title": "Project Manager",
+    "company": "Lendlease",
+    "email": "michelle.taylor@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Daniel Kim",
+    "linkedInMutualCompany": "Lendlease",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-026",
+    "name": "Gregory Chen",
+    "title": "Project Director",
+    "company": "Lendlease",
+    "email": "gregory.chen@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "whitepaper", "date": "2025-11-20", "description": "Downloaded Mixed-Use Documentation ROI report" }
+    ]
+  },
+  {
+    "id": "contact-027",
+    "name": "Laura Martinez",
+    "title": "Project Manager",
+    "company": "Lendlease",
+    "email": "laura.martinez@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-028",
+    "name": "Jason Hughes",
+    "title": "Senior PM",
+    "company": "Lendlease",
+    "email": "jason.hughes@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Daniel Kim",
+    "linkedInMutualCompany": "Lendlease",
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-029",
+    "name": "Christine Lee",
+    "title": "Project Manager",
+    "company": "Lendlease",
+    "email": "christine.lee@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Daniel Kim",
+    "linkedInMutualCompany": "Lendlease",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-030",
+    "name": "Anthony Brown",
+    "title": "Community Projects Lead",
+    "company": "Lendlease",
+    "email": "anthony.brown@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-031",
+    "name": "Stephanie Park",
+    "title": "Project Executive",
+    "company": "Lendlease",
+    "email": "stephanie.park@lendlease.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-032",
+    "name": "Michael Reeves",
+    "title": "VP Construction",
+    "company": "Tishman Construction Corp",
+    "email": "michael.reeves@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Joseph Connolly",
+    "linkedInMutualCompany": "Tishman",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "event", "date": "2025-10-15", "description": "Seen at ENR NY Awards Gala — did not speak directly" }
+    ]
+  },
+  {
+    "id": "contact-033",
+    "name": "Nicole Zhang",
+    "title": "Project Director",
+    "company": "Tishman Construction Corp",
+    "email": "nicole.zhang@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-034",
+    "name": "Frank DiMaggio",
+    "title": "Brooklyn Division PM",
+    "company": "Tishman Construction Corp",
+    "email": "frank.dimaggio@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Frank DiMaggio",
+    "linkedInMutualCompany": "Tishman",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-035",
+    "name": "Barbara Rossi",
+    "title": "Aviation PM",
+    "company": "Tishman Construction Corp",
+    "email": "barbara.rossi@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-036",
+    "name": "Christopher Lee",
+    "title": "Project Manager",
+    "company": "Tishman Construction Corp",
+    "email": "christopher.lee@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-037",
+    "name": "Sandra Patel",
+    "title": "Healthcare Specialist PM",
+    "company": "Tishman Construction Corp",
+    "email": "sandra.patel@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": [
+      { "type": "whitepaper", "date": "2025-08-22", "description": "Downloaded Healthcare Facility Documentation guide" }
+    ]
+  },
+  {
+    "id": "contact-038",
+    "name": "Joseph Connolly",
+    "title": "Senior Project Executive",
+    "company": "Tishman Construction Corp",
+    "email": "joseph.connolly@tishman.com",
+    "linkedInConnected": true,
+    "linkedInDegree": 1,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "meeting", "date": "2025-06-10", "description": "Met at Tishman corporate — discussed documentation needs" },
+      { "type": "email", "date": "2025-11-15", "description": "Follow-up on Manhattan West Exact-Built results" }
+    ]
+  },
+  {
+    "id": "contact-039",
+    "name": "Diane Nguyen",
+    "title": "Project Manager",
+    "company": "Tishman Construction Corp",
+    "email": "diane.nguyen@tishman.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Frank DiMaggio",
+    "linkedInMutualCompany": "Tishman",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-040",
+    "name": "Paul Anderson",
+    "title": "Project Manager",
+    "company": "Suffolk Construction",
+    "email": "paul.anderson@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Paul Anderson",
+    "linkedInMutualCompany": "Suffolk",
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-041",
+    "name": "Rebecca Thompson",
+    "title": "Education Division PM",
+    "company": "Suffolk Construction",
+    "email": "rebecca.thompson@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-042",
+    "name": "Eric Chen",
+    "title": "Senior PM",
+    "company": "Suffolk Construction",
+    "email": "eric.chen@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Paul Anderson",
+    "linkedInMutualCompany": "Suffolk",
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": [
+      { "type": "webinar", "date": "2025-10-01", "description": "Attended '360° Documentation for Retail/Mixed-Use' webinar" }
+    ]
+  },
+  {
+    "id": "contact-043",
+    "name": "Lisa Morales",
+    "title": "Residential PM",
+    "company": "Suffolk Construction",
+    "email": "lisa.morales@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-044",
+    "name": "David Kowalski",
+    "title": "Project Director",
+    "company": "Suffolk Construction",
+    "email": "david.kowalski@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": []
+  },
+  {
+    "id": "contact-045",
+    "name": "Samantha Rivera",
+    "title": "Project Manager",
+    "company": "Suffolk Construction",
+    "email": "samantha.rivera@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": false,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-046",
+    "name": "James Park",
+    "title": "LIC Division Lead",
+    "company": "Suffolk Construction",
+    "email": "james.park@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 3,
+    "decisionMaker": true,
+    "budgetAuthority": false,
+    "engagements": []
+  },
+  {
+    "id": "contact-047",
+    "name": "Mark Sullivan",
+    "title": "Senior PM",
+    "company": "Suffolk Construction",
+    "email": "mark.sullivan@suffolk.com",
+    "linkedInConnected": false,
+    "linkedInDegree": 2,
+    "linkedInMutualName": "Paul Anderson",
+    "linkedInMutualCompany": "Suffolk",
+    "decisionMaker": true,
+    "budgetAuthority": true,
+    "engagements": [
+      { "type": "email", "date": "2025-12-05", "description": "Replied to outreach — interested in Q1 meeting" }
+    ]
+  }
+]

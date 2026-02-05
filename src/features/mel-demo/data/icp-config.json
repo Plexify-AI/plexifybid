@@ -1,0 +1,32 @@
+{
+  "name": "Mel Wallace - Multivista NYC",
+  "filters": {
+    "minValue": 20000000,
+    "maxValue": null,
+    "stages": ["design", "bid", "award", "construction"],
+    "constructionMonthMax": 12,
+    "buildingTypes": ["OFF-A", "OFF-B", "MXD", "RES-H", "HLT", "TRN", "EDU"],
+    "geography": {
+      "city": "New York",
+      "boroughs": ["Manhattan", "Brooklyn", "Queens", "Bronx"],
+      "includeWestchester": true
+    },
+    "targetGCs": ["turner", "skanska", "lendlease", "tishman", "suffolk"]
+  },
+  "services": [
+    "360° Photo Documentation",
+    "MEP Exact-Built®",
+    "Laser Scanning",
+    "Forensic Documentation",
+    "Drone Aerials"
+  ],
+  "warmthWeights": {
+    "warmIntroAvailable": 25,
+    "similarPastWin": 20,
+    "optimalTiming": 15,
+    "decisionMakerIdentified": 13,
+    "engagementHistory": 12,
+    "linkedInConnection": 10,
+    "gcRelationship": 5
+  }
+}
