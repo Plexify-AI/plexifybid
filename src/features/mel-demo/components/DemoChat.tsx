@@ -57,6 +57,10 @@ export function DemoChat() {
     scrollToBottom();
   }, [state.messages, scrollToBottom]);
 
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   const addMessage = useCallback((msg: DemoMessageType) => {
     setState((prev) => ({ ...prev, messages: [...prev.messages, msg] }));
   }, []);
