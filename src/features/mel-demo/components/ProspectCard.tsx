@@ -6,6 +6,7 @@ import {
   Handshake,
   Flame,
   MessageCircle,
+  ArrowUpCircle,
 } from 'lucide-react';
 import type { EnrichedProspect } from '../MelDemo.types';
 
@@ -155,6 +156,17 @@ export function ProspectCard({ prospect, rank }: ProspectCardProps) {
             </p>
           </div>
         </div>
+
+        {/* Level Up */}
+        <button
+          type="button"
+          title="Promote to Opportunity"
+          onClick={() => console.log('Level Up clicked for:', project.name)}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-primary-600 text-primary-600 text-sm font-medium rounded-lg hover:bg-primary-50 transition-colors"
+        >
+          <ArrowUpCircle size={16} />
+          Level Up
+        </button>
       </div>
     </div>
   );

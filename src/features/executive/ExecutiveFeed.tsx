@@ -7,6 +7,7 @@ import AudioPlayer from '../../components/AudioPlayer';
 
 import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
 import AudioNarrationService from '../../services/AudioNarrationService';
+import { OpportunityCard } from '../home/components/OpportunityCard';
 /**
  * ExecutiveFeed Component
  * 
@@ -388,6 +389,17 @@ const ExecutiveFeed: React.FC = () => {
         </div>
       </div>
       
+      {/* Active Opportunities */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>
+          <h2 className="text-lg font-semibold text-gray-900">Active Opportunities</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <OpportunityCard />
+        </div>
+      </div>
+
       {/* Intelligence Feed */}
       <div className="space-y-6">
         {filteredReports.length === 0 ? (
