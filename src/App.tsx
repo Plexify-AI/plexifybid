@@ -33,6 +33,7 @@ import BoardBriefRenderer from './components/BoardBriefRenderer';
 import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
 import OZRFSectionRenderer from './components/OZRFSectionRenderer';
 import PodcastPlayerWidget from './components/PodcastPlayerWidget';
+import { MelDemo } from './features/mel-demo';
 
 // Agent Management route wrappers
 function SessionListWrapper() {
@@ -447,6 +448,7 @@ const AppBody: React.FC = () => {
                   />
                 }
               />
+              <Route path="/demo/mel" element={<MelDemo />} />
             </Routes>
           </main>
 
