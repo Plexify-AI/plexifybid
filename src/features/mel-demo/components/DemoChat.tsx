@@ -175,7 +175,15 @@ export function DemoChat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div
+      className="flex flex-col h-screen"
+      style={{
+        backgroundImage: "url('/demo-bg.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
       <DemoBadge />
 
       {/* Messages Area */}
