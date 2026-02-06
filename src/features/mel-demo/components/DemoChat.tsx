@@ -183,10 +183,10 @@ export function DemoChat() {
         <div className="max-w-3xl mx-auto space-y-4">
           {state.messages.length === 0 && (
             <div className="text-center py-20">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                 Plexify Prospecting Agent
               </h2>
-              <p className="text-sm text-gray-500 max-w-md mx-auto">
+              <p className="text-base text-gray-600 max-w-md mx-auto">
                 Ask me to find your best prospects, draft personalized outreach, or score your win probability.
               </p>
             </div>
@@ -216,51 +216,50 @@ export function DemoChat() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <QuickActions
-        currentStep={state.step}
-        onAction={handleSubmit}
-        onReset={handleReset}
-        disabled={state.isLoading}
-      />
+      {/* Input Card */}
+      <div className="px-4 pb-4">
+        <div className="w-2/3 mx-auto bg-white rounded-xl shadow-lg p-6 space-y-4">
+          {/* Input field */}
+          <div className="relative flex items-center gap-3">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask me anything about your prospects..."
+              disabled={state.isLoading}
+              className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-400/50
+                focus:border-transparent disabled:opacity-50 transition-all duration-200"
+            />
+            <button
+              type="button"
+              onClick={() => handleSubmit(input)}
+              disabled={state.isLoading || !input.trim()}
+              className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-600
+                text-white hover:bg-primary-700 hover:scale-105 active:scale-95
+                disabled:opacity-40 disabled:cursor-not-allowed
+                transition-all duration-200 ease-in-out"
+            >
+              {state.isLoading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} />
+              )}
+            </button>
+          </div>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white px-4 py-3">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              state.step === 'idle'
-                ? 'Try: "Show me my best prospects for Q1"'
-                : state.step === 'prospect-query'
-                  ? 'Try: "Draft outreach for number 1"'
-                  : state.step === 'outreach'
-                    ? 'Try: "What\'s my win probability?"'
-                    : 'Type a message...'
-            }
+          {/* Divider */}
+          <div className="border-t border-gray-100" />
+
+          {/* Quick Actions */}
+          <QuickActions
+            currentStep={state.step}
+            onAction={handleSubmit}
+            onReset={handleReset}
             disabled={state.isLoading}
-            className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm
-              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500
-              focus:border-primary-500 disabled:opacity-50 transition-all duration-200"
           />
-          <button
-            type="button"
-            onClick={() => handleSubmit(input)}
-            disabled={state.isLoading || !input.trim()}
-            className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-600
-              text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed
-              transition-all duration-200"
-          >
-            {state.isLoading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Send size={16} />
-            )}
-          </button>
         </div>
       </div>
     </div>
