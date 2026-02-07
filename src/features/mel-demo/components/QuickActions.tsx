@@ -45,8 +45,8 @@ export function QuickActions({ currentStep, onAction, onReset, disabled }: Quick
               inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-full
               transition-all duration-200 ease-in-out
               ${isNext
-                ? 'bg-primary-50 text-primary-700 border border-primary-200 hover:bg-primary-100 hover:scale-105 active:scale-95 active:bg-primary-200'
-                : 'bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed'
+                ? 'bg-white/90 text-purple-800 border border-white/40 hover:bg-white hover:scale-105 active:scale-95 active:bg-white/70'
+                : 'bg-white/20 text-white/50 border border-white/10 cursor-not-allowed'
               }
             `}
           >
@@ -61,7 +61,7 @@ export function QuickActions({ currentStep, onAction, onReset, disabled }: Quick
         onClick={onReset}
         disabled={disabled || currentStep === 'idle'}
         className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-full
-          bg-white/60 text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700
+          bg-white/20 text-white/80 border border-white/20 hover:bg-white/30 hover:text-white
           hover:scale-105 active:scale-95
           transition-all duration-200 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed"
       >

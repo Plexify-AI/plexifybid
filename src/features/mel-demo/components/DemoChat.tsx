@@ -218,7 +218,10 @@ export function DemoChat() {
 
       {/* Input Card */}
       <div className="px-4 pb-4">
-        <div className="w-2/3 mx-auto bg-white rounded-xl shadow-lg p-6 space-y-4">
+        <div
+          className="w-2/3 mx-auto rounded-xl shadow-xl p-6 space-y-4"
+          style={{ background: 'linear-gradient(to right, #6B21A8, #A855F7)' }}
+        >
           {/* Input field */}
           <div className="relative flex items-center gap-3">
             <input
@@ -251,7 +254,7 @@ export function DemoChat() {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-100" />
+          <div className="border-t border-white/20" />
 
           {/* Quick Actions */}
           <QuickActions
