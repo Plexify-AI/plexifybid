@@ -45,7 +45,7 @@ export function QuickActions({ currentStep, onAction, onReset, disabled }: Quick
               inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium rounded-full
               transition-all duration-200 ease-in-out
               ${isNext
-                ? 'bg-white/90 text-purple-800 border border-white/40 hover:bg-white hover:scale-105 active:scale-95 active:bg-white/70'
+                ? 'bg-white/90 text-blue-900 border border-white/40 hover:bg-white hover:scale-105 active:scale-95 active:bg-white/70'
                 : 'bg-white/20 text-white/50 border border-white/10 cursor-not-allowed'
               }
             `}
