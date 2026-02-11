@@ -7,6 +7,7 @@ import AudioPlayer from '../../components/AudioPlayer';
 
 import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
 import AudioNarrationService from '../../services/AudioNarrationService';
+import { OpportunityCard } from '../home/components/OpportunityCard';
 /**
  * ExecutiveFeed Component
  * 
@@ -323,7 +324,7 @@ const ExecutiveFeed: React.FC = () => {
               className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               <div className="w-3 h-3 rounded-full bg-red-500"></div>
-              <span>Field Report</span>
+              <span>Priority Report</span>
             </button>
             <div className="text-sm text-gray-500">
               Last updated: {formatDate(lastUpdate)}
@@ -388,6 +389,38 @@ const ExecutiveFeed: React.FC = () => {
         </div>
       </div>
       
+      {/* Active Opportunities */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>
+          <h2 className="text-lg font-semibold text-gray-900">Active Opportunities</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <OpportunityCard
+            project="3 Hudson Boulevard"
+            gc="Tishman Construction"
+            value="$2.1B"
+            contact="Sarah Chen, VP Preconstruction"
+            warmthScore={87}
+            warmthLabel="Hot"
+            nextAction="Follow up on MEP documentation proposal"
+            daysInPipeline={3}
+            source="Promoted from Prospecting"
+          />
+          <OpportunityCard
+            project="Penn Station Redevelopment"
+            gc="Skanska"
+            value="$1.6B"
+            contact="James O'Brien, Project Director"
+            warmthScore={79}
+            warmthLabel="Warm"
+            nextAction="Schedule 360° documentation walkthrough"
+            daysInPipeline={5}
+            source="Promoted from Prospecting"
+          />
+        </div>
+      </div>
+
       {/* Intelligence Feed */}
       <div className="space-y-6">
         {filteredReports.length === 0 ? (

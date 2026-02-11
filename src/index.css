@@ -536,6 +536,11 @@
   .main-content {
     @apply flex-1 transition-all duration-300 ease-in-out;
     margin-left: 252px;
+    background-image: url('/demo-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 
   .sidebar.collapsed ~ .main-content {

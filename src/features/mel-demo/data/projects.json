@@ -1,0 +1,3828 @@
+[
+  {
+    "id": "proj-001",
+    "dodgeNumber": "2026-NYC-0847231",
+    "name": "3 Hudson Boulevard",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 2100000,
+    "squareFeetDisplay": "2,100,000 SF",
+    "floors": 56,
+    "value": 2100000000,
+    "valueDisplay": "$2.1B",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 2",
+    "constructionStart": "2025-12-01",
+    "estimatedCompletion": "2028-06-01",
+    "address": "555 W 34th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Brookfield Properties",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Kohn Pedersen Fox",
+    "painPoints": [
+      "MEP coordination complexity",
+      "As-built documentation disputes",
+      "Multi-trade ceiling coordination"
+    ],
+    "primaryPainPoint": "18-floor MEP coordination across 12 trades",
+    "painPointDetail": "High-risk for as-built documentation disputes",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Reference Brookfield Manhattan West case study ($127K rework avoided)",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-001",
+    "warmthScore": 87,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 25,
+        "positive": true,
+        "detail": "Mike Rodriguez at Turner",
+        "explanation": "Your close rate is 3.2x higher with warm intros"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "Brookfield Manhattan West",
+        "explanation": "Same GC (Tishman), same service (MEP Exact-Built®)"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 2 of construction",
+        "explanation": "MEP rough-in starts Month 3 — perfect entry window"
+      },
+      {
+        "factor": "Decision maker identified",
+        "weight": 13,
+        "positive": true,
+        "detail": "Sarah Chen = Project Executive",
+        "explanation": "Budget authority confirmed via org chart"
+      },
+      {
+        "factor": "Project value",
+        "weight": 7,
+        "positive": true,
+        "detail": "$2.1B project",
+        "explanation": "High-value projects have larger documentation budgets"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — prior Manhattan West work",
+        "explanation": "Existing relationship via Brookfield project"
+      },
+      {
+        "factor": "Unknown incumbent",
+        "weight": -10,
+        "positive": false,
+        "detail": "No intel on current documentation vendor",
+        "explanation": "May face displacement challenge"
+      },
+      {
+        "factor": "No direct Tishman corporate relationship",
+        "weight": -5,
+        "positive": false,
+        "detail": "Win was via Brookfield, not Tishman direct",
+        "explanation": "Need to build Tishman-specific reference"
+      }
+    ]
+  },
+  {
+    "id": "proj-002",
+    "dodgeNumber": "2025-NYC-0721456",
+    "name": "Penn Station Redevelopment",
+    "type": "Transit/Mixed-Use",
+    "buildingTypeCode": "TRN",
+    "squareFeet": 1800000,
+    "squareFeetDisplay": "1,800,000 SF",
+    "floors": 10,
+    "value": 1600000000,
+    "valueDisplay": "$1.6B",
+    "stage": "design",
+    "stageDetail": "Preconstruction - Design",
+    "constructionStart": "2026-09-01",
+    "estimatedCompletion": "2031-12-01",
+    "address": "Pennsylvania Station",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Midtown",
+    "state": "NY",
+    "zip": "10119",
+    "owner": "Empire State Development / MTA / Amtrak (JV)",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "SOM",
+    "painPoints": [
+      "Multi-stakeholder reporting",
+      "Phased demolition documentation",
+      "Public agency compliance"
+    ],
+    "primaryPainPoint": "Multi-stakeholder reporting (MTA + Amtrak + ESD)",
+    "painPointDetail": "3 owners = 3x documentation requirements",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Reference Hudson Yards stakeholder portal case study",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-002",
+    "warmthScore": 79,
+    "warmthFactors": [
+      {
+        "factor": "Engagement history",
+        "weight": 12,
+        "positive": true,
+        "detail": "Downloaded Forensic Documentation whitepaper 3x",
+        "explanation": "Active interest in documentation solutions"
+      },
+      {
+        "factor": "Decision maker identified",
+        "weight": 13,
+        "positive": true,
+        "detail": "James O’Brien = VP Operations",
+        "explanation": "Senior enough to authorize vendor selection"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "Hudson Yards stakeholder portal",
+        "explanation": "Multi-stakeholder documentation expertise proven"
+      },
+      {
+        "factor": "Mega-project premium",
+        "weight": 12,
+        "positive": true,
+        "detail": "$1.6B transit project",
+        "explanation": "Public projects require exhaustive documentation"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — embed early",
+        "explanation": "Documentation spec can be written into bid requirements"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — prior LaGuardia work",
+        "explanation": "Existing Skanska relationship via aviation projects"
+      },
+      {
+        "factor": "Not LinkedIn connected",
+        "weight": -5,
+        "positive": false,
+        "detail": "No direct connection to O’Brien",
+        "explanation": "Cold outreach required — lower response rate"
+      },
+      {
+        "factor": "Public procurement complexity",
+        "weight": -8,
+        "positive": false,
+        "detail": "MTA/ESD procurement rules",
+        "explanation": "May require formal RFP process"
+      }
+    ]
+  },
+  {
+    "id": "proj-003",
+    "dodgeNumber": "2026-NYC-0892103",
+    "name": "One Madison Tower",
+    "type": "Residential Luxury",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 650000,
+    "squareFeetDisplay": "650,000 SF",
+    "floors": 62,
+    "value": 890000000,
+    "valueDisplay": "$890M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 6",
+    "constructionStart": "2025-08-01",
+    "estimatedCompletion": "2028-02-01",
+    "address": "1 Madison Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "NoMad",
+    "state": "NY",
+    "zip": "10010",
+    "owner": "SL Green Realty",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Kohn Pedersen Fox",
+    "painPoints": [
+      "Change order disputes",
+      "Luxury finish quality documentation",
+      "Owner scrutiny on installed quality"
+    ],
+    "primaryPainPoint": "Change order disputes with owner over finishes",
+    "painPointDetail": "High-end residential = high scrutiny on installed quality",
+    "suggestedService": "Forensic Documentation",
+    "suggestedServiceReason": "Reference 432 Park case study (dispute resolution support)",
+    "relevantCaseStudyId": "cs-003",
+    "primaryContactId": "contact-003",
+    "warmthScore": 74,
+    "warmthFactors": [
+      {
+        "factor": "LinkedIn 1st degree",
+        "weight": 10,
+        "positive": true,
+        "detail": "David Park — 1st degree connection",
+        "explanation": "Direct outreach will get response"
+      },
+      {
+        "factor": "Prior meeting",
+        "weight": 12,
+        "positive": true,
+        "detail": "Met at ENR Awards 2025",
+        "explanation": "Personal rapport established"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "432 Park Avenue forensic documentation",
+        "explanation": "Identical use case — luxury residential disputes"
+      },
+      {
+        "factor": "Warm intro available",
+        "weight": 25,
+        "positive": true,
+        "detail": "Mike Rodriguez at Turner",
+        "explanation": "Strong Turner relationship"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — multiple prior projects",
+        "explanation": "Strong institutional relationship"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -8,
+        "positive": false,
+        "detail": "Month 6 — finishes starting soon",
+        "explanation": "Narrower window for forensic documentation setup"
+      },
+      {
+        "factor": "No budget authority",
+        "weight": -5,
+        "positive": false,
+        "detail": "David Park is Sr PM, not PE",
+        "explanation": "May need to escalate for budget approval"
+      },
+      {
+        "factor": "Incumbent possible",
+        "weight": -7,
+        "positive": false,
+        "detail": "Turner may have existing documentation vendor",
+        "explanation": "Month 6 — likely already have someone"
+      }
+    ]
+  },
+  {
+    "id": "proj-004",
+    "dodgeNumber": "2026-NYC-0851340",
+    "name": "343 Madison Avenue",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 1450000,
+    "squareFeetDisplay": "1,450,000 SF",
+    "floors": 48,
+    "value": 580000000,
+    "valueDisplay": "$580M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 3",
+    "constructionStart": "2025-11-01",
+    "estimatedCompletion": "2028-03-01",
+    "address": "343 Madison Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "East Midtown",
+    "state": "NY",
+    "zip": "10017",
+    "owner": "Boston Properties",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Foster + Partners",
+    "painPoints": [
+      "Core and shell MEP coordination",
+      "Tenant fit-out documentation",
+      "Curtain wall installation tracking"
+    ],
+    "primaryPainPoint": "Complex curtain wall and MEP coordination across 48 floors",
+    "painPointDetail": "Premium Class A office requires meticulous as-built records for tenant fit-outs",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "MEP documentation critical before tenant walls close — saves rework during fit-out",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-004",
+    "warmthScore": 68,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 25,
+        "positive": true,
+        "detail": "Mike Rodriguez at Turner",
+        "explanation": "Strong Turner connection"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 3 — MEP rough-in starting",
+        "explanation": "Perfect window for Exact-Built engagement"
+      },
+      {
+        "factor": "Decision maker identified",
+        "weight": 13,
+        "positive": true,
+        "detail": "Rachel Kim = VP Construction",
+        "explanation": "Has budget authority"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — strong institutional relationship",
+        "explanation": "Multiple prior projects"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints with Rachel Kim",
+        "explanation": "First contact required"
+      },
+      {
+        "factor": "Unknown incumbent",
+        "weight": -10,
+        "positive": false,
+        "detail": "Boston Properties may have preferred vendor",
+        "explanation": "Owner-driven documentation vendor possible"
+      }
+    ]
+  },
+  {
+    "id": "proj-005",
+    "dodgeNumber": "2025-NYC-0698412",
+    "name": "Brooklyn Navy Yard Building 303",
+    "type": "Mixed-Use (Office/Lab)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 680000,
+    "squareFeetDisplay": "680,000 SF",
+    "floors": 16,
+    "value": 420000000,
+    "valueDisplay": "$420M",
+    "stage": "design",
+    "stageDetail": "Design Development",
+    "constructionStart": "2026-06-01",
+    "estimatedCompletion": "2029-01-01",
+    "address": "63 Flushing Ave",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Navy Yard",
+    "state": "NY",
+    "zip": "11205",
+    "owner": "Brooklyn Navy Yard Development Corp",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "WXY Architecture",
+    "painPoints": [
+      "Lab space MEP complexity",
+      "Multi-tenant documentation requirements",
+      "Phased occupancy tracking"
+    ],
+    "primaryPainPoint": "Lab-grade MEP systems require precise as-built documentation",
+    "painPointDetail": "Biotech/lab tenants need certified MEP records for equipment installation",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Lab MEP is highest-risk for undocumented deviations — reference NYU Medical case study",
+    "relevantCaseStudyId": "cs-005",
+    "primaryContactId": "contact-005",
+    "warmthScore": 52,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — spec early",
+        "explanation": "Can embed documentation requirements in construction docs"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — institutional relationship",
+        "explanation": "Familiar with Multivista services"
+      },
+      {
+        "factor": "High MEP complexity",
+        "weight": 10,
+        "positive": true,
+        "detail": "Lab-grade MEP systems",
+        "explanation": "Higher documentation value proposition"
+      },
+      {
+        "factor": "No connection to contact",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree LinkedIn",
+        "explanation": "Cold outreach required"
+      },
+      {
+        "factor": "Public development corp",
+        "weight": -8,
+        "positive": false,
+        "detail": "BNYDC procurement process",
+        "explanation": "May require formal vendor selection"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "No warm signals"
+      }
+    ]
+  },
+  {
+    "id": "proj-006",
+    "dodgeNumber": "2026-NYC-0863290",
+    "name": "NYU Langone Orthopedic Center",
+    "type": "Healthcare",
+    "buildingTypeCode": "HLT",
+    "squareFeet": 420000,
+    "squareFeetDisplay": "420,000 SF",
+    "floors": 12,
+    "value": 750000000,
+    "valueDisplay": "$750M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 4",
+    "constructionStart": "2025-10-01",
+    "estimatedCompletion": "2028-08-01",
+    "address": "301 E 17th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Gramercy",
+    "state": "NY",
+    "zip": "10003",
+    "owner": "NYU Langone Health",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Ennead Architects",
+    "painPoints": [
+      "Medical gas system documentation",
+      "Joint Commission compliance records",
+      "Infection control during construction"
+    ],
+    "primaryPainPoint": "Medical-grade MEP systems require regulatory-compliant documentation",
+    "painPointDetail": "Joint Commission requires exhaustive as-built records for medical facilities",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Healthcare MEP documentation is non-negotiable — reference NYU Medical Center case study ($93K saved)",
+    "relevantCaseStudyId": "cs-005",
+    "primaryContactId": "contact-006",
+    "warmthScore": 66,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 20,
+        "positive": true,
+        "detail": "Jennifer Walsh at Turner Healthcare",
+        "explanation": "Direct healthcare division connection"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "NYU Medical Center Expansion",
+        "explanation": "Same owner, same service — proven relationship"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 8,
+        "positive": true,
+        "detail": "Downloaded Healthcare Documentation guide",
+        "explanation": "Active interest in healthcare documentation"
+      },
+      {
+        "factor": "Regulatory driver",
+        "weight": 10,
+        "positive": true,
+        "detail": "Joint Commission compliance",
+        "explanation": "Documentation is mandatory, not optional"
+      },
+      {
+        "factor": "Owner not decision maker for docs",
+        "weight": -6,
+        "positive": false,
+        "detail": "NYU Facilities manages vendors",
+        "explanation": "Dr. Huang is facilities, but GC controls documentation vendor"
+      },
+      {
+        "factor": "Healthcare procurement complexity",
+        "weight": -6,
+        "positive": false,
+        "detail": "NYU has approved vendor lists",
+        "explanation": "May need to go through vendor qualification"
+      }
+    ]
+  },
+  {
+    "id": "proj-007",
+    "dodgeNumber": "2025-NYC-0745891",
+    "name": "Riverside Center South Tower",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 480000,
+    "squareFeetDisplay": "480,000 SF",
+    "floors": 42,
+    "value": 340000000,
+    "valueDisplay": "$340M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 8",
+    "constructionStart": "2025-06-01",
+    "estimatedCompletion": "2027-10-01",
+    "address": "21 W 61st St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Upper West Side",
+    "state": "NY",
+    "zip": "10023",
+    "owner": "Extell Development",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Arquitectonica",
+    "painPoints": [
+      "Facade installation documentation",
+      "Residential unit finish disputes",
+      "Condo board turnover documentation"
+    ],
+    "primaryPainPoint": "Luxury condo buyers challenging finish quality",
+    "painPointDetail": "Unit-by-unit forensic documentation needed before closings",
+    "suggestedService": "Forensic Documentation",
+    "suggestedServiceReason": "Pre-closing documentation prevents buyer disputes — reference 432 Park study",
+    "relevantCaseStudyId": "cs-003",
+    "primaryContactId": "contact-007",
+    "warmthScore": 48,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 15,
+        "positive": true,
+        "detail": "Mike Rodriguez at Turner",
+        "explanation": "Can introduce to Tom Brennan"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 15,
+        "positive": true,
+        "detail": "432 Park forensic documentation",
+        "explanation": "Same use case — luxury residential"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -10,
+        "positive": false,
+        "detail": "Month 8 — finishes already underway",
+        "explanation": "Narrow window for forensic documentation"
+      },
+      {
+        "factor": "No decision maker access",
+        "weight": -8,
+        "positive": false,
+        "detail": "Tom Brennan is PM, not PE",
+        "explanation": "Need escalation for budget"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "Cold outreach"
+      }
+    ]
+  },
+  {
+    "id": "proj-008",
+    "dodgeNumber": "2025-NYC-0712984",
+    "name": "250 Water Street",
+    "type": "Mixed-Use (Office/Retail)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 1100000,
+    "squareFeetDisplay": "1,100,000 SF",
+    "floors": 36,
+    "value": 620000000,
+    "valueDisplay": "$620M",
+    "stage": "bid",
+    "stageDetail": "Bidding - GC Selection",
+    "constructionStart": "2026-05-01",
+    "estimatedCompletion": "2029-06-01",
+    "address": "250 Water St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Financial District",
+    "state": "NY",
+    "zip": "10038",
+    "owner": "Howard Hughes Corp",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Bjarke Ingels Group",
+    "painPoints": [
+      "Multi-use MEP zoning",
+      "Retail-to-office transition documentation",
+      "Below-grade waterproofing records"
+    ],
+    "primaryPainPoint": "Mixed-use MEP zoning across retail, office, and residential floors",
+    "painPointDetail": "Three distinct MEP systems in one tower — coordination nightmare without documentation",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous visual record across all use types — reference Hudson Yards multi-stakeholder portal",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-008",
+    "warmthScore": 45,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Bid phase — spec documentation early",
+        "explanation": "Can be written into GC bid requirements"
+      },
+      {
+        "factor": "High complexity project",
+        "weight": 10,
+        "positive": true,
+        "detail": "Mixed-use with 3 MEP systems",
+        "explanation": "Higher documentation value proposition"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — institutional relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree LinkedIn to Amanda Foster",
+        "explanation": "Cold outreach required"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "No warm signals"
+      },
+      {
+        "factor": "GC not yet awarded",
+        "weight": -6,
+        "positive": false,
+        "detail": "Still in bidding",
+        "explanation": "Contact may change if different GC wins"
+      }
+    ]
+  },
+  {
+    "id": "proj-009",
+    "dodgeNumber": "2025-NYC-0729610",
+    "name": "LIC Mixed-Use Campus",
+    "type": "Mixed-Use (Office/Residential)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 520000,
+    "squareFeetDisplay": "520,000 SF",
+    "floors": 28,
+    "value": 310000000,
+    "valueDisplay": "$310M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 10",
+    "constructionStart": "2025-04-01",
+    "estimatedCompletion": "2027-12-01",
+    "address": "44-28 Purves St",
+    "city": "New York",
+    "borough": "Queens",
+    "neighborhood": "Long Island City",
+    "state": "NY",
+    "zip": "11101",
+    "owner": "TF Cornerstone",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Handel Architects",
+    "painPoints": [
+      "Residential/commercial transition zones",
+      "Amenity space documentation",
+      "Waterfront foundation records"
+    ],
+    "primaryPainPoint": "Complex residential-commercial interface zones undocumented",
+    "painPointDetail": "Dual-use floors require separate documentation for residential vs. commercial systems",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous 360° capture across mixed-use transition zones",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-009",
+    "warmthScore": 38,
+    "warmthFactors": [
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — institutional relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Mixed-use complexity",
+        "weight": 8,
+        "positive": true,
+        "detail": "Dual documentation needs",
+        "explanation": "Higher value proposition"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -12,
+        "positive": false,
+        "detail": "Month 10 — late in construction",
+        "explanation": "Most documentation value already missed"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Kevin Patel",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "No warm signals"
+      }
+    ]
+  },
+  {
+    "id": "proj-010",
+    "dodgeNumber": "2026-NYC-0878451",
+    "name": "Mount Sinai West New Pavilion",
+    "type": "Healthcare",
+    "buildingTypeCode": "HLT",
+    "squareFeet": 380000,
+    "squareFeetDisplay": "380,000 SF",
+    "floors": 14,
+    "value": 480000000,
+    "valueDisplay": "$480M",
+    "stage": "award",
+    "stageDetail": "Award - Contract Negotiation",
+    "constructionStart": "2026-04-01",
+    "estimatedCompletion": "2029-02-01",
+    "address": "1000 10th Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hell’s Kitchen",
+    "state": "NY",
+    "zip": "10019",
+    "owner": "Mount Sinai Health System",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "HOK",
+    "painPoints": [
+      "Operating room MEP precision",
+      "Clean room documentation requirements",
+      "Phased construction in active hospital"
+    ],
+    "primaryPainPoint": "Operating room MEP installations require zero-defect documentation",
+    "painPointDetail": "Active hospital with phased construction — documentation gaps risk patient safety compliance",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Healthcare MEP documentation — reference MSK Koch Center regulatory compliance case ($220K saved)",
+    "relevantCaseStudyId": "cs-008",
+    "primaryContactId": "contact-010",
+    "warmthScore": 63,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 20,
+        "positive": true,
+        "detail": "Jennifer Walsh at Turner Healthcare",
+        "explanation": "Direct healthcare connection"
+      },
+      {
+        "factor": "LinkedIn 1st degree",
+        "weight": 10,
+        "positive": true,
+        "detail": "Jennifer Walsh — 1st degree",
+        "explanation": "Direct access"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 15,
+        "positive": true,
+        "detail": "MSK Koch Center",
+        "explanation": "Healthcare documentation expertise proven"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Award phase — embed in contract",
+        "explanation": "Can specify documentation in GC contract"
+      },
+      {
+        "factor": "Healthcare procurement",
+        "weight": -6,
+        "positive": false,
+        "detail": "Mount Sinai vendor approval process",
+        "explanation": "Lengthy qualification process"
+      },
+      {
+        "factor": "Incumbent likely",
+        "weight": -8,
+        "positive": false,
+        "detail": "Mount Sinai has existing documentation vendors",
+        "explanation": "Displacement challenge"
+      }
+    ]
+  },
+  {
+    "id": "proj-011",
+    "dodgeNumber": "2026-NYC-0855127",
+    "name": "520 Fifth Avenue",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 850000,
+    "squareFeetDisplay": "850,000 SF",
+    "floors": 38,
+    "value": 290000000,
+    "valueDisplay": "$290M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 2",
+    "constructionStart": "2025-12-01",
+    "estimatedCompletion": "2028-01-01",
+    "address": "520 Fifth Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Midtown",
+    "state": "NY",
+    "zip": "10036",
+    "owner": "RXR Realty",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "CookFox Architects",
+    "painPoints": [
+      "Sustainable systems documentation",
+      "LEED certification records",
+      "Existing structure integration"
+    ],
+    "primaryPainPoint": "LEED Platinum pursuit requires exhaustive MEP documentation",
+    "painPointDetail": "Sustainable building systems need precise documentation for green certification",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "LEED documentation requires verified as-built MEP records",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-011",
+    "warmthScore": 62,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 25,
+        "positive": true,
+        "detail": "Mike Rodriguez at Turner",
+        "explanation": "Can introduce to Robert Torres"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 2 — early construction",
+        "explanation": "Perfect entry window"
+      },
+      {
+        "factor": "Decision maker identified",
+        "weight": 13,
+        "positive": true,
+        "detail": "Robert Torres = Project Executive",
+        "explanation": "Budget authority"
+      },
+      {
+        "factor": "No prior relationship",
+        "weight": -6,
+        "positive": false,
+        "detail": "No history with RXR Realty",
+        "explanation": "Owner relationship to build"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints with Torres",
+        "explanation": "First contact"
+      }
+    ]
+  },
+  {
+    "id": "proj-012",
+    "dodgeNumber": "2025-NYC-0741283",
+    "name": "Brooklyn Heights Residences",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 310000,
+    "squareFeetDisplay": "310,000 SF",
+    "floors": 34,
+    "value": 185000000,
+    "valueDisplay": "$185M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 9",
+    "constructionStart": "2025-05-01",
+    "estimatedCompletion": "2027-08-01",
+    "address": "100 Pierrepont St",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Brooklyn Heights",
+    "state": "NY",
+    "zip": "11201",
+    "owner": "Fortis Property Group",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "SLCE Architects",
+    "painPoints": [
+      "Historic district compliance documentation",
+      "Facade restoration records",
+      "Condo unit finish disputes"
+    ],
+    "primaryPainPoint": "Historic district requirements demand detailed facade documentation",
+    "painPointDetail": "Landmarks Preservation Commission requires photographic records of all exterior modifications",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous facade documentation satisfies LPC requirements",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-012",
+    "warmthScore": 36,
+    "warmthFactors": [
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — institutional relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Regulatory driver",
+        "weight": 8,
+        "positive": true,
+        "detail": "LPC documentation requirements",
+        "explanation": "Non-optional documentation"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -12,
+        "positive": false,
+        "detail": "Month 9 — late in construction",
+        "explanation": "Most documentation value missed"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Natalie Green",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -8,
+        "positive": false,
+        "detail": "Natalie Green is PM, not PE",
+        "explanation": "Need escalation"
+      }
+    ]
+  },
+  {
+    "id": "proj-013",
+    "dodgeNumber": "2025-NYC-0705892",
+    "name": "Columbia Business School Phase 2",
+    "type": "Education",
+    "buildingTypeCode": "EDU",
+    "squareFeet": 290000,
+    "squareFeetDisplay": "290,000 SF",
+    "floors": 8,
+    "value": 320000000,
+    "valueDisplay": "$320M",
+    "stage": "design",
+    "stageDetail": "Design - Schematic",
+    "constructionStart": "2026-09-01",
+    "estimatedCompletion": "2029-06-01",
+    "address": "644 W 125th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Manhattanville",
+    "state": "NY",
+    "zip": "10027",
+    "owner": "Columbia University",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "Diller Scofidio + Renfro",
+    "painPoints": [
+      "Campus integration documentation",
+      "Acoustic system verification",
+      "Phased academic calendar constraints"
+    ],
+    "primaryPainPoint": "Academic facility requires precise acoustic and MEP verification",
+    "painPointDetail": "Lecture halls and studios need documented acoustic installations for accreditation",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning for precise as-built verification — reference Columbia Manhattanville campus",
+    "relevantCaseStudyId": "cs-009",
+    "primaryContactId": "contact-013",
+    "warmthScore": 44,
+    "warmthFactors": [
+      {
+        "factor": "Similar past win",
+        "weight": 15,
+        "positive": true,
+        "detail": "Columbia Manhattanville campus drone surveys",
+        "explanation": "Existing Columbia relationship"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Design phase — embed early",
+        "explanation": "Can specify in construction docs"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 6,
+        "positive": true,
+        "detail": "Downloaded Campus Construction Best Practices",
+        "explanation": "Mild interest signal"
+      },
+      {
+        "factor": "University procurement",
+        "weight": -8,
+        "positive": false,
+        "detail": "Columbia has preferred vendor lists",
+        "explanation": "Formal vendor qualification required"
+      },
+      {
+        "factor": "No direct connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to William Chang",
+        "explanation": "Cold outreach"
+      }
+    ]
+  },
+  {
+    "id": "proj-014",
+    "dodgeNumber": "2026-NYC-0862541",
+    "name": "Hudson Commons Redevelopment",
+    "type": "Office (Class B)",
+    "buildingTypeCode": "OFF-B",
+    "squareFeet": 365000,
+    "squareFeetDisplay": "365,000 SF",
+    "floors": 18,
+    "value": 210000000,
+    "valueDisplay": "$210M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 5",
+    "constructionStart": "2025-09-01",
+    "estimatedCompletion": "2027-06-01",
+    "address": "441 Ninth Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Cove Property Group",
+    "gc": "Turner Construction",
+    "gcSlug": "turner",
+    "architect": "FXCollaborative",
+    "painPoints": [
+      "Adaptive reuse documentation",
+      "Existing conditions verification",
+      "Tenant improvement coordination"
+    ],
+    "primaryPainPoint": "Adaptive reuse — hidden conditions behind existing walls",
+    "painPointDetail": "Converting existing structure requires documentation of discovered conditions vs. original drawings",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning reveals existing condition discrepancies — reference PENN 2 study ($198K saved)",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-014",
+    "warmthScore": 49,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 15,
+        "positive": true,
+        "detail": "Mike Rodriguez at Turner",
+        "explanation": "Can introduce to Carlos Rivera"
+      },
+      {
+        "factor": "High documentation need",
+        "weight": 10,
+        "positive": true,
+        "detail": "Adaptive reuse = unknown conditions",
+        "explanation": "Strong value proposition for scanning"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Turner — institutional relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Mid-construction timing",
+        "weight": -6,
+        "positive": false,
+        "detail": "Month 5 — scanning window narrowing",
+        "explanation": "Need to act soon for value capture"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -8,
+        "positive": false,
+        "detail": "Carlos Rivera is PM, not PE",
+        "explanation": "Need escalation for budget"
+      }
+    ]
+  },
+  {
+    "id": "proj-015",
+    "dodgeNumber": "2026-NYC-0871034",
+    "name": "East Side Access Concourse Expansion",
+    "type": "Transit Infrastructure",
+    "buildingTypeCode": "TRN",
+    "squareFeet": 250000,
+    "squareFeetDisplay": "250,000 SF",
+    "floors": 3,
+    "value": 890000000,
+    "valueDisplay": "$890M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 1",
+    "constructionStart": "2026-01-01",
+    "estimatedCompletion": "2030-06-01",
+    "address": "Grand Central Terminal - Lower Level",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Midtown East",
+    "state": "NY",
+    "zip": "10017",
+    "owner": "MTA",
+    "gc": "Skanska USA Civil",
+    "gcSlug": "skanska",
+    "architect": "STV Group",
+    "painPoints": [
+      "Underground construction documentation",
+      "Existing utility mapping",
+      "Public agency reporting requirements"
+    ],
+    "primaryPainPoint": "Below-grade construction with zero margin for undocumented utilities",
+    "painPointDetail": "Active transit infrastructure — documentation failures risk public safety incidents",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning for underground utility mapping — reference LaGuardia Terminal B study ($175K saved)",
+    "relevantCaseStudyId": "cs-007",
+    "primaryContactId": "contact-015",
+    "warmthScore": 58,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 15,
+        "positive": true,
+        "detail": "Susan Park at Skanska",
+        "explanation": "Infrastructure division connection"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 1 — earliest possible entry",
+        "explanation": "Maximum documentation value capture"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 15,
+        "positive": true,
+        "detail": "LaGuardia Terminal B laser scanning",
+        "explanation": "Same GC, same service type"
+      },
+      {
+        "factor": "Public agency procurement",
+        "weight": -10,
+        "positive": false,
+        "detail": "MTA procurement requirements",
+        "explanation": "Formal vendor qualification and bidding required"
+      },
+      {
+        "factor": "No decision maker access",
+        "weight": -5,
+        "positive": false,
+        "detail": "2nd degree to Thomas McAllister",
+        "explanation": "Need intro via Susan Park"
+      }
+    ]
+  },
+  {
+    "id": "proj-016",
+    "dodgeNumber": "2025-NYC-0694217",
+    "name": "Bellevue Hospital Modernization",
+    "type": "Healthcare",
+    "buildingTypeCode": "HLT",
+    "squareFeet": 510000,
+    "squareFeetDisplay": "510,000 SF",
+    "floors": 10,
+    "value": 560000000,
+    "valueDisplay": "$560M",
+    "stage": "design",
+    "stageDetail": "Design - Construction Documents",
+    "constructionStart": "2026-08-01",
+    "estimatedCompletion": "2030-01-01",
+    "address": "462 First Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Kips Bay",
+    "state": "NY",
+    "zip": "10016",
+    "owner": "NYC Health + Hospitals",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "Perkins Eastman",
+    "painPoints": [
+      "Active hospital phasing complexity",
+      "Infection control documentation",
+      "Public hospital regulatory compliance"
+    ],
+    "primaryPainPoint": "Construction in active hospital requires infection control documentation",
+    "painPointDetail": "ICRA compliance documentation mandatory for every phase transition in active patient care areas",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous visual documentation for ICRA compliance verification",
+    "relevantCaseStudyId": "cs-008",
+    "primaryContactId": "contact-016",
+    "warmthScore": 55,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — embed in specs",
+        "explanation": "Can specify documentation in construction docs"
+      },
+      {
+        "factor": "Regulatory driver",
+        "weight": 12,
+        "positive": true,
+        "detail": "ICRA compliance mandatory",
+        "explanation": "Documentation is required, not optional"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 6,
+        "positive": true,
+        "detail": "Downloaded Healthcare MEP guide",
+        "explanation": "Active interest signal"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — prior work relationship",
+        "explanation": "Familiar with Multivista services"
+      },
+      {
+        "factor": "Public hospital procurement",
+        "weight": -10,
+        "positive": false,
+        "detail": "NYC H+H procurement process",
+        "explanation": "Lengthy public vendor qualification"
+      },
+      {
+        "factor": "No direct connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Maria Santos",
+        "explanation": "Cold outreach required"
+      }
+    ]
+  },
+  {
+    "id": "proj-017",
+    "dodgeNumber": "2025-NYC-0738492",
+    "name": "180 Maiden Lane Renovation",
+    "type": "Office (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 720000,
+    "squareFeetDisplay": "720,000 SF",
+    "floors": 42,
+    "value": 195000000,
+    "valueDisplay": "$195M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 7",
+    "constructionStart": "2025-07-01",
+    "estimatedCompletion": "2027-04-01",
+    "address": "180 Maiden Ln",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Financial District",
+    "state": "NY",
+    "zip": "10038",
+    "owner": "SL Green Realty",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "Gensler",
+    "painPoints": [
+      "Occupied renovation documentation",
+      "Tenant disruption records",
+      "Existing conditions vs. new work"
+    ],
+    "primaryPainPoint": "Occupied renovation — documenting existing vs. new conditions floor-by-floor",
+    "painPointDetail": "Active tenants on 30 floors while renovating 12 floors — disputes over pre-existing damage",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning captures existing conditions before renovation begins — reference PENN 2 study",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-017",
+    "warmthScore": 41,
+    "warmthFactors": [
+      {
+        "factor": "High documentation need",
+        "weight": 10,
+        "positive": true,
+        "detail": "Occupied renovation",
+        "explanation": "Pre-existing condition documentation critical"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -10,
+        "positive": false,
+        "detail": "Month 7 — renovation underway",
+        "explanation": "Pre-condition scanning window may have passed"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Brian Kelly",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -8,
+        "positive": false,
+        "detail": "Brian Kelly is PM, not VP",
+        "explanation": "Need escalation"
+      }
+    ]
+  },
+  {
+    "id": "proj-018",
+    "dodgeNumber": "2025-NYC-0724831",
+    "name": "LaGuardia Terminal C Extension",
+    "type": "Transit/Aviation",
+    "buildingTypeCode": "TRN",
+    "squareFeet": 450000,
+    "squareFeetDisplay": "450,000 SF",
+    "floors": 4,
+    "value": 1200000000,
+    "valueDisplay": "$1.2B",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 3",
+    "constructionStart": "2025-11-01",
+    "estimatedCompletion": "2029-03-01",
+    "address": "LaGuardia Airport Terminal C",
+    "city": "New York",
+    "borough": "Queens",
+    "neighborhood": "East Elmhurst",
+    "state": "NY",
+    "zip": "11371",
+    "owner": "Port Authority of NY & NJ",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "HOK",
+    "painPoints": [
+      "Airside construction safety documentation",
+      "FAA compliance records",
+      "Active runway proximity documentation"
+    ],
+    "primaryPainPoint": "Airside construction requires FAA-compliant documentation at every phase",
+    "painPointDetail": "Construction adjacent to active runways — documentation gaps risk safety incidents and FAA violations",
+    "suggestedService": "Drone Aerials",
+    "suggestedServiceReason": "Aerial progress surveys without disrupting airside operations — reference JFK Terminal 5 study ($85K saved)",
+    "relevantCaseStudyId": "cs-004",
+    "primaryContactId": "contact-018",
+    "warmthScore": 71,
+    "warmthFactors": [
+      {
+        "factor": "LinkedIn 1st degree",
+        "weight": 10,
+        "positive": true,
+        "detail": "Susan Park — 1st degree connection",
+        "explanation": "Direct outreach"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "JFK Terminal 5 drone surveys",
+        "explanation": "Same service, same GC, same owner"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 3 — early construction",
+        "explanation": "Full project lifecycle documentation"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 8,
+        "positive": true,
+        "detail": "Exchanged emails about LaGuardia scope",
+        "explanation": "Active conversation"
+      },
+      {
+        "factor": "Decision maker confirmed",
+        "weight": 13,
+        "positive": true,
+        "detail": "Susan Park = Aviation Program Director",
+        "explanation": "Budget authority for aviation projects"
+      },
+      {
+        "factor": "Port Authority procurement",
+        "weight": -8,
+        "positive": false,
+        "detail": "PANYNJ formal procurement",
+        "explanation": "Requires DBE compliance and formal bidding"
+      },
+      {
+        "factor": "FAA drone restrictions",
+        "weight": -5,
+        "positive": false,
+        "detail": "Airspace restrictions near active runways",
+        "explanation": "May limit drone survey capabilities"
+      }
+    ]
+  },
+  {
+    "id": "proj-019",
+    "dodgeNumber": "2025-NYC-0731847",
+    "name": "Downtown Brooklyn Tower II",
+    "type": "Mixed-Use (Residential/Retail)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 560000,
+    "squareFeetDisplay": "560,000 SF",
+    "floors": 52,
+    "value": 380000000,
+    "valueDisplay": "$380M",
+    "stage": "bid",
+    "stageDetail": "Bidding - Subcontractor Selection",
+    "constructionStart": "2026-04-01",
+    "estimatedCompletion": "2029-01-01",
+    "address": "625 Fulton St",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
+    "state": "NY",
+    "zip": "11217",
+    "owner": "JDS Development Group",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "SHoP Architects",
+    "painPoints": [
+      "Supertall structural documentation",
+      "Wind load monitoring records",
+      "Retail-residential interface"
+    ],
+    "primaryPainPoint": "52-story supertall requires structural documentation at every floor",
+    "painPointDetail": "High-rise structural connections need documented verification — wind load requirements are extreme",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Floor-by-floor 360° documentation — visual record of structural connections before enclosure",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-019",
+    "warmthScore": 46,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Bid phase — embed in subcontractor requirements",
+        "explanation": "Documentation can be specified now"
+      },
+      {
+        "factor": "High-rise premium",
+        "weight": 8,
+        "positive": true,
+        "detail": "52 floors — high documentation value",
+        "explanation": "More floors = more documentation revenue"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "No connection to decision maker",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Derek Williams",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "No warm signals"
+      }
+    ]
+  },
+  {
+    "id": "proj-020",
+    "dodgeNumber": "2025-NYC-0748293",
+    "name": "Manhattan West Tower 3",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 980000,
+    "squareFeetDisplay": "980,000 SF",
+    "floors": 45,
+    "value": 670000000,
+    "valueDisplay": "$670M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 11",
+    "constructionStart": "2025-03-01",
+    "estimatedCompletion": "2028-02-01",
+    "address": "401 9th Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Brookfield Properties",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "REX Architecture",
+    "painPoints": [
+      "Curtain wall installation tracking",
+      "Tenant pre-built documentation",
+      "Lobby finish verification"
+    ],
+    "primaryPainPoint": "Curtain wall installation quality — tracking panel-by-panel across 45 floors",
+    "painPointDetail": "Premium facade requires documented installation quality for warranty claims",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Panel-by-panel curtain wall documentation — visual warranty record",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-020",
+    "warmthScore": 43,
+    "warmthFactors": [
+      {
+        "factor": "Owner relationship",
+        "weight": 10,
+        "positive": true,
+        "detail": "Brookfield — prior Manhattan West work",
+        "explanation": "Established owner relationship"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -12,
+        "positive": false,
+        "detail": "Month 11 — late in construction",
+        "explanation": "Most documentation value captured already"
+      },
+      {
+        "factor": "No connection",
+        "weight": -3,
+        "positive": false,
+        "detail": "2nd degree to Katherine Liu",
+        "explanation": "Weak connection path"
+      },
+      {
+        "factor": "Incumbent likely",
+        "weight": -8,
+        "positive": false,
+        "detail": "Month 11 — documentation vendor likely in place",
+        "explanation": "Displacement very difficult this late"
+      }
+    ]
+  },
+  {
+    "id": "proj-021",
+    "dodgeNumber": "2025-NYC-0702156",
+    "name": "550 Washington Street",
+    "type": "Mixed-Use (Office/Residential/Retail)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 1400000,
+    "squareFeetDisplay": "1,400,000 SF",
+    "floors": 40,
+    "value": 520000000,
+    "valueDisplay": "$520M",
+    "stage": "design",
+    "stageDetail": "Design Development",
+    "constructionStart": "2026-07-01",
+    "estimatedCompletion": "2029-12-01",
+    "address": "550 Washington St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "West Village",
+    "state": "NY",
+    "zip": "10014",
+    "owner": "Westbrook Partners",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "Rafael Vinoly Architects",
+    "painPoints": [
+      "Triple-use MEP complexity",
+      "Historic district adjacency",
+      "Community board documentation requirements"
+    ],
+    "primaryPainPoint": "Three-use tower requires independent MEP documentation per zone",
+    "painPointDetail": "Residential, office, and retail zones each need separate documentation packages for different stakeholders",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Zone-by-zone MEP documentation for multi-use building — reference Manhattan West approach",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-021",
+    "warmthScore": 50,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — embed in specs",
+        "explanation": "Can specify documentation in construction docs"
+      },
+      {
+        "factor": "High complexity",
+        "weight": 10,
+        "positive": true,
+        "detail": "Triple-use MEP systems",
+        "explanation": "Higher documentation value proposition"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 6,
+        "positive": true,
+        "detail": "Attended Laser Scanning webinar",
+        "explanation": "Interest in documentation services"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "No direct connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Andrew Hoffman",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker access",
+        "weight": -5,
+        "positive": false,
+        "detail": "Hoffman is Project Director, not VP",
+        "explanation": "May need escalation"
+      }
+    ]
+  },
+  {
+    "id": "proj-022",
+    "dodgeNumber": "2026-NYC-0884521",
+    "name": "Bronx Medical Campus Expansion",
+    "type": "Healthcare",
+    "buildingTypeCode": "HLT",
+    "squareFeet": 280000,
+    "squareFeetDisplay": "280,000 SF",
+    "floors": 8,
+    "value": 290000000,
+    "valueDisplay": "$290M",
+    "stage": "award",
+    "stageDetail": "Award - Mobilization",
+    "constructionStart": "2026-03-01",
+    "estimatedCompletion": "2029-01-01",
+    "address": "1400 Pelham Pkwy S",
+    "city": "New York",
+    "borough": "Bronx",
+    "neighborhood": "Morris Park",
+    "state": "NY",
+    "zip": "10461",
+    "owner": "Montefiore Health System",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "Perkins Eastman",
+    "painPoints": [
+      "Medical equipment infrastructure documentation",
+      "Phased construction in active campus",
+      "Utility tunnel documentation"
+    ],
+    "primaryPainPoint": "Medical equipment infrastructure needs precise pre-installation documentation",
+    "painPointDetail": "MRI suites and radiation rooms require documented structural and MEP preparations",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Medical-grade MEP documentation — reference MSK Koch Center ($220K saved on regulatory compliance)",
+    "relevantCaseStudyId": "cs-008",
+    "primaryContactId": "contact-022",
+    "warmthScore": 47,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Award phase — contract negotiation",
+        "explanation": "Can embed documentation in GC contract"
+      },
+      {
+        "factor": "Regulatory driver",
+        "weight": 10,
+        "positive": true,
+        "detail": "Medical equipment infrastructure",
+        "explanation": "Documentation is regulatory requirement"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Patricia Gonzalez",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Gonzalez is PM, not VP",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Outer borough logistics",
+        "weight": -3,
+        "positive": false,
+        "detail": "Bronx location",
+        "explanation": "Less coverage from NYC-based field teams"
+      }
+    ]
+  },
+  {
+    "id": "proj-023",
+    "dodgeNumber": "2026-NYC-0859174",
+    "name": "390 Madison Avenue",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 870000,
+    "squareFeetDisplay": "870,000 SF",
+    "floors": 36,
+    "value": 440000000,
+    "valueDisplay": "$440M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 4",
+    "constructionStart": "2025-10-01",
+    "estimatedCompletion": "2028-01-01",
+    "address": "390 Madison Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "East Midtown",
+    "state": "NY",
+    "zip": "10017",
+    "owner": "L&L Holding Company",
+    "gc": "Skanska USA Building",
+    "gcSlug": "skanska",
+    "architect": "Foster + Partners",
+    "painPoints": [
+      "Core MEP riser documentation",
+      "Tenant pre-built packages",
+      "Loading dock coordination"
+    ],
+    "primaryPainPoint": "36-floor core MEP risers need as-built documentation before tenant fit-outs",
+    "painPointDetail": "Premium tenants require verified MEP riser documentation for custom fit-out planning",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Riser documentation before tenant walls — prevents expensive rework during fit-out phase",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-023",
+    "warmthScore": 56,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 4 — MEP risers going in now",
+        "explanation": "Perfect timing for Exact-Built engagement"
+      },
+      {
+        "factor": "Decision maker identified",
+        "weight": 13,
+        "positive": true,
+        "detail": "Ryan Mitchell = Project Executive",
+        "explanation": "Budget authority confirmed"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Skanska — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "2nd degree connection",
+        "weight": 5,
+        "positive": true,
+        "detail": "Via Katherine Liu at Skanska",
+        "explanation": "Weak but available intro path"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints with Mitchell",
+        "explanation": "First contact"
+      },
+      {
+        "factor": "No similar past win",
+        "weight": -5,
+        "positive": false,
+        "detail": "No L&L Holding prior relationship",
+        "explanation": "New owner relationship to build"
+      }
+    ]
+  },
+  {
+    "id": "proj-024",
+    "dodgeNumber": "2026-NYC-0867921",
+    "name": "1 Java Street",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 570000,
+    "squareFeetDisplay": "570,000 SF",
+    "floors": 40,
+    "value": 410000000,
+    "valueDisplay": "$410M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 2",
+    "constructionStart": "2025-12-01",
+    "estimatedCompletion": "2028-06-01",
+    "address": "1 Java St",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Greenpoint",
+    "state": "NY",
+    "zip": "11222",
+    "owner": "Quadrum Global",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Handel Architects",
+    "painPoints": [
+      "Waterfront foundation documentation",
+      "Residential MEP coordination",
+      "Amenity space finish verification"
+    ],
+    "primaryPainPoint": "Waterfront site — pile foundation and below-grade waterproofing documentation critical",
+    "painPointDetail": "Greenpoint waterfront conditions require documented foundation installations for insurance and warranty",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Foundation-to-finish 360° documentation — critical for waterfront warranty claims",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-024",
+    "warmthScore": 65,
+    "warmthFactors": [
+      {
+        "factor": "LinkedIn 1st degree",
+        "weight": 10,
+        "positive": true,
+        "detail": "Daniel Kim — 1st degree connection",
+        "explanation": "Direct outreach"
+      },
+      {
+        "factor": "Warm intro available",
+        "weight": 20,
+        "positive": true,
+        "detail": "Daniel Kim at Lendlease",
+        "explanation": "Strong residential division connection"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 2 — foundation phase",
+        "explanation": "Maximum documentation value capture"
+      },
+      {
+        "factor": "Decision maker confirmed",
+        "weight": 13,
+        "positive": true,
+        "detail": "Daniel Kim = Residential Director",
+        "explanation": "Budget authority for residential projects"
+      },
+      {
+        "factor": "No prior Lendlease documentation project",
+        "weight": -5,
+        "positive": false,
+        "detail": "First Lendlease documentation engagement",
+        "explanation": "Need to establish service quality"
+      },
+      {
+        "factor": "No owner relationship",
+        "weight": -4,
+        "positive": false,
+        "detail": "Quadrum Global is unknown entity",
+        "explanation": "No leverage via owner"
+      }
+    ]
+  },
+  {
+    "id": "proj-025",
+    "dodgeNumber": "2025-NYC-0739481",
+    "name": "Claremont Hall",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 380000,
+    "squareFeetDisplay": "380,000 SF",
+    "floors": 30,
+    "value": 280000000,
+    "valueDisplay": "80M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 6",
+    "constructionStart": "2025-08-01",
+    "estimatedCompletion": "2027-11-01",
+    "address": "4380 Broadway",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Washington Heights",
+    "state": "NY",
+    "zip": "10033",
+    "owner": "Jemb Realty",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Robert A.M. Stern",
+    "painPoints": [
+      "Luxury finish documentation",
+      "Unit-by-unit punch list tracking",
+      "Facade panel installation records"
+    ],
+    "primaryPainPoint": "Luxury residential finishes require pre-closing documentation",
+    "painPointDetail": "High-end condo buyers demand documented proof of material quality and installation",
+    "suggestedService": "Forensic Documentation",
+    "suggestedServiceReason": "Unit-by-unit forensic documentation prevents post-closing buyer disputes",
+    "relevantCaseStudyId": "cs-003",
+    "primaryContactId": "contact-025",
+    "warmthScore": 51,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 15,
+        "positive": true,
+        "detail": "Daniel Kim at Lendlease",
+        "explanation": "Residential division intro"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 15,
+        "positive": true,
+        "detail": "432 Park forensic documentation",
+        "explanation": "Same service type for luxury residential"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Lendlease — building relationship",
+        "explanation": "Growing institutional connection"
+      },
+      {
+        "factor": "Mid-construction timing",
+        "weight": -5,
+        "positive": false,
+        "detail": "Month 6 — finishes starting",
+        "explanation": "Moderate window remaining"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -8,
+        "positive": false,
+        "detail": "Michelle Taylor is PM, not Director",
+        "explanation": "Need escalation via Daniel Kim"
+      }
+    ]
+  },
+  {
+    "id": "proj-026",
+    "dodgeNumber": "2025-NYC-0708341",
+    "name": "Victoria Cross Place",
+    "type": "Mixed-Use (Office/Retail)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 750000,
+    "squareFeetDisplay": "750,000 SF",
+    "floors": 32,
+    "value": 540000000,
+    "valueDisplay": "40M",
+    "stage": "design",
+    "stageDetail": "Design - Schematic",
+    "constructionStart": "2026-10-01",
+    "estimatedCompletion": "2029-08-01",
+    "address": "511 W 35th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Lendlease Development",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Bjarke Ingels Group",
+    "painPoints": [
+      "Sustainability documentation for WELL certification",
+      "Mass timber connection documentation",
+      "Multi-tenant coordination"
+    ],
+    "primaryPainPoint": "Mass timber construction requires precise connection documentation",
+    "painPointDetail": "Innovative structural system needs documented verification at every connection point",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning verifies mass timber connections against design specs",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-026",
+    "warmthScore": 42,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — embed early",
+        "explanation": "Can specify scanning in construction docs"
+      },
+      {
+        "factor": "Innovative construction",
+        "weight": 8,
+        "positive": true,
+        "detail": "Mass timber — novel documentation need",
+        "explanation": "New structural system = higher documentation value"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Lendlease — growing relationship",
+        "explanation": "Building institutional connection"
+      },
+      {
+        "factor": "No direct connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Gregory Chen",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "Owner = GC",
+        "weight": -3,
+        "positive": false,
+        "detail": "Lendlease is both developer and GC",
+        "explanation": "Single decision point but may resist external vendors"
+      },
+      {
+        "factor": "Long timeline",
+        "weight": -4,
+        "positive": false,
+        "detail": "Construction 8+ months away",
+        "explanation": "Engagement may lose momentum"
+      }
+    ]
+  },
+  {
+    "id": "proj-027",
+    "dodgeNumber": "2025-NYC-0715627",
+    "name": "The Exchange at 55 Broadway",
+    "type": "Office (Class B)",
+    "buildingTypeCode": "OFF-B",
+    "squareFeet": 420000,
+    "squareFeetDisplay": "420,000 SF",
+    "floors": 22,
+    "value": 175000000,
+    "valueDisplay": "75M",
+    "stage": "bid",
+    "stageDetail": "Bidding - Final Round",
+    "constructionStart": "2026-03-01",
+    "estimatedCompletion": "2028-01-01",
+    "address": "55 Broadway",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Financial District",
+    "state": "NY",
+    "zip": "10006",
+    "owner": "Northwind Group",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Gensler",
+    "painPoints": [
+      "Historic landmark renovation documentation",
+      "Existing MEP system verification",
+      "Tenant fit-out records"
+    ],
+    "primaryPainPoint": "Landmark building renovation — existing conditions documentation is critical",
+    "painPointDetail": "1920s building with limited original drawings — need verified as-built documentation for renovation",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud capture of 1920s structure — replace missing original drawings with digital twins",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-027",
+    "warmthScore": 40,
+    "warmthFactors": [
+      {
+        "factor": "High documentation need",
+        "weight": 12,
+        "positive": true,
+        "detail": "Missing original drawings",
+        "explanation": "Scanning replaces unavailable records"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 10,
+        "positive": true,
+        "detail": "Bid phase — can specify in contract",
+        "explanation": "Documentation in bid requirements"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Lendlease — growing relationship",
+        "explanation": "Building institutional connection"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Laura Martinez",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Laura Martinez is PM",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Lower project value",
+        "weight": -3,
+        "positive": false,
+        "detail": "75M — smaller documentation budget",
+        "explanation": "Less revenue potential"
+      }
+    ]
+  },
+  {
+    "id": "proj-028",
+    "dodgeNumber": "2025-NYC-0742185",
+    "name": "Greenpoint Landing Phase 4",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 490000,
+    "squareFeetDisplay": "490,000 SF",
+    "floors": 38,
+    "value": 350000000,
+    "valueDisplay": "50M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 8",
+    "constructionStart": "2025-06-01",
+    "estimatedCompletion": "2027-12-01",
+    "address": "21 Commercial St",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Greenpoint",
+    "state": "NY",
+    "zip": "11222",
+    "owner": "Brookfield / Park Tower Group",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Handel Architects",
+    "painPoints": [
+      "Waterfront resilience documentation",
+      "Flood mitigation system records",
+      "Amenity space finishes"
+    ],
+    "primaryPainPoint": "Waterfront resilience systems require documented installation verification",
+    "painPointDetail": "Post-Sandy flood mitigation systems need comprehensive documentation for insurance and compliance",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous waterfront resilience documentation — insurance compliance requirement",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-028",
+    "warmthScore": 53,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 15,
+        "positive": true,
+        "detail": "Daniel Kim at Lendlease",
+        "explanation": "Residential division intro to Jason Hughes"
+      },
+      {
+        "factor": "Owner relationship",
+        "weight": 8,
+        "positive": true,
+        "detail": "Brookfield — prior Manhattan West work",
+        "explanation": "Existing owner relationship"
+      },
+      {
+        "factor": "Decision maker access",
+        "weight": 10,
+        "positive": true,
+        "detail": "Jason Hughes — Senior PM",
+        "explanation": "Accessible via Daniel Kim"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -8,
+        "positive": false,
+        "detail": "Month 8 — resilience systems may be complete",
+        "explanation": "Window narrowing for key documentation"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints with Hughes",
+        "explanation": "First contact"
+      }
+    ]
+  },
+  {
+    "id": "proj-029",
+    "dodgeNumber": "2025-NYC-0751390",
+    "name": "200 Amsterdam Avenue",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 340000,
+    "squareFeetDisplay": "340,000 SF",
+    "floors": 52,
+    "value": 220000000,
+    "valueDisplay": "20M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 12",
+    "constructionStart": "2025-02-01",
+    "estimatedCompletion": "2027-06-01",
+    "address": "200 Amsterdam Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Upper West Side",
+    "state": "NY",
+    "zip": "10023",
+    "owner": "SJP Properties",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Elkus Manfredi",
+    "painPoints": [
+      "Supertall facade documentation",
+      "Unit interior finish disputes",
+      "Elevator shaft as-built records"
+    ],
+    "primaryPainPoint": "52-story luxury tower — unit finishes becoming dispute-prone",
+    "painPointDetail": "Pre-closing documentation needed as units approach completion",
+    "suggestedService": "Forensic Documentation",
+    "suggestedServiceReason": "Pre-closing forensic documentation — reference 432 Park dispute resolution",
+    "relevantCaseStudyId": "cs-003",
+    "primaryContactId": "contact-029",
+    "warmthScore": 39,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 12,
+        "positive": true,
+        "detail": "Daniel Kim at Lendlease",
+        "explanation": "Residential intro to Christine Lee"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 10,
+        "positive": true,
+        "detail": "432 Park forensic documentation",
+        "explanation": "Same use case"
+      },
+      {
+        "factor": "Very late timing",
+        "weight": -15,
+        "positive": false,
+        "detail": "Month 12 — nearly complete",
+        "explanation": "Only pre-closing documentation possible"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Christine Lee is PM",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Narrow scope remaining",
+        "weight": -5,
+        "positive": false,
+        "detail": "Limited documentation opportunity",
+        "explanation": "Lower revenue potential this late"
+      }
+    ]
+  },
+  {
+    "id": "proj-030",
+    "dodgeNumber": "2025-NYC-0719284",
+    "name": "Brooklyn Cultural Center",
+    "type": "Mixed-Use (Cultural/Retail)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 180000,
+    "squareFeetDisplay": "180,000 SF",
+    "floors": 6,
+    "value": 160000000,
+    "valueDisplay": "60M",
+    "stage": "award",
+    "stageDetail": "Award - Mobilization",
+    "constructionStart": "2026-03-01",
+    "estimatedCompletion": "2028-06-01",
+    "address": "300 Ashland Pl",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Fort Greene",
+    "state": "NY",
+    "zip": "11217",
+    "owner": "Two Trees Management",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "Adjaye Associates",
+    "painPoints": [
+      "Cultural space acoustic documentation",
+      "Public art installation records",
+      "Community board compliance"
+    ],
+    "primaryPainPoint": "Performance and gallery spaces require precise acoustic documentation",
+    "painPointDetail": "Cultural venues need verified acoustic installations for programming requirements",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning for acoustic verification — precise as-built geometry documentation",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-030",
+    "warmthScore": 37,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 10,
+        "positive": true,
+        "detail": "Award phase — early engagement",
+        "explanation": "Can embed in GC contract"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Lendlease — growing relationship",
+        "explanation": "Building institutional connection"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Anthony Brown",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "Lower project value",
+        "weight": -5,
+        "positive": false,
+        "detail": "60M — smaller documentation budget",
+        "explanation": "Less revenue potential"
+      },
+      {
+        "factor": "Niche use case",
+        "weight": -3,
+        "positive": false,
+        "detail": "Cultural space documentation is specialized",
+        "explanation": "May not have relevant case study"
+      }
+    ]
+  },
+  {
+    "id": "proj-031",
+    "dodgeNumber": "2026-NYC-0858742",
+    "name": "460 West 34th Street",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 620000,
+    "squareFeetDisplay": "620,000 SF",
+    "floors": 30,
+    "value": 390000000,
+    "valueDisplay": "90M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 3",
+    "constructionStart": "2025-11-01",
+    "estimatedCompletion": "2028-02-01",
+    "address": "460 W 34th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Related Companies",
+    "gc": "Lendlease",
+    "gcSlug": "lendlease",
+    "architect": "KPF",
+    "painPoints": [
+      "MEP coordination across office floors",
+      "Curtain wall quality documentation",
+      "Below-grade parking records"
+    ],
+    "primaryPainPoint": "30-floor office tower MEP coordination during critical rough-in phase",
+    "painPointDetail": "MEP rough-in across 30 floors with 8 mechanical trades — rework risk without documentation",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Capture MEP installations before walls close — reference Manhattan West (27K saved)",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-031",
+    "warmthScore": 57,
+    "warmthFactors": [
+      {
+        "factor": "Owner relationship",
+        "weight": 12,
+        "positive": true,
+        "detail": "Related Companies — Hudson Yards work",
+        "explanation": "Existing owner relationship via Hudson Yards"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 3 — MEP rough-in starting",
+        "explanation": "Perfect entry window for Exact-Built"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 12,
+        "positive": true,
+        "detail": "Manhattan West — same neighborhood",
+        "explanation": "Proven track record in Hudson Yards"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Lendlease — growing relationship",
+        "explanation": "Building institutional connection"
+      },
+      {
+        "factor": "No connection to PE",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Stephanie Park",
+        "explanation": "Need introduction"
+      },
+      {
+        "factor": "Decision maker unknown",
+        "weight": -4,
+        "positive": false,
+        "detail": "Stephanie Park is PE but no prior contact",
+        "explanation": "First engagement"
+      }
+    ]
+  },
+  {
+    "id": "proj-032",
+    "dodgeNumber": "2026-NYC-0873210",
+    "name": "50 Hudson Yards Phase 2",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 2800000,
+    "squareFeetDisplay": "2,800,000 SF",
+    "floors": 58,
+    "value": 1100000000,
+    "valueDisplay": ".1B",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 1",
+    "constructionStart": "2026-01-01",
+    "estimatedCompletion": "2029-06-01",
+    "address": "50 Hudson Yards",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Related / Oxford Properties",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Foster + Partners",
+    "painPoints": [
+      "Mega-project MEP coordination",
+      "Multi-tenant base building documentation",
+      "Structural steel connection records"
+    ],
+    "primaryPainPoint": "58-floor mega-project with 15+ MEP trades — coordination documentation critical",
+    "painPointDetail": "2.8M SF base building documentation needed before any tenant fit-outs begin",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Same approach as Manhattan West — scale Exact-Built to 2.8M SF",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-032",
+    "warmthScore": 72,
+    "warmthFactors": [
+      {
+        "factor": "Warm intro available",
+        "weight": 20,
+        "positive": true,
+        "detail": "Joseph Connolly at Tishman",
+        "explanation": "Senior PE can introduce to Michael Reeves"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "Manhattan West — same GC, same owner district",
+        "explanation": "Direct precedent for this engagement"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Month 1 — earliest possible entry",
+        "explanation": "Maximum documentation value capture"
+      },
+      {
+        "factor": "Decision maker identified",
+        "weight": 13,
+        "positive": true,
+        "detail": "Michael Reeves = VP Construction",
+        "explanation": "Senior leadership — budget authority"
+      },
+      {
+        "factor": "Mega-project premium",
+        "weight": 10,
+        "positive": true,
+        "detail": ".1B — large documentation budget",
+        "explanation": "High revenue potential"
+      },
+      {
+        "factor": "Incumbent displacement",
+        "weight": -8,
+        "positive": false,
+        "detail": "Tishman may have preferred vendor from Phase 1",
+        "explanation": "Phase 1 documentation vendor may have inside track"
+      },
+      {
+        "factor": "Multiple decision makers",
+        "weight": -5,
+        "positive": false,
+        "detail": "Related + Oxford co-ownership",
+        "explanation": "Two owners = two approval processes"
+      }
+    ]
+  },
+  {
+    "id": "proj-033",
+    "dodgeNumber": "2025-NYC-0691845",
+    "name": "Midtown East Supertall",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 1650000,
+    "squareFeetDisplay": "1,650,000 SF",
+    "floors": 65,
+    "value": 780000000,
+    "valueDisplay": "80M",
+    "stage": "design",
+    "stageDetail": "Design - Construction Documents",
+    "constructionStart": "2026-06-01",
+    "estimatedCompletion": "2029-12-01",
+    "address": "270 Park Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "East Midtown",
+    "state": "NY",
+    "zip": "10017",
+    "owner": "JPMorgan Chase",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Foster + Partners",
+    "painPoints": [
+      "Supertall structural documentation",
+      "Campus-scale MEP systems",
+      "Security infrastructure records"
+    ],
+    "primaryPainPoint": "65-floor corporate HQ demands institutional-grade documentation program",
+    "painPointDetail": "JPMorgan's internal standards exceed typical documentation requirements — enterprise-scale program needed",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Enterprise documentation program — floor-by-floor 360° capture from foundation to occupancy",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-033",
+    "warmthScore": 60,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — embed in specs",
+        "explanation": "Can specify documentation in CD package"
+      },
+      {
+        "factor": "Mega-project premium",
+        "weight": 12,
+        "positive": true,
+        "detail": "80M — large documentation budget",
+        "explanation": "Enterprise clients pay premium"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — prior relationship via Manhattan West",
+        "explanation": "Existing GC connection"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 12,
+        "positive": true,
+        "detail": "Manhattan West documentation program",
+        "explanation": "Same GC, proven at scale"
+      },
+      {
+        "factor": "Enterprise procurement",
+        "weight": -10,
+        "positive": false,
+        "detail": "JPMorgan has enterprise vendor management",
+        "explanation": "Lengthy corporate vendor qualification"
+      },
+      {
+        "factor": "No contact connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Nicole Zhang",
+        "explanation": "Cold outreach to Tishman team"
+      }
+    ]
+  },
+  {
+    "id": "proj-034",
+    "dodgeNumber": "2025-NYC-0726913",
+    "name": "1 Willoughby Square",
+    "type": "Mixed-Use (Office/Community)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 500000,
+    "squareFeetDisplay": "500,000 SF",
+    "floors": 34,
+    "value": 380000000,
+    "valueDisplay": "80M",
+    "stage": "bid",
+    "stageDetail": "Bidding - GC Selection",
+    "constructionStart": "2026-05-01",
+    "estimatedCompletion": "2029-03-01",
+    "address": "1 Willoughby Square",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
+    "state": "NY",
+    "zip": "11201",
+    "owner": "JEMB Realty",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "FXCollaborative",
+    "painPoints": [
+      "Below-grade parking structure documentation",
+      "Community facility compliance",
+      "Mixed-use transition zones"
+    ],
+    "primaryPainPoint": "Below-grade parking and community facility require separate documentation tracks",
+    "painPointDetail": "Public community space has different documentation requirements than commercial floors",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Dual-track documentation — separate visual records for community vs. commercial spaces",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-034",
+    "warmthScore": 43,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Bid phase — embed in GC contract",
+        "explanation": "Documentation in bid requirements"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Weak intro path",
+        "weight": 5,
+        "positive": true,
+        "detail": "Frank DiMaggio at Tishman Brooklyn",
+        "explanation": "Weak but available connection"
+      },
+      {
+        "factor": "GC not yet confirmed",
+        "weight": -6,
+        "positive": false,
+        "detail": "Still in bidding phase",
+        "explanation": "Contact may change with different GC"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "First contact required"
+      },
+      {
+        "factor": "Lower priority market",
+        "weight": -3,
+        "positive": false,
+        "detail": "Downtown Brooklyn emerging market",
+        "explanation": "Less established documentation market"
+      }
+    ]
+  },
+  {
+    "id": "proj-035",
+    "dodgeNumber": "2026-NYC-0881456",
+    "name": "JFK Terminal 6 Expansion",
+    "type": "Transit/Aviation",
+    "buildingTypeCode": "TRN",
+    "squareFeet": 600000,
+    "squareFeetDisplay": "600,000 SF",
+    "floors": 3,
+    "value": 950000000,
+    "valueDisplay": "50M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 5",
+    "constructionStart": "2025-09-01",
+    "estimatedCompletion": "2029-06-01",
+    "address": "JFK International Airport",
+    "city": "New York",
+    "borough": "Queens",
+    "neighborhood": "Jamaica",
+    "state": "NY",
+    "zip": "11430",
+    "owner": "JFK Millennium Partners / Port Authority",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Gensler",
+    "painPoints": [
+      "Airside security documentation",
+      "TSA-compliant construction records",
+      "Active airport operations coordination"
+    ],
+    "primaryPainPoint": "TSA security infrastructure requires classified documentation protocols",
+    "painPointDetail": "Security-sensitive installations need documented chain-of-custody for all documentation",
+    "suggestedService": "Drone Aerials",
+    "suggestedServiceReason": "Aerial progress monitoring without security zone disruption — reference JFK T5 study (5K saved)",
+    "relevantCaseStudyId": "cs-004",
+    "primaryContactId": "contact-035",
+    "warmthScore": 54,
+    "warmthFactors": [
+      {
+        "factor": "Similar past win",
+        "weight": 18,
+        "positive": true,
+        "detail": "JFK Terminal 5 drone surveys",
+        "explanation": "Same airport, same service, proven approach"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Mega-project premium",
+        "weight": 10,
+        "positive": true,
+        "detail": "50M — large documentation budget",
+        "explanation": "High revenue potential"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 10,
+        "positive": true,
+        "detail": "Month 5 — active construction",
+        "explanation": "Good window for aerial surveys"
+      },
+      {
+        "factor": "Security restrictions",
+        "weight": -8,
+        "positive": false,
+        "detail": "TSA/FAA restrictions on drones",
+        "explanation": "May limit drone capabilities"
+      },
+      {
+        "factor": "No connection to contact",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Barbara Rossi",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "Port Authority procurement",
+        "weight": -6,
+        "positive": false,
+        "detail": "PANYNJ formal procurement",
+        "explanation": "Formal vendor qualification required"
+      }
+    ]
+  },
+  {
+    "id": "proj-036",
+    "dodgeNumber": "2025-NYC-0733841",
+    "name": "Park Avenue South Hotel & Residences",
+    "type": "Mixed-Use (Hotel/Residential)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 350000,
+    "squareFeetDisplay": "350,000 SF",
+    "floors": 44,
+    "value": 290000000,
+    "valueDisplay": "90M",
+    "stage": "bid",
+    "stageDetail": "Bidding - Subcontractor Selection",
+    "constructionStart": "2026-04-01",
+    "estimatedCompletion": "2028-10-01",
+    "address": "281 Park Ave S",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Gramercy",
+    "state": "NY",
+    "zip": "10010",
+    "owner": "Ian Schrager Company",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Herzog & de Meuron",
+    "painPoints": [
+      "Hospitality finish standards documentation",
+      "Dual-use MEP systems",
+      "Brand standard compliance records"
+    ],
+    "primaryPainPoint": "Hotel brand standards require documented finish quality verification",
+    "painPointDetail": "Ian Schrager's exacting standards demand photographic proof of every finish installation",
+    "suggestedService": "Forensic Documentation",
+    "suggestedServiceReason": "Pre-opening forensic documentation — hotel brand compliance verification",
+    "relevantCaseStudyId": "cs-003",
+    "primaryContactId": "contact-036",
+    "warmthScore": 44,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Bid phase — embed in subcontractor requirements",
+        "explanation": "Documentation can be specified now"
+      },
+      {
+        "factor": "High finish standards",
+        "weight": 8,
+        "positive": true,
+        "detail": "Ian Schrager — legendary quality demands",
+        "explanation": "Higher value proposition for forensic docs"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Christopher Lee",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Christopher Lee is PM",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Hospitality niche",
+        "weight": -3,
+        "positive": false,
+        "detail": "Limited hospitality case studies",
+        "explanation": "May need to reference residential analogs"
+      }
+    ]
+  },
+  {
+    "id": "proj-037",
+    "dodgeNumber": "2025-NYC-0703582",
+    "name": "Memorial Sloan Kettering Ambulatory Care",
+    "type": "Healthcare",
+    "buildingTypeCode": "HLT",
+    "squareFeet": 340000,
+    "squareFeetDisplay": "340,000 SF",
+    "floors": 10,
+    "value": 620000000,
+    "valueDisplay": "20M",
+    "stage": "design",
+    "stageDetail": "Design - Construction Documents",
+    "constructionStart": "2026-07-01",
+    "estimatedCompletion": "2029-08-01",
+    "address": "415 E 68th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Upper East Side",
+    "state": "NY",
+    "zip": "10065",
+    "owner": "Memorial Sloan Kettering Cancer Center",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Ennead Architects",
+    "painPoints": [
+      "Radiation shielding documentation",
+      "Clean room MEP verification",
+      "Regulatory compliance records"
+    ],
+    "primaryPainPoint": "Cancer treatment facilities require radiation shielding documentation",
+    "painPointDetail": "Radiation therapy rooms need documented verification of shielding installations for NRC compliance",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Same approach as MSK Koch Center — documented shielding installations (20K regulatory compliance savings)",
+    "relevantCaseStudyId": "cs-008",
+    "primaryContactId": "contact-037",
+    "warmthScore": 61,
+    "warmthFactors": [
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "MSK Koch Center",
+        "explanation": "Same owner, same GC — direct precedent"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 15,
+        "positive": true,
+        "detail": "Design phase — embed in specs",
+        "explanation": "Can specify in construction documents"
+      },
+      {
+        "factor": "Regulatory driver",
+        "weight": 12,
+        "positive": true,
+        "detail": "NRC radiation shielding compliance",
+        "explanation": "Documentation is mandatory"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — prior MSK Koch Center work",
+        "explanation": "Proven relationship with same GC-owner pairing"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 5,
+        "positive": true,
+        "detail": "Downloaded Healthcare Facility guide",
+        "explanation": "Interest signal from Sandra Patel"
+      },
+      {
+        "factor": "MSK procurement",
+        "weight": -8,
+        "positive": false,
+        "detail": "MSK has formal vendor qualification",
+        "explanation": "Already qualified from Koch Center?"
+      },
+      {
+        "factor": "No direct connection",
+        "weight": -3,
+        "positive": false,
+        "detail": "3rd degree to Sandra Patel",
+        "explanation": "Need to find internal champion"
+      }
+    ]
+  },
+  {
+    "id": "proj-038",
+    "dodgeNumber": "2025-NYC-0746821",
+    "name": "Two Manhattan West",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 1900000,
+    "squareFeetDisplay": "1,900,000 SF",
+    "floors": 56,
+    "value": 850000000,
+    "valueDisplay": "50M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 9",
+    "constructionStart": "2025-05-01",
+    "estimatedCompletion": "2028-08-01",
+    "address": "385 9th Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Hudson Yards",
+    "state": "NY",
+    "zip": "10001",
+    "owner": "Brookfield Properties",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "SOM",
+    "painPoints": [
+      "Tenant pre-built documentation",
+      "MEP riser as-built records",
+      "Curtain wall quality assurance"
+    ],
+    "primaryPainPoint": "1.9M SF office tower — tenant pre-built documentation at scale",
+    "painPointDetail": "Major tenants require verified MEP and architectural as-builts before fit-out commences",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Floor-by-floor 360° documentation — same approach as Manhattan West Tower 1",
+    "relevantCaseStudyId": "cs-002",
+    "primaryContactId": "contact-038",
+    "warmthScore": 67,
+    "warmthFactors": [
+      {
+        "factor": "LinkedIn 1st degree",
+        "weight": 10,
+        "positive": true,
+        "detail": "Joseph Connolly — 1st degree connection",
+        "explanation": "Direct access to Senior PE"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 20,
+        "positive": true,
+        "detail": "Manhattan West Tower 1",
+        "explanation": "Same owner, same GC, same district — proven at scale"
+      },
+      {
+        "factor": "Owner relationship",
+        "weight": 12,
+        "positive": true,
+        "detail": "Brookfield — existing relationship",
+        "explanation": "Manhattan West created strong owner connection"
+      },
+      {
+        "factor": "Decision maker confirmed",
+        "weight": 13,
+        "positive": true,
+        "detail": "Joseph Connolly = Senior PE",
+        "explanation": "Budget authority confirmed"
+      },
+      {
+        "factor": "Late timing",
+        "weight": -8,
+        "positive": false,
+        "detail": "Month 9 — mid to late construction",
+        "explanation": "Some documentation value already captured"
+      },
+      {
+        "factor": "Incumbent likely",
+        "weight": -10,
+        "positive": false,
+        "detail": "Documentation vendor likely in place",
+        "explanation": "Month 9 — displacement challenge"
+      }
+    ]
+  },
+  {
+    "id": "proj-039",
+    "dodgeNumber": "2025-NYC-0718493",
+    "name": "141 Willoughby Street",
+    "type": "Office (Class B)",
+    "buildingTypeCode": "OFF-B",
+    "squareFeet": 280000,
+    "squareFeetDisplay": "280,000 SF",
+    "floors": 16,
+    "value": 155000000,
+    "valueDisplay": "55M",
+    "stage": "award",
+    "stageDetail": "Award - Contract Finalization",
+    "constructionStart": "2026-03-01",
+    "estimatedCompletion": "2028-01-01",
+    "address": "141 Willoughby St",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Downtown Brooklyn",
+    "state": "NY",
+    "zip": "11201",
+    "owner": "Rabsky Group",
+    "gc": "Tishman Construction Corp",
+    "gcSlug": "tishman",
+    "architect": "Morris Adjmi",
+    "painPoints": [
+      "Existing foundation documentation",
+      "Street-level retail coordination",
+      "Community facility compliance"
+    ],
+    "primaryPainPoint": "Existing foundation conditions need verification before new construction",
+    "painPointDetail": "Building on existing below-grade structure — need verified documentation of conditions",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning of existing sub-grade structure — prevent foundation surprises",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-039",
+    "warmthScore": 41,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Award phase — scan before construction",
+        "explanation": "Pre-construction scanning creates baseline"
+      },
+      {
+        "factor": "GC relationship",
+        "weight": 7,
+        "positive": true,
+        "detail": "Tishman — existing relationship",
+        "explanation": "Familiar with Multivista"
+      },
+      {
+        "factor": "Weak intro path",
+        "weight": 3,
+        "positive": true,
+        "detail": "Frank DiMaggio at Tishman Brooklyn",
+        "explanation": "Weak connection available"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Diane Nguyen is PM",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Lower project value",
+        "weight": -4,
+        "positive": false,
+        "detail": "55M — smaller budget",
+        "explanation": "Limited documentation spend"
+      },
+      {
+        "factor": "No engagement history",
+        "weight": -4,
+        "positive": false,
+        "detail": "No prior touchpoints",
+        "explanation": "Cold outreach"
+      }
+    ]
+  },
+  {
+    "id": "proj-040",
+    "dodgeNumber": "2026-NYC-0864312",
+    "name": "111 Varick Street Conversion",
+    "type": "Office (Class B)",
+    "buildingTypeCode": "OFF-B",
+    "squareFeet": 240000,
+    "squareFeetDisplay": "240,000 SF",
+    "floors": 12,
+    "value": 125000000,
+    "valueDisplay": "25M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 3",
+    "constructionStart": "2025-11-01",
+    "estimatedCompletion": "2027-06-01",
+    "address": "111 Varick St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "SoHo",
+    "state": "NY",
+    "zip": "10013",
+    "owner": "Nightingale Properties",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "STUDIOS Architecture",
+    "painPoints": [
+      "Office-to-lab conversion documentation",
+      "Existing conditions verification",
+      "Tenant improvement coordination"
+    ],
+    "primaryPainPoint": "Office-to-life science conversion requires existing MEP system documentation",
+    "painPointDetail": "Converting Class B office to lab space — existing MEP infrastructure must be documented before modification",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Scan existing conditions before conversion begins — reference PENN 2 renovation study (98K saved)",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-040",
+    "warmthScore": 45,
+    "warmthFactors": [
+      {
+        "factor": "High documentation need",
+        "weight": 12,
+        "positive": true,
+        "detail": "Conversion project — existing conditions critical",
+        "explanation": "Scanning value proposition is strongest for conversions"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Month 3 — early in conversion",
+        "explanation": "Pre-modification scanning still viable"
+      },
+      {
+        "factor": "Intro available",
+        "weight": 8,
+        "positive": true,
+        "detail": "Paul Anderson at Suffolk",
+        "explanation": "Medium-strength connection"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Paul Anderson is PM, not director",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Lower project value",
+        "weight": -5,
+        "positive": false,
+        "detail": "25M — smaller budget",
+        "explanation": "Limited documentation spend"
+      },
+      {
+        "factor": "Suffolk relationship emerging",
+        "weight": -3,
+        "positive": false,
+        "detail": "Suffolk is newer GC relationship",
+        "explanation": "Less institutional trust established"
+      }
+    ]
+  },
+  {
+    "id": "proj-041",
+    "dodgeNumber": "2026-NYC-0869521",
+    "name": "CUNY Technology Campus",
+    "type": "Education",
+    "buildingTypeCode": "EDU",
+    "squareFeet": 220000,
+    "squareFeetDisplay": "220,000 SF",
+    "floors": 6,
+    "value": 180000000,
+    "valueDisplay": "80M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 4",
+    "constructionStart": "2025-10-01",
+    "estimatedCompletion": "2028-01-01",
+    "address": "695 Park Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Upper East Side",
+    "state": "NY",
+    "zip": "10065",
+    "owner": "City University of New York",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "SOM",
+    "painPoints": [
+      "Technology infrastructure documentation",
+      "Acoustic verification for labs",
+      "Public funding compliance records"
+    ],
+    "primaryPainPoint": "Technology labs require precise infrastructure documentation for equipment installation",
+    "painPointDetail": "Server rooms and tech labs need documented MEP and structural as-builts for equipment specs",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Technology infrastructure documentation — reference Columbia campus approach",
+    "relevantCaseStudyId": "cs-009",
+    "primaryContactId": "contact-041",
+    "warmthScore": 42,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Month 4 — MEP installations active",
+        "explanation": "Good window for documentation"
+      },
+      {
+        "factor": "Similar past win",
+        "weight": 8,
+        "positive": true,
+        "detail": "Columbia campus documentation",
+        "explanation": "Education sector experience"
+      },
+      {
+        "factor": "Regulatory driver",
+        "weight": 6,
+        "positive": true,
+        "detail": "Public funding requires documentation",
+        "explanation": "CUNY reporting requirements"
+      },
+      {
+        "factor": "Public procurement",
+        "weight": -10,
+        "positive": false,
+        "detail": "CUNY has formal vendor qualification",
+        "explanation": "City agency procurement rules"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Rebecca Thompson",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "Lower project value",
+        "weight": -4,
+        "positive": false,
+        "detail": "80M — moderate budget",
+        "explanation": "Moderate documentation spend"
+      }
+    ]
+  },
+  {
+    "id": "proj-042",
+    "dodgeNumber": "2025-NYC-0724918",
+    "name": "Chelsea Market Expansion",
+    "type": "Mixed-Use (Retail/Office)",
+    "buildingTypeCode": "MXD",
+    "squareFeet": 380000,
+    "squareFeetDisplay": "380,000 SF",
+    "floors": 10,
+    "value": 250000000,
+    "valueDisplay": "50M",
+    "stage": "bid",
+    "stageDetail": "Bidding - Final Round",
+    "constructionStart": "2026-03-01",
+    "estimatedCompletion": "2028-06-01",
+    "address": "75 9th Ave",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Chelsea",
+    "state": "NY",
+    "zip": "10011",
+    "owner": "Google (Alphabet)",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "Heatherwick Studio",
+    "painPoints": [
+      "Occupied expansion documentation",
+      "Historic structure integration",
+      "Tech tenant infrastructure records"
+    ],
+    "primaryPainPoint": "Expanding within historic structure while Google operates adjacent spaces",
+    "painPointDetail": "Active tech campus expansion — documentation of interfaces between new and existing critical",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous visual documentation during occupied expansion — reference Brookfield Place study (56K saved)",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-042",
+    "warmthScore": 48,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Bid phase — embed in GC contract",
+        "explanation": "Documentation can be specified now"
+      },
+      {
+        "factor": "Intro available",
+        "weight": 8,
+        "positive": true,
+        "detail": "Paul Anderson at Suffolk",
+        "explanation": "Medium-strength connection to Eric Chen"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 6,
+        "positive": true,
+        "detail": "Eric Chen attended 360° Documentation webinar",
+        "explanation": "Interest in documentation services"
+      },
+      {
+        "factor": "High-profile owner",
+        "weight": 5,
+        "positive": true,
+        "detail": "Google — enterprise documentation standards",
+        "explanation": "Tech companies demand thorough documentation"
+      },
+      {
+        "factor": "Enterprise procurement",
+        "weight": -8,
+        "positive": false,
+        "detail": "Google has enterprise vendor management",
+        "explanation": "Alphabet procurement process"
+      },
+      {
+        "factor": "Suffolk relationship emerging",
+        "weight": -3,
+        "positive": false,
+        "detail": "Newer GC relationship",
+        "explanation": "Less institutional trust"
+      }
+    ]
+  },
+  {
+    "id": "proj-043",
+    "dodgeNumber": "2026-NYC-0876142",
+    "name": "NoMad Residential Tower",
+    "type": "Residential High-Rise",
+    "buildingTypeCode": "RES-H",
+    "squareFeet": 260000,
+    "squareFeetDisplay": "260,000 SF",
+    "floors": 36,
+    "value": 165000000,
+    "valueDisplay": "65M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 5",
+    "constructionStart": "2025-09-01",
+    "estimatedCompletion": "2027-10-01",
+    "address": "30 E 29th St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "NoMad",
+    "state": "NY",
+    "zip": "10016",
+    "owner": "Alchemy Properties",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "ODA Architecture",
+    "painPoints": [
+      "Boutique luxury finish documentation",
+      "Unit-specific punch list tracking",
+      "Facade panel installation records"
+    ],
+    "primaryPainPoint": "Boutique luxury tower — each unit has custom finish specifications",
+    "painPointDetail": "36 floors of unique unit layouts — custom finishes need documented verification before closing",
+    "suggestedService": "Forensic Documentation",
+    "suggestedServiceReason": "Unit-by-unit forensic documentation — reference 432 Park approach for luxury residential",
+    "relevantCaseStudyId": "cs-003",
+    "primaryContactId": "contact-043",
+    "warmthScore": 35,
+    "warmthFactors": [
+      {
+        "factor": "Similar past win",
+        "weight": 10,
+        "positive": true,
+        "detail": "432 Park forensic documentation",
+        "explanation": "Same service for luxury residential"
+      },
+      {
+        "factor": "Mid-construction timing",
+        "weight": 6,
+        "positive": true,
+        "detail": "Month 5 — finishes approaching",
+        "explanation": "Good window for forensic documentation engagement"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Lisa Morales",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Lisa Morales is PM",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Lower project value",
+        "weight": -5,
+        "positive": false,
+        "detail": "65M — smaller budget",
+        "explanation": "Limited documentation spend"
+      },
+      {
+        "factor": "Suffolk relationship emerging",
+        "weight": -3,
+        "positive": false,
+        "detail": "Newer GC relationship",
+        "explanation": "Less institutional trust"
+      }
+    ]
+  },
+  {
+    "id": "proj-044",
+    "dodgeNumber": "2025-NYC-0749213",
+    "name": "Williamsburg Waterfront Office",
+    "type": "Office (Class B)",
+    "buildingTypeCode": "OFF-B",
+    "squareFeet": 440000,
+    "squareFeetDisplay": "440,000 SF",
+    "floors": 18,
+    "value": 290000000,
+    "valueDisplay": "90M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 11",
+    "constructionStart": "2025-03-01",
+    "estimatedCompletion": "2027-06-01",
+    "address": "25 Kent Ave",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "Williamsburg",
+    "state": "NY",
+    "zip": "11249",
+    "owner": "Two Trees Management",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "OMA",
+    "painPoints": [
+      "Waterfront construction documentation",
+      "Sustainability certification records",
+      "Open floor plan MEP coordination"
+    ],
+    "primaryPainPoint": "Waterfront office — resilience systems and sustainability documentation",
+    "painPointDetail": "LEED Gold pursuit requires documented verification of sustainable building systems",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous documentation for LEED certification — visual record of sustainability installations",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-044",
+    "warmthScore": 33,
+    "warmthFactors": [
+      {
+        "factor": "GC relationship",
+        "weight": 5,
+        "positive": true,
+        "detail": "Suffolk — emerging relationship",
+        "explanation": "Building connection"
+      },
+      {
+        "factor": "Decision maker",
+        "weight": 8,
+        "positive": true,
+        "detail": "David Kowalski = Project Director",
+        "explanation": "Has budget authority"
+      },
+      {
+        "factor": "Very late timing",
+        "weight": -15,
+        "positive": false,
+        "detail": "Month 11 — nearly complete",
+        "explanation": "Very limited documentation window"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to David Kowalski",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "Incumbent likely",
+        "weight": -10,
+        "positive": false,
+        "detail": "Month 11 — documentation vendor in place",
+        "explanation": "Displacement nearly impossible"
+      }
+    ]
+  },
+  {
+    "id": "proj-045",
+    "dodgeNumber": "2025-NYC-0722841",
+    "name": "85 Jay Street Renovation",
+    "type": "Office (Class B)",
+    "buildingTypeCode": "OFF-B",
+    "squareFeet": 180000,
+    "squareFeetDisplay": "180,000 SF",
+    "floors": 10,
+    "value": 95000000,
+    "valueDisplay": "5M",
+    "stage": "award",
+    "stageDetail": "Award - Mobilization",
+    "constructionStart": "2026-02-01",
+    "estimatedCompletion": "2027-08-01",
+    "address": "85 Jay St",
+    "city": "New York",
+    "borough": "Brooklyn",
+    "neighborhood": "DUMBO",
+    "state": "NY",
+    "zip": "11201",
+    "owner": "Alloy Development",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "Fogarty Finger",
+    "painPoints": [
+      "Historic warehouse conversion documentation",
+      "Existing timber structure records",
+      "Creative office fit-out tracking"
+    ],
+    "primaryPainPoint": "Historic warehouse conversion — existing timber structure needs documentation",
+    "painPointDetail": "1890s warehouse with timber framing — existing conditions documentation critical before renovation",
+    "suggestedService": "Laser Scanning",
+    "suggestedServiceReason": "Point cloud scanning of historic timber structure — replace missing original drawings",
+    "relevantCaseStudyId": "cs-010",
+    "primaryContactId": "contact-045",
+    "warmthScore": 36,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 10,
+        "positive": true,
+        "detail": "Award phase — scan before construction",
+        "explanation": "Pre-construction baseline scanning"
+      },
+      {
+        "factor": "High documentation need",
+        "weight": 8,
+        "positive": true,
+        "detail": "Historic structure — no original drawings",
+        "explanation": "Scanning fills critical information gap"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to Samantha Rivera",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "No decision maker",
+        "weight": -6,
+        "positive": false,
+        "detail": "Samantha Rivera is PM",
+        "explanation": "Need escalation"
+      },
+      {
+        "factor": "Lowest project value",
+        "weight": -6,
+        "positive": false,
+        "detail": "5M — smallest in portfolio",
+        "explanation": "Minimal documentation budget"
+      },
+      {
+        "factor": "Suffolk relationship emerging",
+        "weight": -3,
+        "positive": false,
+        "detail": "Newer GC relationship",
+        "explanation": "Less institutional trust"
+      }
+    ]
+  },
+  {
+    "id": "proj-046",
+    "dodgeNumber": "2025-NYC-0736941",
+    "name": "29-37 41st Avenue",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 350000,
+    "squareFeetDisplay": "350,000 SF",
+    "floors": 25,
+    "value": 175000000,
+    "valueDisplay": "75M",
+    "stage": "bid",
+    "stageDetail": "Bidding - GC Selection",
+    "constructionStart": "2026-05-01",
+    "estimatedCompletion": "2028-08-01",
+    "address": "29-37 41st Ave",
+    "city": "New York",
+    "borough": "Queens",
+    "neighborhood": "Long Island City",
+    "state": "NY",
+    "zip": "11101",
+    "owner": "Tishman Speyer",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "Perkins Eastman",
+    "painPoints": [
+      "Class A fit-out documentation",
+      "Curtain wall installation tracking",
+      "MEP coordination for tech tenants"
+    ],
+    "primaryPainPoint": "LIC Class A office targeting tech tenants — need tech-ready MEP documentation",
+    "painPointDetail": "Tech tenants require verified power density and cooling documentation for server infrastructure",
+    "suggestedService": "MEP Exact-Built®",
+    "suggestedServiceReason": "Tech-ready MEP documentation — critical for tenant negotiations",
+    "relevantCaseStudyId": "cs-001",
+    "primaryContactId": "contact-046",
+    "warmthScore": 40,
+    "warmthFactors": [
+      {
+        "factor": "Optimal timing",
+        "weight": 12,
+        "positive": true,
+        "detail": "Bid phase — embed in GC contract",
+        "explanation": "Documentation in bid requirements"
+      },
+      {
+        "factor": "Decision maker",
+        "weight": 8,
+        "positive": true,
+        "detail": "James Park = LIC Division Lead",
+        "explanation": "Division-level authority"
+      },
+      {
+        "factor": "Tech tenant premium",
+        "weight": 6,
+        "positive": true,
+        "detail": "Tech tenants demand documentation",
+        "explanation": "Higher value per SF"
+      },
+      {
+        "factor": "GC not confirmed",
+        "weight": -6,
+        "positive": false,
+        "detail": "Still in bidding",
+        "explanation": "Contact may change"
+      },
+      {
+        "factor": "No connection",
+        "weight": -5,
+        "positive": false,
+        "detail": "3rd degree to James Park",
+        "explanation": "Cold outreach"
+      },
+      {
+        "factor": "Suffolk relationship emerging",
+        "weight": -3,
+        "positive": false,
+        "detail": "Newer GC relationship",
+        "explanation": "Less institutional trust"
+      }
+    ]
+  },
+  {
+    "id": "proj-047",
+    "dodgeNumber": "2025-NYC-0753219",
+    "name": "3 World Trade Center Lobby Renovation",
+    "type": "Office Tower (Class A)",
+    "buildingTypeCode": "OFF-A",
+    "squareFeet": 160000,
+    "squareFeetDisplay": "160,000 SF",
+    "floors": 5,
+    "value": 120000000,
+    "valueDisplay": "20M",
+    "stage": "construction",
+    "stageDetail": "Construction - Month 4",
+    "constructionStart": "2025-10-01",
+    "estimatedCompletion": "2027-02-01",
+    "address": "175 Greenwich St",
+    "city": "New York",
+    "borough": "Manhattan",
+    "neighborhood": "Financial District",
+    "state": "NY",
+    "zip": "10007",
+    "owner": "Silverstein Properties",
+    "gc": "Suffolk Construction",
+    "gcSlug": "suffolk",
+    "architect": "REX Architecture",
+    "painPoints": [
+      "Occupied tower renovation documentation",
+      "Security-sensitive construction records",
+      "High-profile finish quality"
+    ],
+    "primaryPainPoint": "Renovation in occupied Class A tower — documentation of existing vs. new conditions",
+    "painPointDetail": "Active office tower with 40+ tenants — renovation documentation critical for liability protection",
+    "suggestedService": "360° Photo Documentation",
+    "suggestedServiceReason": "Continuous visual record during occupied renovation — reference Brookfield Place study (56K saved)",
+    "relevantCaseStudyId": "cs-006",
+    "primaryContactId": "contact-047",
+    "warmthScore": 50,
+    "warmthFactors": [
+      {
+        "factor": "Intro available",
+        "weight": 10,
+        "positive": true,
+        "detail": "Paul Anderson at Suffolk",
+        "explanation": "Medium connection to Mark Sullivan"
+      },
+      {
+        "factor": "Engagement history",
+        "weight": 8,
+        "positive": true,
+        "detail": "Mark Sullivan replied to outreach — interested in Q1 meeting",
+        "explanation": "Active warm lead"
+      },
+      {
+        "factor": "Decision maker",
+        "weight": 10,
+        "positive": true,
+        "detail": "Mark Sullivan = Senior PM with budget authority",
+        "explanation": "Can authorize documentation vendor"
+      },
+      {
+        "factor": "High documentation need",
+        "weight": 8,
+        "positive": true,
+        "detail": "Occupied renovation — liability protection",
+        "explanation": "Strong value proposition"
+      },
+      {
+        "factor": "Optimal timing",
+        "weight": 10,
+        "positive": true,
+        "detail": "Month 4 — renovation active",
+        "explanation": "Good window for documentation engagement"
+      },
+      {
+        "factor": "Silverstein vendor preferences",
+        "weight": -6,
+        "positive": false,
+        "detail": "Silverstein may have preferred vendors",
+        "explanation": "World Trade campus has established vendor relationships"
+      },
+      {
+        "factor": "Suffolk relationship emerging",
+        "weight": -3,
+        "positive": false,
+        "detail": "Newer GC relationship",
+        "explanation": "Less institutional trust"
+      }
+    ]
+  }
+]

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
   Home, Upload, Folder, Grid, Settings,
-  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText, Link2, Map, Bot
+  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText, Link2, Map, Bot, Target
 } from 'lucide-react';
 
 const NavigationSidebar: React.FC = () => {
@@ -27,8 +27,8 @@ const NavigationSidebar: React.FC = () => {
         { path: '/home', label: 'Home', icon: Home },
         { path: '/ecosystem', label: 'Place Graph', icon: Map },
         { path: '/agents', label: 'Ask PlexiCoS', icon: Bot },
-        { path: '/assessments', label: 'Assessments', icon: Table },
-        { path: '/board-reports', label: 'Board Reports', icon: FileText },
+        { path: '/assessments', label: 'Forecast', icon: Table },
+        { path: '/demo/mel', label: 'My SalesPlex Flow', icon: Target },
         { 
           path: '/ask-plexi', 
           label: 'Ask Plexi', 
