@@ -766,7 +766,7 @@ const FieldView: React.FC = () => {
     <div className="field-view">
       {/* Header */}
       <div className="field-header">
-        <h1 className="field-title">Daily Field Report</h1>
+        <h1 className="field-title">Priority Report</h1>
         <div className="project-selector">
           <div className="select-container">
             <select 
