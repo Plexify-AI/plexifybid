@@ -1,26 +1,60 @@
-# CLAUDE.md - PlexifyBID Repository Rules
+# CLAUDE.md — PlexifySOLO
 
-## Who I Am
-Ken, solo founder of Plexify AI. I coordinate development across:
-- Claude Sonnet: Strategy, specs, prompts
-- Code Droid (Factory.ai): Frontend implementation
-- Claude Code: Backend development, architecture
-- GitHub Desktop + VSCode: Local development
+Solo founder project. Ask before changing anything. Read Safety Rules first.
 
-## Repository Architecture
-This is NOT a traditional frontend/backend split. The app runs as React + Vite with backend middleware embedded in Vite's dev server.
+## Commands
+- `npm run dev` — Start Vite dev server (port 5173)
+- `npm run build` — Production build (Vite)
+- `npm run preview` — Preview production build locally
+- `npm test` — Run tests (when test suite exists)
+- `docker build -t plexifysolo .` — Build Docker image
+- `docker-compose up` — Run full stack locally (app + Supabase)
+- `npx supabase db push` — Apply migrations to Supabase
 
-### Backend Routes (Vite middleware):
-- /api/agents/<id> — Claude-powered analysis
-- /api/tts/generate — OpenAI text-to-speech
-- /api/podcast/generate — ElevenLabs synthesis
-- /api/export/docx — Word document export
+## Tech Stack
+- React 18 + Vite 5 + TypeScript
+- TailwindCSS for styling
+- Express middleware (embedded in Vite dev, standalone in production)
+- Supabase (PostgreSQL + Auth + RLS)
+- Anthropic Claude API (claude-sonnet-4-20250514) for AI features
+- Node 20 LTS, npm (not yarn/pnpm)
 
-## Current State
-- Stable tag: v0.1.0-demo-ready
-- Active branch: develop
-- Backend readiness: ~40% (works for demos, not production)
-- Known gaps: No database, no auth, no rate limiting, no tests
+## Directory Structure
+```
+├── src/                    # React frontend
+│   ├── components/         # Reusable UI components
+│   ├── pages/              # Route-level page components
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utilities, API client, types
+│   └── assets/             # Static assets
+├── server/                 # Express backend
+│   ├── routes/             # API route handlers
+│   ├── middleware/          # Auth, guardrails, logging, rate limiting
+│   ├── lib/                # Supabase client, Claude client, helpers
+│   └── tools/              # Claude tool_use definitions for Ask Plexi
+├── supabase/               # Database
+│   ├── migrations/         # SQL migration files (numbered)
+│   └── seed.sql            # Seed data for sandbox tenants
+├── docker/                 # Dockerfile, docker-compose.yml
+├── docs/                   # Specs, handoffs, sprint status
+│   └── SPRINT_STATUS.md    # Living sprint document (update every session)
+└── CLAUDE.md               # This file
+```
+
+## Key Patterns
+- API routes: `server/routes/[resource].js` → REST conventions
+- React components: PascalCase files, functional components + hooks only
+- Supabase queries: Always filter by `tenant_id` for RLS enforcement
+- Claude tool_use: Tools defined in `server/tools/`, registered in route handler
+- Error handling: Try/catch in routes, user-friendly messages, log details server-side
+- Environment variables: `.env.local` (never committed), validated at startup
+- CSS: TailwindCSS utility classes, no custom CSS files unless unavoidable
+- Imports: Use path aliases (`@/components`, `@/lib`) when configured
+
+## Specifications (read when relevant)
+@docs/SPRINT_STATUS.md
+@docs/handoff-mel-demo.md
+@docs/supabase-schema.md
 
 ## Safety Rules (NON-NEGOTIABLE)
 
@@ -30,8 +64,8 @@ This is NOT a traditional frontend/backend split. The app runs as React + Vite w
 3. Never force push, never delete branches
 
 ### Branch discipline:
-- Feature work: feature/[description]
-- Backups before risky ops: backup/[description]-[date]
+- Feature work: `feature/[description]`
+- Backups before risky ops: `backup/[description]-[date]`
 - PRs required for merging to develop
 
 ### NEVER do:
@@ -39,19 +73,18 @@ This is NOT a traditional frontend/backend split. The app runs as React + Vite w
 - Modify .env files or commit secrets
 - Push directly to develop or main
 - Run destructive operations
-- Install packages without stating why
+- Install packages without stating why first
 
 ## Known Technical Debt (Don't Fix Without Asking)
 - @ts-nocheck in App.tsx — needs careful migration
 - 85+ console.log statements — cleanup later
-- as any casts — address incrementally
+- `as any` casts — address incrementally
 - Backup files in repo — cleanup later
+- OpenAI references in chat routes — migrating to Claude API
 
-## Current Priorities
-1. Backend stability for pilot demos
-2. NotebookBD RAG pipeline reliability
-3. API error handling improvements
-4. Security hardening (auth, rate limiting)
+## Current Sprint
+Goal: Ship Mel Wallace sandbox by Feb 17
+See @docs/SPRINT_STATUS.md for task breakdown.
 
 ## Communication Style
 - Be direct, not verbose
