@@ -1,0 +1,82 @@
+[
+  {
+    "id": "conn-001",
+    "name": "Mike Rodriguez",
+    "title": "VP of Preconstruction",
+    "company": "Turner Construction",
+    "relationshipStrength": "strong",
+    "dealsClosedVia": 3,
+    "closeRateViaThisPerson": 0.68,
+    "canIntroTo": ["contact-003", "contact-004", "contact-007", "contact-011", "contact-014"]
+  },
+  {
+    "id": "conn-002",
+    "name": "Jennifer Walsh",
+    "title": "Healthcare Division Lead",
+    "company": "Turner Construction",
+    "relationshipStrength": "medium",
+    "dealsClosedVia": 1,
+    "closeRateViaThisPerson": 0.50,
+    "canIntroTo": ["contact-006", "contact-010"]
+  },
+  {
+    "id": "conn-003",
+    "name": "Susan Park",
+    "title": "Aviation Program Director",
+    "company": "Skanska USA",
+    "relationshipStrength": "medium",
+    "dealsClosedVia": 2,
+    "closeRateViaThisPerson": 0.55,
+    "canIntroTo": ["contact-018", "contact-015"]
+  },
+  {
+    "id": "conn-004",
+    "name": "Daniel Kim",
+    "title": "Residential Division Director",
+    "company": "Lendlease",
+    "relationshipStrength": "strong",
+    "dealsClosedVia": 2,
+    "closeRateViaThisPerson": 0.62,
+    "canIntroTo": ["contact-024", "contact-025", "contact-028", "contact-029"]
+  },
+  {
+    "id": "conn-005",
+    "name": "Joseph Connolly",
+    "title": "Senior Project Executive",
+    "company": "Tishman Construction Corp",
+    "relationshipStrength": "medium",
+    "dealsClosedVia": 1,
+    "closeRateViaThisPerson": 0.45,
+    "canIntroTo": ["contact-001", "contact-032", "contact-038"]
+  },
+  {
+    "id": "conn-006",
+    "name": "Paul Anderson",
+    "title": "NYC Division Manager",
+    "company": "Suffolk Construction",
+    "relationshipStrength": "medium",
+    "dealsClosedVia": 1,
+    "closeRateViaThisPerson": 0.42,
+    "canIntroTo": ["contact-040", "contact-042", "contact-047"]
+  },
+  {
+    "id": "conn-007",
+    "name": "Katherine Liu",
+    "title": "Senior PM",
+    "company": "Skanska USA Building",
+    "relationshipStrength": "weak",
+    "dealsClosedVia": 0,
+    "closeRateViaThisPerson": 0.0,
+    "canIntroTo": ["contact-020", "contact-023"]
+  },
+  {
+    "id": "conn-008",
+    "name": "Frank DiMaggio",
+    "title": "Brooklyn Division PM",
+    "company": "Tishman Construction Corp",
+    "relationshipStrength": "weak",
+    "dealsClosedVia": 0,
+    "closeRateViaThisPerson": 0.0,
+    "canIntroTo": ["contact-034", "contact-039"]
+  }
+]

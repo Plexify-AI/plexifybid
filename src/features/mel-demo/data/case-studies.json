@@ -1,0 +1,122 @@
+[
+  {
+    "id": "cs-001",
+    "clientName": "Brookfield",
+    "projectName": "Manhattan West",
+    "gc": "Tishman Construction",
+    "service": "MEP Exact-Built®",
+    "roiAmount": 127000,
+    "roiDisplay": "$127K",
+    "roiType": "rework avoided",
+    "roiExplanation": "Captured MEP installations behind drywall across 14 floors before close-up. Identified 23 routing conflicts that would have required demolition to fix post-occupancy.",
+    "relevantTags": ["mep", "high_rise", "office", "tishman"]
+  },
+  {
+    "id": "cs-002",
+    "clientName": "Related Companies",
+    "projectName": "Hudson Yards Platform",
+    "gc": "Turner Construction",
+    "service": "360° Photo Documentation",
+    "roiAmount": 210000,
+    "roiDisplay": "$210K",
+    "roiType": "change order documentation savings",
+    "roiExplanation": "Provided stakeholder portal with 360° progress photos across 4 towers. Reduced disputed change orders by 34% through visual documentation of site conditions.",
+    "relevantTags": ["360_photo", "high_rise", "mixed_use", "multi_stakeholder", "turner"]
+  },
+  {
+    "id": "cs-003",
+    "clientName": "CIM Group / Macklowe",
+    "projectName": "432 Park Avenue",
+    "gc": "Lendlease",
+    "service": "Forensic Documentation",
+    "roiAmount": 340000,
+    "roiDisplay": "$340K",
+    "roiType": "dispute resolution support",
+    "roiExplanation": "Forensic documentation of construction defects in luxury residential finishes provided definitive evidence for $12M dispute resolution. Documentation covered 104 units across 42 floors.",
+    "relevantTags": ["forensic", "residential", "luxury", "dispute", "lendlease"]
+  },
+  {
+    "id": "cs-004",
+    "clientName": "JetBlue / Port Authority",
+    "projectName": "JFK Terminal 5 Expansion",
+    "gc": "Skanska USA",
+    "service": "Drone Aerials",
+    "roiAmount": 85000,
+    "roiDisplay": "$85K",
+    "roiType": "schedule acceleration savings",
+    "roiExplanation": "Weekly drone aerial surveys of active airside construction enabled real-time progress tracking without disrupting operations. Identified 3 schedule conflicts 2 weeks early.",
+    "relevantTags": ["drone", "aviation", "infrastructure", "skanska"]
+  },
+  {
+    "id": "cs-005",
+    "clientName": "NYU Langone",
+    "projectName": "Medical Center Expansion",
+    "gc": "Turner Construction",
+    "service": "MEP Exact-Built®",
+    "roiAmount": 93000,
+    "roiDisplay": "$93K",
+    "roiType": "rework avoided",
+    "roiExplanation": "Documented MEP installations in active hospital environment where access post-completion is impossible. Prevented 17 coordination failures between medical gas and HVAC systems.",
+    "relevantTags": ["mep", "healthcare", "hospital", "turner"]
+  },
+  {
+    "id": "cs-006",
+    "clientName": "Brookfield",
+    "projectName": "Brookfield Place Renovation",
+    "gc": "Suffolk Construction",
+    "service": "360° Photo Documentation",
+    "roiAmount": 156000,
+    "roiDisplay": "$156K",
+    "roiType": "change order documentation savings",
+    "roiExplanation": "Continuous 360° documentation during occupied renovation provided irrefutable visual record for 41 disputed change orders from tenant interference claims.",
+    "relevantTags": ["360_photo", "renovation", "office", "occupied", "suffolk"]
+  },
+  {
+    "id": "cs-007",
+    "clientName": "Port Authority",
+    "projectName": "LaGuardia Terminal B",
+    "gc": "Skanska Walsh JV",
+    "service": "Laser Scanning",
+    "roiAmount": 175000,
+    "roiDisplay": "$175K",
+    "roiType": "rework prevention",
+    "roiExplanation": "Point cloud scanning of existing terminal structure before demolition phases. Identified 8 structural conflicts between new steel and existing foundations, preventing costly field modifications.",
+    "relevantTags": ["laser_scanning", "aviation", "infrastructure", "demolition", "skanska"]
+  },
+  {
+    "id": "cs-008",
+    "clientName": "Memorial Sloan Kettering",
+    "projectName": "Koch Center",
+    "gc": "Tishman Construction",
+    "service": "Forensic Documentation",
+    "roiAmount": 220000,
+    "roiDisplay": "$220K",
+    "roiType": "regulatory compliance documentation",
+    "roiExplanation": "Comprehensive forensic documentation of clean room and radiation shielding installations satisfied Joint Commission requirements and prevented 6-month commissioning delay.",
+    "relevantTags": ["forensic", "healthcare", "regulatory", "tishman"]
+  },
+  {
+    "id": "cs-009",
+    "clientName": "Columbia University",
+    "projectName": "Manhattanville Campus",
+    "gc": "Turner Construction",
+    "service": "Drone Aerials",
+    "roiAmount": 62000,
+    "roiDisplay": "$62K",
+    "roiType": "progress reporting efficiency",
+    "roiExplanation": "Monthly drone surveys replaced 3-person ground inspection team for multi-building campus progress reports. Reduced reporting cycle from 5 days to 1 day.",
+    "relevantTags": ["drone", "education", "campus", "multi_building", "turner"]
+  },
+  {
+    "id": "cs-010",
+    "clientName": "Vornado Realty",
+    "projectName": "PENN 2 Renovation",
+    "gc": "Lendlease",
+    "service": "Laser Scanning",
+    "roiAmount": 198000,
+    "roiDisplay": "$198K",
+    "roiType": "clash detection savings",
+    "roiExplanation": "Laser scanning of existing 1960s structure revealed 31 undocumented conditions that conflicted with new MEP routing. Early detection prevented an estimated 4-week schedule delay.",
+    "relevantTags": ["laser_scanning", "renovation", "office", "existing_conditions", "lendlease"]
+  }
+]
