@@ -6,12 +6,9 @@ Started: 2026-02-11
 Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista) by Feb 17.
 
 ## Next Up
-- [ ] Deploy to Railway — Manual (Ken)
-  - Codebase is deployment-ready, follow docs/DEPLOY_CHECKLIST.md
-  - Set env vars in Railway dashboard, trigger deploy, verify health + sandbox URL
 - [ ] UX polish + loading states — Claude Code Session 6
   - Branding, error handling, prospect card formatting
-  - Prereqs: Deployed and accessible
+  - Prereqs: Deployed and accessible ✅
 
 ## Completed This Sprint
 - [x] Critical Analysis + Build Plan document — manual (Claude Opus chat)
@@ -81,6 +78,13 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
   - .dockerignore: added railway.toml, supabase/, scripts/
   - docs/DEPLOY_CHECKLIST.md: 8-step Railway deployment guide for non-devops founder
   - Verified: npm run build ✅ (2351 modules, 14.16s), production server starts clean ✅
+- [x] Railway deployed + live — Manual + Claude Code Session 5 hotfixes
+  - Deployed to https://plexifybid-production.up.railway.app
+  - Hotfix: committed package-lock.json (npm ci requires it, was in .gitignore)
+  - Hotfix: Dockerfile ARG for VITE_ build-time vars (Railway Docker build args)
+  - Hotfix: frontend Supabase client placeholder (prevents crash when VITE_ vars not baked in)
+  - 12 Railway env vars: 5 backend runtime + 7 VITE_ build-time + Railway system vars
+  - Verified live: health ✅, sandbox auth ✅, dashboard ✅, Ask Plexi with real Claude + Supabase ✅
 
 ## Decisions Made
 - Fork not turborepo: Ship speed > architecture elegance. Monorepo when 2+ products cause real maintenance pain. — 2026-02-11
@@ -107,8 +111,6 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
 - [x] Seed data loaded (1 tenant, 47 prospects, 47 contacts, 8 connections, 10 case studies, 1 ICP config)
 
 ## Next Steps
-1. Manual: Deploy to Railway — follow docs/DEPLOY_CHECKLIST.md
-2. Manual: Set env vars in Railway dashboard (5 required vars)
-3. Manual: Verify health check + sandbox URL with Mel's token
-4. Manual: Lock down CORS with ALLOWED_ORIGINS after first deploy
-5. Session 6: UX polish + loading states (after Railway is live)
+1. Manual: Lock down CORS — set ALLOWED_ORIGINS=https://plexifybid-production.up.railway.app in Railway
+2. Manual: Share sandbox URL with Mel Wallace
+3. Session 6: UX polish + loading states
