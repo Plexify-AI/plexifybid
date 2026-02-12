@@ -7,6 +7,9 @@
  */
 
 import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { resolve, dirname } from 'path';
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -20,6 +23,32 @@ const PORT = process.env.PORT || 3000;
 // ---------------------------------------------------------------------------
 // Middleware
 // ---------------------------------------------------------------------------
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // SPA serves its own scripts
+}));
+
+// CORS — permissive for sandbox trial, lock down via ALLOWED_ORIGINS later
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
+  : null; // null = allow all
+
+app.use(cors({
+  origin: allowedOrigins || true,
+  credentials: true,
+}));
+
+// Rate limiting — protect Claude API from abuse
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30,             // 30 requests per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again in a minute.' },
+});
+app.use('/api/', apiLimiter);
+
 app.use(express.json());
 
 // ---------------------------------------------------------------------------

@@ -17,3 +17,7 @@ docs
 project-documents
 *.md
 !README.md
+railway.toml
+supabase
+scripts
+*.mjs.bak

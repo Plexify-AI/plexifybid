@@ -43,6 +43,5 @@ COPY server/ ./server/
 # Copy public assets that may be referenced at runtime
 COPY public/ ./public/
 
-EXPOSE 3000
-
+# Railway assigns PORT dynamically via env var — no hardcoded EXPOSE
 CMD ["node", "server/index.mjs"]
