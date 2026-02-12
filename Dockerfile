@@ -17,6 +17,12 @@ RUN npm ci --ignore-scripts
 # Copy source
 COPY . .
 
+# Vite embeds VITE_ env vars at build time — Railway passes these as build args
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+
 # Build frontend
 RUN npm run build
 
