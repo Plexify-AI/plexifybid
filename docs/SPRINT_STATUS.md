@@ -1,19 +1,16 @@
 # PlexifySOLO Sprint Status
-Last updated: 2026-02-12 (Session 2 committed: 39afada)
+Last updated: 2026-02-12 (Session 3 committed: 25d9f20)
 
 ## Current Sprint: Mel Sandbox Ship
 Started: 2026-02-11
 Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista) by Feb 17.
 
 ## Next Up
-- [ ] Claude API integration (replace OpenAI) — Claude Code Session 3
-  - Create tool definitions: search_prospects, draft_outreach, analyze_pipeline
-  - Wire Claude client with Anthropic SDK + tool_use format
-  - Connect to live Supabase data via server/lib/supabase.js query helpers
-  - Prereqs: .env.local done ✅, migration applied ✅, seed data loaded ✅
 - [ ] Sandbox auth + tenant isolation — Claude Code Session 4
   - Wire tenantMiddleware() into production server routes
-  - Blocked by: Claude API must be working
+  - Enforce X-Sandbox-Token on all /api/ routes (currently dev fallback to Mel)
+  - Frontend: pass sandbox_token from URL param or localStorage
+  - Prereqs: Claude API working ✅
 - [ ] Deploy to Railway — Claude Code Session 5
   - Railway.app selected over AWS for speed
   - Blocked by: All backend sessions must pass smoke test locally
@@ -63,6 +60,14 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
   - Query helpers: getProspects, getContacts, getConnections, getCaseStudies, getICPConfig, etc.
   - Conversation + outreach CRUD helpers
   - Usage event logging
+- [x] Claude API integration — Claude Code Session 3 (25d9f20)
+  - @anthropic-ai/sdk installed, Claude client with tool_use conversation loop
+  - 3 AEC tools: search_prospects, draft_outreach, analyze_pipeline (server/tools/)
+  - POST /api/ask-plexi/chat route with tenant auth fallback + conversation persistence
+  - Vite dev middleware (src/server/askPlexiApi.ts) + production server wiring
+  - AskPlexiInterface.tsx rewritten: real API calls, rotating loading states, tool badges
+  - Lazy init for Claude + Supabase clients (Vite env var timing fix)
+  - Tested live: all 3 tools query real Supabase data (47 prospects, contacts, case studies)
 
 ## Decisions Made
 - Fork not turborepo: Ship speed > architecture elegance. Monorepo when 2+ products cause real maintenance pain. — 2026-02-11
@@ -74,6 +79,9 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
 - server/index.mjs not .js: Package.json is CJS (no "type":"module"), so production server uses .mjs extension for ESM imports. Avoids cascading CJS/ESM conflicts with Vite, PostCSS, Tailwind configs. — 2026-02-11
 - Rich schema over flat table: Kept separate prospects/contacts/connections/case_studies tables matching demo JSON rather than a flat prospects-only table. Richer data = better Claude tool responses. — 2026-02-12
 - ref_id pattern: Each table has a text ref_id (e.g. 'proj-001') alongside the UUID primary key, so existing demo components can reference data by familiar IDs while the database uses proper UUIDs. — 2026-02-12
+- Lazy client init: Anthropic + Supabase clients use lazy initialization because Vite loads .env.local vars after module imports. VITE_ANTHROPIC_API_KEY used as fallback since Vite's loadEnv doesn't reliably surface non-VITE_ prefixed vars. — 2026-02-12
+- No streaming v1: Ask Plexi returns full response after Claude finishes (2-5s). Streaming deferred to Session 6 UX polish. — 2026-02-12
+- Dev tenant fallback: In dev mode, Ask Plexi auto-uses Mel's tenant_id when no X-Sandbox-Token header sent. Production will require the header (Session 4). — 2026-02-12
 
 ## Environment Setup (Done)
 - [x] .env.local created with Supabase URL + anon key + service role key + Anthropic API key
@@ -81,6 +89,7 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
 - [x] Seed data loaded (1 tenant, 47 prospects, 47 contacts, 8 connections, 10 case studies, 1 ICP config)
 
 ## Next Session Should
-1. Session 3: Claude API integration — replace OpenAI references, create tool definitions (search_prospects, draft_outreach, analyze_pipeline), wire Claude client
-2. Test Ask Plexi chat against live Supabase data
-3. Session 4: Wire tenant middleware into production server routes
+1. Session 4: Sandbox auth + tenant isolation — enforce X-Sandbox-Token on all API routes
+2. Frontend: pass sandbox_token from URL param (/sandbox?token=xxx) or localStorage
+3. Test: verify auth rejects invalid tokens, accepts valid Mel token
+4. Session 5: Deploy to Railway
