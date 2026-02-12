@@ -1,23 +1,25 @@
 # PlexifySOLO Sprint Status
-Last updated: 2026-02-12 10:30 AM EST
+Last updated: 2026-02-12 (Session 2 committed: 39afada)
 
 ## Current Sprint: Mel Sandbox Ship
 Started: 2026-02-11
 Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista) by Feb 17.
 
-## In Progress
+## Next Up
 - [ ] Claude API integration (replace OpenAI) — Claude Code Session 3
-  - Status: NOT STARTED. Tool definitions designed for search_prospects, draft_outreach, analyze_pipeline.
-  - Blocked by: Need .env.local with Supabase + Anthropic keys.
+  - Create tool definitions: search_prospects, draft_outreach, analyze_pipeline
+  - Wire Claude client with Anthropic SDK + tool_use format
+  - Connect to live Supabase data via server/lib/supabase.js query helpers
+  - Prereqs: .env.local done ✅, migration applied ✅, seed data loaded ✅
 - [ ] Sandbox auth + tenant isolation — Claude Code Session 4
-  - Status: PARTIALLY DONE. Tenant middleware created in server/lib/supabase.js. Needs integration into production server.
-  - Blocked by: Claude API must be working.
+  - Wire tenantMiddleware() into production server routes
+  - Blocked by: Claude API must be working
 - [ ] Deploy to Railway — Claude Code Session 5
-  - Status: NOT STARTED. Railway.app selected over AWS for speed.
-  - Blocked by: All backend sessions must pass smoke test locally.
+  - Railway.app selected over AWS for speed
+  - Blocked by: All backend sessions must pass smoke test locally
 - [ ] UX polish + loading states — Claude Code Session 6
-  - Status: NOT STARTED. Branding, error handling, prospect card formatting.
-  - Blocked by: Deployed and accessible.
+  - Branding, error handling, prospect card formatting
+  - Blocked by: Deployed and accessible
 
 ## Completed This Sprint
 - [x] Critical Analysis + Build Plan document — manual (Claude Opus chat)
@@ -73,9 +75,12 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
 - Rich schema over flat table: Kept separate prospects/contacts/connections/case_studies tables matching demo JSON rather than a flat prospects-only table. Richer data = better Claude tool responses. — 2026-02-12
 - ref_id pattern: Each table has a text ref_id (e.g. 'proj-001') alongside the UUID primary key, so existing demo components can reference data by familiar IDs while the database uses proper UUIDs. — 2026-02-12
 
+## Environment Setup (Done)
+- [x] .env.local created with Supabase URL + anon key + service role key + Anthropic API key
+- [x] Migration applied to live Supabase project
+- [x] Seed data loaded (1 tenant, 47 prospects, 47 contacts, 8 connections, 10 case studies, 1 ICP config)
+
 ## Next Session Should
-1. Add .env.local with Supabase URL + anon key + service role key + Anthropic API key
-2. Apply migration: run SQL in Supabase dashboard or via npx supabase db push
-3. Run seed.sql in Supabase SQL editor
-4. Session 3: Claude API integration — replace OpenAI, create tool definitions for search_prospects, draft_outreach, analyze_pipeline
-5. Wire tenant middleware into production server
+1. Session 3: Claude API integration — replace OpenAI references, create tool definitions (search_prospects, draft_outreach, analyze_pipeline), wire Claude client
+2. Test Ask Plexi chat against live Supabase data
+3. Session 4: Wire tenant middleware into production server routes
