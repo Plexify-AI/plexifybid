@@ -8,6 +8,8 @@ import { notebookBDDocxMiddleware } from './src/server/docxApi';
 import { healthMiddleware } from './src/server/healthApi';
 import { agentManagementMiddleware } from './src/server/agentManagementApi';
 import { askPlexiMiddleware } from './src/server/askPlexiApi';
+import { authMiddleware } from './src/server/authApi';
+import { sandboxAuthDevMiddleware } from './src/server/sandboxAuthMiddleware';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -26,6 +28,11 @@ export default defineConfig(({ mode }) => {
     {
       name: 'plexifysolo-api',
       configureServer(server) {
+        // Auth validate (public — no auth needed)
+        server.middlewares.use(authMiddleware());
+        // Sandbox auth gate (must come before protected API routes)
+        server.middlewares.use(sandboxAuthDevMiddleware());
+        // Protected API routes
         server.middlewares.use(notebookBDAgentsMiddleware());
         server.middlewares.use(notebookBDTtsMiddleware());
         server.middlewares.use(notebookBDPodcastMiddleware());

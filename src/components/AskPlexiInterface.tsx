@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Clock, Target, BarChart3, Mail } from 'lucide-react';
+import { useSandbox } from '../contexts/SandboxContext';
 
 interface Message {
   id: string;
@@ -23,6 +24,7 @@ const LOADING_MESSAGES = [
 ];
 
 const AskPlexiInterface: React.FC = () => {
+  const { token } = useSandbox();
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentQuery, setCurrentQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -93,7 +95,7 @@ const AskPlexiInterface: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Session 4 will send real token; for now dev fallback handles it
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           message: query,

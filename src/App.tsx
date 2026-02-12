@@ -34,6 +34,9 @@ import AssessmentTrendsRenderer from './components/AssessmentTrendsRenderer';
 import OZRFSectionRenderer from './components/OZRFSectionRenderer';
 import PodcastPlayerWidget from './components/PodcastPlayerWidget';
 import { MelDemo } from './features/mel-demo';
+import { SandboxProvider, useSandbox } from './contexts/SandboxContext';
+import SandboxEntry from './pages/SandboxEntry';
+import AccessRequired from './pages/AccessRequired';
 
 // Agent Management route wrappers
 function SessionListWrapper() {
@@ -357,27 +360,45 @@ const AppBody: React.FC = () => {
     );
   };
 
+  const { isAuthenticated } = useSandbox();
+
   return (
     <Router>
       <div className="app-container">
-        <NavigationSidebar />
+        {/* Only show sidebar when authenticated */}
+        {isAuthenticated && <NavigationSidebar />}
 
-          <main className="main-content">
+          <main className={isAuthenticated ? "main-content" : "main-content w-full"}>
             <Routes>
-              <Route path="/" element={<Navigate to="/home" replace />} />
-              <Route path="/home" element={<ExecutiveFeed />} />
-              <Route path="/ask-plexi" element={<AskPlexiInterface />} />
-              <Route
-                path="/settings"
-                element={
-                  <PlaceholderPage
-                    title="Settings"
-                    description="Configure your PlexifySOLO preferences."
-                  />
-                }
-              />
-              <Route path="/integrations" element={<IntegrationsPage />} />
+              {/* Public routes */}
+              <Route path="/sandbox" element={<SandboxEntry />} />
               <Route path="/demo/mel" element={<MelDemo />} />
+
+              {/* Protected routes — require sandbox auth */}
+              {isAuthenticated ? (
+                <>
+                  <Route path="/" element={<Navigate to="/home" replace />} />
+                  <Route path="/home" element={<ExecutiveFeed />} />
+                  <Route path="/ask-plexi" element={<AskPlexiInterface />} />
+                  <Route
+                    path="/settings"
+                    element={
+                      <PlaceholderPage
+                        title="Settings"
+                        description="Configure your PlexifySOLO preferences."
+                      />
+                    }
+                  />
+                  <Route path="/integrations" element={<IntegrationsPage />} />
+                  {/* Catch-all for authenticated users */}
+                  <Route path="*" element={<Navigate to="/home" replace />} />
+                </>
+              ) : (
+                <>
+                  {/* Unauthenticated catch-all */}
+                  <Route path="*" element={<AccessRequired />} />
+                </>
+              )}
             </Routes>
           </main>
 
@@ -433,9 +454,11 @@ const AppBody: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <RealDocsProvider>
-      <AppBody />
-    </RealDocsProvider>
+    <SandboxProvider>
+      <RealDocsProvider>
+        <AppBody />
+      </RealDocsProvider>
+    </SandboxProvider>
   );
 };
 

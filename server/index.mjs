@@ -23,15 +23,8 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
-// API routes
+// Public API routes (no auth)
 // ---------------------------------------------------------------------------
-
-// Ask Plexi chat
-import { handleChat } from './routes/ask-plexi.js';
-
-app.post('/api/ask-plexi/chat', async (req, res) => {
-  await handleChat(req, res, req.body);
-});
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -50,6 +43,31 @@ app.get('/api/health', (_req, res) => {
     version,
     environment: process.env.NODE_ENV || 'production',
   });
+});
+
+// Auth validate (public)
+import { handleValidate } from './routes/auth.js';
+
+app.post('/api/auth/validate', async (req, res) => {
+  await handleValidate(req, res, req.body);
+});
+
+// ---------------------------------------------------------------------------
+// Sandbox auth gate — all /api/ routes below require valid token
+// ---------------------------------------------------------------------------
+import { sandboxAuth } from './middleware/sandboxAuth.js';
+
+app.use(sandboxAuth());
+
+// ---------------------------------------------------------------------------
+// Protected API routes
+// ---------------------------------------------------------------------------
+
+// Ask Plexi chat
+import { handleChat } from './routes/ask-plexi.js';
+
+app.post('/api/ask-plexi/chat', async (req, res) => {
+  await handleChat(req, res, req.body);
 });
 
 // ---------------------------------------------------------------------------

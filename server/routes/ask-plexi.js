@@ -5,14 +5,12 @@
  * Accepts: { message: string, conversation_id?: string, history?: Array }
  * Returns: { reply: string, conversation_id: string, tool_results: Array, usage: object }
  *
- * For Session 3 testing: accepts X-Sandbox-Token header, or falls back
- * to Mel's hardcoded tenant for development. Session 4 will enforce auth.
+ * Auth: sandboxAuth middleware sets req.tenant before this handler runs.
  */
 
 import { sendMessage } from '../lib/claude.js';
 import { toolDefinitions, toolExecutors } from '../tools/index.js';
 import {
-  supabase,
   createConversation,
   updateConversation,
   logUsageEvent,
@@ -41,53 +39,16 @@ When analyzing the pipeline, give a clear executive summary first, then drill in
 You have access to the user's real prospect database, contact network, and case study library. Use the tools to query live data — never make up project names or contacts.`;
 
 // ---------------------------------------------------------------------------
-// MEL_TENANT_ID — hardcoded for Session 3 dev testing
-// Session 4 will replace this with proper tenant middleware
-// ---------------------------------------------------------------------------
-const MEL_TENANT_ID = '00000000-0000-0000-0000-000000000001';
-
-// ---------------------------------------------------------------------------
-// Resolve tenant from token or fallback to Mel for dev
-// ---------------------------------------------------------------------------
-
-async function resolveTenant(token) {
-  if (token) {
-    const { data: tenant, error } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('sandbox_token', token)
-      .eq('is_active', true)
-      .single();
-
-    if (!error && tenant) {
-      if (tenant.expires_at && new Date(tenant.expires_at) < new Date()) {
-        return { error: 'Sandbox token has expired' };
-      }
-      return { tenant };
-    }
-    return { error: 'Invalid sandbox token' };
-  }
-
-  // Dev fallback — use Mel's tenant
-  if (process.env.NODE_ENV !== 'production') {
-    return { tenant: { id: MEL_TENANT_ID, slug: 'mel-wallace-hexagon' } };
-  }
-
-  return { error: 'Missing X-Sandbox-Token header' };
-}
-
-// ---------------------------------------------------------------------------
-// Handler (works with both Express req/res and raw Node http)
+// Handler — req.tenant is set by sandboxAuth middleware
 // ---------------------------------------------------------------------------
 
 export async function handleChat(req, res, body) {
-  const token = req.headers['x-sandbox-token'];
-  const { tenant, error: authError } = await resolveTenant(token);
+  const tenant = req.tenant;
 
-  if (authError) {
+  if (!tenant) {
     res.statusCode = 401;
     res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ error: authError }));
+    return res.end(JSON.stringify({ error: 'Not authenticated' }));
   }
 
   const { message, conversation_id, history = [] } = body;

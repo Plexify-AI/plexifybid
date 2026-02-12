@@ -8,6 +8,7 @@ import AudioPlayer from '../../components/AudioPlayer';
 import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
 import AudioNarrationService from '../../services/AudioNarrationService';
 import { OpportunityCard } from '../home/components/OpportunityCard';
+import { useSandbox } from '../../contexts/SandboxContext';
 /**
  * ExecutiveFeed Component
  * 
@@ -16,6 +17,15 @@ import { OpportunityCard } from '../home/components/OpportunityCard';
  */
 const ExecutiveFeed: React.FC = () => {
   const navigate = useNavigate();
+  const { tenant, showWelcome, dismissWelcome } = useSandbox();
+
+  // Auto-dismiss welcome after 5 seconds
+  useEffect(() => {
+    if (showWelcome) {
+      const timer = setTimeout(dismissWelcome, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome, dismissWelcome]);
   
   // Pull live executive intelligence from the shared store
   const executiveReports = useReportStore(state => state.executiveIntelligence);
@@ -209,6 +219,48 @@ const ExecutiveFeed: React.FC = () => {
   
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
+      {/* Welcome Banner */}
+      {showWelcome && tenant && (
+        <div
+          className="mb-6 p-6 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-900 border border-blue-700/50 cursor-pointer animate-fade-in"
+          onClick={dismissWelcome}
+        >
+          <h2 className="text-xl font-bold text-white mb-2">
+            Welcome, {tenant.name.split(' ')[0]}.
+          </h2>
+          <p className="text-blue-200 text-sm leading-relaxed">
+            This is your PlexifySOLO trial environment. Your prospect pipeline
+            has been loaded with AEC opportunities in the NYC metro area.
+            Head to Ask Plexi to start exploring.
+          </p>
+          <p className="text-blue-400 text-xs mt-3">Click to dismiss</p>
+        </div>
+      )}
+
+      {/* Quick Action Chips */}
+      {tenant && (
+        <div className="mb-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate('/ask-plexi')}
+            className="px-4 py-2 text-sm bg-white/90 text-gray-800 rounded-full hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-sm font-medium"
+          >
+            Ask Plexi about your pipeline
+          </button>
+          <button
+            onClick={() => navigate('/ask-plexi')}
+            className="px-4 py-2 text-sm bg-white/90 text-gray-800 rounded-full hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-sm font-medium"
+          >
+            View your top prospects
+          </button>
+          <button
+            onClick={() => navigate('/ask-plexi')}
+            className="px-4 py-2 text-sm bg-white/90 text-gray-800 rounded-full hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-sm font-medium"
+          >
+            Draft outreach for a warm lead
+          </button>
+        </div>
+      )}
+
       {showNewProjectModal && (
         <div
           className="new-project-modal-overlay"

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  Home, Settings, ChevronLeft, Menu, Link2, Target
+  Home, Settings, ChevronLeft, Menu, Link2, Target, User
 } from 'lucide-react';
+import { useSandbox } from '../contexts/SandboxContext';
 
 const NavigationSidebar: React.FC = () => {
+  const { tenant } = useSandbox();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
 
@@ -78,6 +80,21 @@ const NavigationSidebar: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Tenant Info */}
+          {tenant && !isCollapsed && (
+            <div className="px-4 pb-3 mb-2 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
+                  <User size={14} className="text-white/70" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{tenant.name}</p>
+                  <p className="text-xs text-white/50 truncate">{tenant.company}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Navigation Sections */}
           <div className="flex-1">
