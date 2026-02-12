@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  Home, Upload, Folder, Grid, Settings,
-  BarChart, Bell, Activity, ChevronLeft, Menu, Table, FileText, Link2, Map, Bot, Target
+  Home, Settings, ChevronLeft, Menu, Link2, Target
 } from 'lucide-react';
 
 const NavigationSidebar: React.FC = () => {
@@ -22,32 +21,18 @@ const NavigationSidebar: React.FC = () => {
 
   const navSections = [
     {
-      title: 'AI REPORTS',
+      title: 'SALES INTELLIGENCE',
       items: [
         { path: '/home', label: 'Home', icon: Home },
-        { path: '/ecosystem', label: 'Place Graph', icon: Map },
-        { path: '/agents', label: 'Ask PlexiCoS', icon: Bot },
-        { path: '/assessments', label: 'Forecast', icon: Table },
         { path: '/demo/mel', label: 'My SalesPlex Flow', icon: Target },
-        { 
-          path: '/ask-plexi', 
-          label: 'Ask Plexi', 
-          icon: 'custom-p-logo', // Use custom gray P logo
-          isNew: true 
+        {
+          path: '/ask-plexi',
+          label: 'Ask Plexi',
+          icon: 'custom-p-logo',
+          isNew: true
         },
-        { path: '/upload', label: 'Upload', icon: Upload },
-        { path: '/library', label: 'Library', icon: Folder },
-        { path: '/resources', label: 'Resources', icon: Grid },
         { path: '/settings', label: 'Settings', icon: Settings },
         { path: '/integrations', label: 'Integrations', icon: Link2 }
-      ]
-    },
-    {
-      title: 'INITIATIVES',
-      items: [
-        { path: '/analytics', label: 'Analytics', icon: BarChart },
-        { path: '/alerts', label: 'Alerts', icon: Bell },
-        { path: '/scorecards', label: 'Scorecards', icon: Activity }
       ]
     }
   ];

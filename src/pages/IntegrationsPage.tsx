@@ -63,7 +63,7 @@ export function IntegrationsPage() {
     <div className="integrations-page">
       <div className="integrations-page__header">
         <h1>Integrations</h1>
-        <p>Connect PlexifyBID with your existing tools and data sources</p>
+        <p>Connect PlexifySOLO with your existing tools and data sources</p>
       </div>
 
       <div className="integrations-grid">

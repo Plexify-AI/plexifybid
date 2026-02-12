@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
   plugins: [
     react(),
     {
-      name: 'notebookbd-agents-api',
+      name: 'plexifysolo-api',
       configureServer(server) {
         server.middlewares.use(notebookBDAgentsMiddleware());
         server.middlewares.use(notebookBDTtsMiddleware());

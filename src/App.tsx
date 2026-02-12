@@ -366,88 +366,17 @@ const AppBody: React.FC = () => {
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/home" element={<ExecutiveFeed />} />
-              <Route path="/operations" element={<OperationsDashboard />} />
-              <Route path="/assessments" element={<AssessmentManagement />} />
-              <Route path="/board-reports" element={<BoardReporting />} />
-              <Route path="/executive" element={<ExecutiveFeed />} />
-              <Route path="/field" element={<FieldView />} />
-              <Route path="/ecosystem" element={<PlaceGraph />} />
-              <Route path="/agents" element={<AgentManagement />}>
-                <Route index element={<AgentGridWrapper />} />
-                <Route path=":slug" element={<AgentDetailWrapper />} />
-                <Route path="templates" element={<TemplateListWrapper />} />
-                <Route path="templates/new" element={<TemplateEditorWrapper />} />
-                <Route path="templates/:slug" element={<TemplateEditorWrapper />} />
-                <Route path="sessions" element={<SessionListWrapper />} />
-                <Route path="sessions/new" element={<SessionStartFormWrapper />} />
-                <Route path="sessions/:id" element={<SessionDetailWrapper />} />
-              </Route>
               <Route path="/ask-plexi" element={<AskPlexiInterface />} />
-              <Route
-                path="/upload"
-                element={
-                  <PlaceholderPage
-                    title="Upload"
-                    description="Upload and process district documents with AI."
-                  />
-                }
-              />
-              <Route
-                path="/library"
-                element={
-                  <PlaceholderPage
-                    title="Library"
-                    description="Access your district document library."
-                  />
-                }
-              />
-              <Route
-                path="/resources"
-                element={
-                  <PlaceholderPage
-                    title="Resources"
-                    description="BID resources and references."
-                  />
-                }
-              />
               <Route
                 path="/settings"
                 element={
                   <PlaceholderPage
                     title="Settings"
-                    description="Configure your PlexifyBID preferences."
+                    description="Configure your PlexifySOLO preferences."
                   />
                 }
               />
               <Route path="/integrations" element={<IntegrationsPage />} />
-              <Route
-                path="/analytics"
-                element={
-                  <PlaceholderPage
-                    title="Analytics"
-                    description="Advanced initiative analytics and insights."
-                  />
-                }
-              />
-              <Route path="/report/:projectId/print" element={<ReportPrintView />} />
-              <Route
-                path="/alerts"
-                element={
-                  <PlaceholderPage
-                    title="Alerts"
-                    description="Real-time initiative alerts and notifications."
-                  />
-                }
-              />
-              <Route
-                path="/scorecards"
-                element={
-                  <PlaceholderPage
-                    title="Scorecards"
-                    description="Initiative performance scorecards and KPIs."
-                  />
-                }
-              />
               <Route path="/demo/mel" element={<MelDemo />} />
             </Routes>
           </main>

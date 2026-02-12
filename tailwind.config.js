@@ -29,7 +29,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Navy Blue primary (PlexifyBID brand)
+        // Navy Blue primary (PlexifySOLO brand)
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',
@@ -43,8 +43,8 @@ module.exports = {
           900: '#1e3a8a', // Main Navy Blue
           950: '#172554',
         },
-        // BID operations colors
-        bid: {
+        // SOLO brand colors
+        solo: {
           green: '#70b180',      // Dashboard gradient light
           coral: '#e8927c',      // Dashboard gradient dark
           navyBlue: '#1e3a8a',   // Sidebar background
