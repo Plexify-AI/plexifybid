@@ -26,6 +26,13 @@ app.use(express.json());
 // API routes
 // ---------------------------------------------------------------------------
 
+// Ask Plexi chat
+import { handleChat } from './routes/ask-plexi.js';
+
+app.post('/api/ask-plexi/chat', async (req, res) => {
+  await handleChat(req, res, req.body);
+});
+
 // Health check
 app.get('/api/health', (_req, res) => {
   let version = 'unknown';

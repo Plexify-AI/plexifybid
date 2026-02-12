@@ -7,6 +7,7 @@ import { notebookBDPodcastMiddleware } from './src/server/podcastApi';
 import { notebookBDDocxMiddleware } from './src/server/docxApi';
 import { healthMiddleware } from './src/server/healthApi';
 import { agentManagementMiddleware } from './src/server/agentManagementApi';
+import { askPlexiMiddleware } from './src/server/askPlexiApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -31,6 +32,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(notebookBDDocxMiddleware());
         server.middlewares.use(healthMiddleware());
         server.middlewares.use(agentManagementMiddleware());
+        server.middlewares.use(askPlexiMiddleware());
       },
     },
   ],

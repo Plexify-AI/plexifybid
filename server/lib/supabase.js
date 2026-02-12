@@ -12,23 +12,33 @@ import { createClient } from '@supabase/supabase-js';
 // Supabase client (service role — bypasses RLS)
 // ---------------------------------------------------------------------------
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Lazy init — env vars may not be available at import time in Vite dev
+let _supabase = null;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn(
-    '[supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. ' +
-    'Database queries will fail. Set these in .env.local.'
-  );
+export function getSupabase() {
+  if (!_supabase) {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error(
+        'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Set these in .env.local.'
+      );
+    }
+
+    _supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return _supabase;
 }
 
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseServiceKey || '',
-  {
-    auth: { persistSession: false, autoRefreshToken: false },
-  }
-);
+// Backward compat — re-export as lazy getter
+export const supabase = new Proxy({}, {
+  get(_, prop) {
+    return getSupabase()[prop];
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Query helpers — all scoped by tenant_id
