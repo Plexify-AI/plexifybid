@@ -46,13 +46,17 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
     '[supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. ' +
-    'Database queries will fail.'
+    'Frontend Supabase queries will be unavailable. ' +
+    'SOLO features use the backend API and are unaffected.'
   );
 }
 
+// Use a placeholder URL when vars are missing to prevent createClient from throwing.
+// SOLO sandbox features all go through the backend API (server/lib/supabase.js),
+// so the frontend client is only used by legacy BID features.
 export const supabase = createClient<Database>(
-  supabaseUrl || '',
-  supabaseAnonKey || ''
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
 );
 
 // Re-export domain types for convenience
