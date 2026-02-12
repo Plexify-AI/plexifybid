@@ -1,19 +1,14 @@
 # PlexifySOLO Sprint Status
-Last updated: 2026-02-12 (Session 3 committed: 25d9f20)
+Last updated: 2026-02-12 (Session 4 committed: 99fab49)
 
 ## Current Sprint: Mel Sandbox Ship
 Started: 2026-02-11
 Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista) by Feb 17.
 
 ## Next Up
-- [ ] Sandbox auth + tenant isolation — Claude Code Session 4
-  - Wire tenantMiddleware() into production server routes
-  - Enforce X-Sandbox-Token on all /api/ routes (currently dev fallback to Mel)
-  - Frontend: pass sandbox_token from URL param or localStorage
-  - Prereqs: Claude API working ✅
 - [ ] Deploy to Railway — Claude Code Session 5
   - Railway.app selected over AWS for speed
-  - Blocked by: All backend sessions must pass smoke test locally
+  - Prereqs: All backend sessions pass smoke test locally ✅
 - [ ] UX polish + loading states — Claude Code Session 6
   - Branding, error handling, prospect card formatting
   - Blocked by: Deployed and accessible
@@ -68,6 +63,17 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
   - AskPlexiInterface.tsx rewritten: real API calls, rotating loading states, tool badges
   - Lazy init for Claude + Supabase clients (Vite env var timing fix)
   - Tested live: all 3 tools query real Supabase data (47 prospects, contacts, case studies)
+- [x] Sandbox auth + tenant isolation — Claude Code Session 4 (99fab49)
+  - sandboxAuth middleware: token from Bearer header / ?token= query / X-Sandbox-Token header
+  - Validates against Supabase tenants table, checks is_active + expires_at
+  - Logs auth attempts (success + failure) to usage_events
+  - POST /api/auth/validate: public endpoint returns tenant info or error
+  - SandboxContext: React state-only auth (no localStorage, no cookies — token lost on refresh by design)
+  - /sandbox?token=xxx entry → validates → redirects to /home; AccessRequired fallback
+  - NavigationSidebar shows tenant name + company; ExecutiveFeed welcome banner + action chips
+  - AskPlexiInterface sends Bearer token; ask-plexi route uses req.tenant (dev fallback removed)
+  - Vite dev middleware + production server both enforce auth on all /api/ routes
+  - Tested: health public ✅, auth validate ✅, ask-plexi rejects without token ✅, ask-plexi works with Bearer ✅, build passes (2351 modules) ✅
 
 ## Decisions Made
 - Fork not turborepo: Ship speed > architecture elegance. Monorepo when 2+ products cause real maintenance pain. — 2026-02-11
@@ -82,6 +88,9 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
 - Lazy client init: Anthropic + Supabase clients use lazy initialization because Vite loads .env.local vars after module imports. VITE_ANTHROPIC_API_KEY used as fallback since Vite's loadEnv doesn't reliably surface non-VITE_ prefixed vars. — 2026-02-12
 - No streaming v1: Ask Plexi returns full response after Claude finishes (2-5s). Streaming deferred to Session 6 UX polish. — 2026-02-12
 - Dev tenant fallback: In dev mode, Ask Plexi auto-uses Mel's tenant_id when no X-Sandbox-Token header sent. Production will require the header (Session 4). — 2026-02-12
+- React state-only auth: Token stored in React context, not localStorage or cookies. Token lost on refresh — user re-enters via sandbox URL. Simpler, no stale token bugs. — 2026-02-12
+- Dev fallback removed: sandboxAuth middleware enforces token on all /api/ routes in both dev and prod. No more silent Mel fallback. — 2026-02-12
+- Token extraction priority: Authorization Bearer > ?token= query param > X-Sandbox-Token header. Bearer for API clients, query for URL entry, X-Sandbox-Token for backward compat. — 2026-02-12
 
 ## Environment Setup (Done)
 - [x] .env.local created with Supabase URL + anon key + service role key + Anthropic API key
@@ -89,7 +98,7 @@ Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista)
 - [x] Seed data loaded (1 tenant, 47 prospects, 47 contacts, 8 connections, 10 case studies, 1 ICP config)
 
 ## Next Session Should
-1. Session 4: Sandbox auth + tenant isolation — enforce X-Sandbox-Token on all API routes
-2. Frontend: pass sandbox_token from URL param (/sandbox?token=xxx) or localStorage
-3. Test: verify auth rejects invalid tokens, accepts valid Mel token
-4. Session 5: Deploy to Railway
+1. Session 5: Deploy to Railway.app
+2. Configure env vars (Supabase URL/keys, Anthropic API key) in Railway dashboard
+3. Verify: /api/health, /sandbox?token=xxx → auth → /home → Ask Plexi works
+4. Share sandbox URL with Mel: https://[railway-domain]/sandbox?token=pxs_...
