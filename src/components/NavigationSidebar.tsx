@@ -70,14 +70,17 @@ const NavigationSidebar: React.FC = () => {
       {/* Sidebar - Hidden on mobile, shown on desktop */}
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''} hidden lg:flex`}>
         <div className="sidebar-content">
-          {/* Logo Section - Using complete attached logo */}
+          {/* Logo Section */}
           <div className="logo-section">
             <div className="logo-container">
-              <img 
+              <img
                 src="/assets/logos/Plexify white no background.png"
-                alt="Plexify Complete Logo" 
+                alt="PlexifySOLO"
                 className="w-48 h-auto object-contain"
               />
+              {!isCollapsed && (
+                <span className="inline-block ml-1 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-blue-200 bg-blue-500/20 border border-blue-400/30 rounded uppercase">SOLO</span>
+              )}
             </div>
           </div>
 
@@ -131,6 +134,16 @@ const NavigationSidebar: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {/* Footer */}
+          {!isCollapsed && (
+            <div className="px-4 py-3 border-t border-white/10">
+              <div className="flex items-center justify-center mb-2">
+                <span className="px-2 py-0.5 text-[10px] font-medium text-amber-200 bg-amber-500/15 border border-amber-400/20 rounded-full">Sandbox Trial</span>
+              </div>
+              <p className="text-[10px] text-white/30 text-center">Plexify AI &mdash; Where Intelligence Flows</p>
+            </div>
+          )}
 
           {/* Collapse Toggle */}
           <button

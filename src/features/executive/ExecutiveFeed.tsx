@@ -222,41 +222,63 @@ const ExecutiveFeed: React.FC = () => {
       {/* Welcome Banner */}
       {showWelcome && tenant && (
         <div
-          className="mb-6 p-6 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-900 border border-blue-700/50 cursor-pointer animate-fade-in"
+          className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-blue-900/90 to-indigo-900/90 backdrop-blur-sm border border-blue-600/30 cursor-pointer"
           onClick={dismissWelcome}
         >
-          <h2 className="text-xl font-bold text-white mb-2">
-            Welcome, {tenant.name.split(' ')[0]}.
-          </h2>
-          <p className="text-blue-200 text-sm leading-relaxed">
-            This is your PlexifySOLO trial environment. Your prospect pipeline
-            has been loaded with AEC opportunities in the NYC metro area.
-            Head to Ask Plexi to start exploring.
-          </p>
-          <p className="text-blue-400 text-xs mt-3">Click to dismiss</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-1">
+                Welcome, {tenant.name.split(' ')[0]}.
+              </h2>
+              <p className="text-blue-200/80 text-sm leading-relaxed max-w-xl">
+                This is your PlexifySOLO trial environment. Your prospect pipeline
+                has been loaded with AEC opportunities in the NYC metro area.
+                Head to Ask Plexi to start exploring.
+              </p>
+            </div>
+            <span className="text-blue-400/60 text-xs whitespace-nowrap ml-4 mt-1">Click to dismiss</span>
+          </div>
         </div>
       )}
 
-      {/* Quick Action Chips */}
+      {/* Quick Action Cards */}
       {tenant && (
-        <div className="mb-6 flex flex-wrap gap-3">
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button
-            onClick={() => navigate('/ask-plexi')}
-            className="px-4 py-2 text-sm bg-white/90 text-gray-800 rounded-full hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-sm font-medium"
+            onClick={() => navigate('/ask-plexi?q=' + encodeURIComponent('How is my pipeline looking?'))}
+            className="group flex items-center gap-3 p-4 bg-white/90 hover:bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all text-left cursor-pointer"
           >
-            Ask Plexi about your pipeline
+            <div className="w-10 h-10 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors flex-shrink-0">
+              <span className="text-lg">&#x1F50D;</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Ask Plexi about your pipeline</p>
+              <p className="text-xs text-gray-500">Get an instant overview</p>
+            </div>
           </button>
           <button
-            onClick={() => navigate('/ask-plexi')}
-            className="px-4 py-2 text-sm bg-white/90 text-gray-800 rounded-full hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-sm font-medium"
+            onClick={() => navigate('/ask-plexi?q=' + encodeURIComponent('Show me my best prospects'))}
+            className="group flex items-center gap-3 p-4 bg-white/90 hover:bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all text-left cursor-pointer"
           >
-            View your top prospects
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition-colors flex-shrink-0">
+              <span className="text-lg">&#x1F465;</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">View your top prospects</p>
+              <p className="text-xs text-gray-500">Ranked by warmth score</p>
+            </div>
           </button>
           <button
-            onClick={() => navigate('/ask-plexi')}
-            className="px-4 py-2 text-sm bg-white/90 text-gray-800 rounded-full hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-sm font-medium"
+            onClick={() => navigate('/ask-plexi?q=' + encodeURIComponent('Draft outreach for my warmest prospect'))}
+            className="group flex items-center gap-3 p-4 bg-white/90 hover:bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all text-left cursor-pointer"
           >
-            Draft outreach for a warm lead
+            <div className="w-10 h-10 rounded-lg bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center transition-colors flex-shrink-0">
+              <span className="text-lg">&#x1F4E7;</span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Draft outreach for a warm lead</p>
+              <p className="text-xs text-gray-500">AI-written email ready to send</p>
+            </div>
           </button>
         </div>
       )}
