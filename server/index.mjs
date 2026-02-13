@@ -106,6 +106,46 @@ app.get('/api/usage-events', async (req, res) => {
   await handleGetUsageEvents(req, res);
 });
 
+// Deal Rooms
+import multer from 'multer';
+import {
+  handleCreateDealRoom,
+  handleListDealRooms,
+  handleGetDealRoom,
+  handleUploadSource,
+  handleDeleteSource,
+  handleDealRoomChat,
+} from './routes/deal-rooms.js';
+
+const dealRoomUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+app.post('/api/deal-rooms', async (req, res) => {
+  await handleCreateDealRoom(req, res, req.body);
+});
+
+app.get('/api/deal-rooms', async (req, res) => {
+  await handleListDealRooms(req, res);
+});
+
+app.get('/api/deal-rooms/:id', async (req, res) => {
+  await handleGetDealRoom(req, res, req.params.id);
+});
+
+app.post('/api/deal-rooms/:id/sources', dealRoomUpload.single('file'), async (req, res) => {
+  await handleUploadSource(req, res, req.params.id);
+});
+
+app.delete('/api/deal-rooms/:id/sources/:sourceId', async (req, res) => {
+  await handleDeleteSource(req, res, req.params.id, req.params.sourceId);
+});
+
+app.post('/api/deal-rooms/:id/chat', async (req, res) => {
+  await handleDealRoomChat(req, res, req.params.id, req.body);
+});
+
 // ---------------------------------------------------------------------------
 // Static files — serve the Vite build output
 // ---------------------------------------------------------------------------

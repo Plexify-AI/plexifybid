@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  Home, Settings, ChevronLeft, Menu, Link2, Target, User, Brain
+  Home, Settings, ChevronLeft, Menu, Link2, Target, User, Brain, Briefcase
 } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
 
@@ -31,6 +31,12 @@ const NavigationSidebar: React.FC = () => {
           path: '/ask-plexi',
           label: 'Ask Plexi',
           icon: 'custom-p-logo',
+          isNew: true
+        },
+        {
+          path: '/deal-rooms',
+          label: 'Deal Room',
+          icon: Briefcase,
           isNew: true
         },
         {

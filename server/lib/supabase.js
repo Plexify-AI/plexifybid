@@ -184,6 +184,167 @@ export async function getUsageEvents(tenantId, { limit = 10 } = {}) {
 }
 
 // ---------------------------------------------------------------------------
+// Supabase Storage — deal-room-files bucket
+// ---------------------------------------------------------------------------
+
+const STORAGE_BUCKET = 'deal-room-files';
+
+export async function uploadFile(storagePath, fileBuffer, contentType) {
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(storagePath, fileBuffer, { contentType, upsert: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteFile(storagePath) {
+  const { error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .remove([storagePath]);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Deal Room CRUD helpers
+// ---------------------------------------------------------------------------
+
+export async function createDealRoom(tenantId, { name, description, prospect_id }) {
+  const { data, error } = await supabase
+    .from('deal_rooms')
+    .insert({
+      tenant_id: tenantId,
+      name,
+      description: description || null,
+      prospect_id: prospect_id || null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getDealRooms(tenantId) {
+  const { data, error } = await supabase
+    .from('deal_rooms')
+    .select('*, deal_room_sources(id), deal_room_messages(id)')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'active')
+    .order('updated_at', { ascending: false });
+  if (error) throw error;
+  // Flatten counts
+  return data.map((r) => ({
+    ...r,
+    source_count: r.deal_room_sources?.length || 0,
+    message_count: r.deal_room_messages?.length || 0,
+    deal_room_sources: undefined,
+    deal_room_messages: undefined,
+  }));
+}
+
+export async function getDealRoom(tenantId, dealRoomId) {
+  const { data, error } = await supabase
+    .from('deal_rooms')
+    .select('*')
+    .eq('id', dealRoomId)
+    .eq('tenant_id', tenantId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getDealRoomSources(tenantId, dealRoomId) {
+  const { data, error } = await supabase
+    .from('deal_room_sources')
+    .select('id, deal_room_id, file_name, file_type, file_size, processing_status, summary, chunk_count, uploaded_at')
+    .eq('deal_room_id', dealRoomId)
+    .eq('tenant_id', tenantId)
+    .order('uploaded_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function getDealRoomSourceFull(tenantId, sourceId) {
+  const { data, error } = await supabase
+    .from('deal_room_sources')
+    .select('*')
+    .eq('id', sourceId)
+    .eq('tenant_id', tenantId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getAllSourceChunks(tenantId, dealRoomId) {
+  const { data, error } = await supabase
+    .from('deal_room_sources')
+    .select('id, file_name, content_chunks')
+    .eq('deal_room_id', dealRoomId)
+    .eq('tenant_id', tenantId)
+    .eq('processing_status', 'ready');
+  if (error) throw error;
+  return data;
+}
+
+export async function createDealRoomSource(tenantId, dealRoomId, sourceData) {
+  const { data, error } = await supabase
+    .from('deal_room_sources')
+    .insert({ tenant_id: tenantId, deal_room_id: dealRoomId, ...sourceData })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateDealRoomSource(sourceId, updates) {
+  const { data, error } = await supabase
+    .from('deal_room_sources')
+    .update(updates)
+    .eq('id', sourceId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteDealRoomSource(tenantId, sourceId) {
+  // Get storage path first
+  const source = await getDealRoomSourceFull(tenantId, sourceId);
+  if (source.storage_path) {
+    await deleteFile(source.storage_path).catch((err) => {
+      console.error('[deal-room] Failed to delete file from storage:', err.message);
+    });
+  }
+  const { error } = await supabase
+    .from('deal_room_sources')
+    .delete()
+    .eq('id', sourceId)
+    .eq('tenant_id', tenantId);
+  if (error) throw error;
+}
+
+export async function getDealRoomMessages(tenantId, dealRoomId, { limit = 50 } = {}) {
+  const { data, error } = await supabase
+    .from('deal_room_messages')
+    .select('*')
+    .eq('deal_room_id', dealRoomId)
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
+export async function createDealRoomMessage(tenantId, dealRoomId, messageData) {
+  const { data, error } = await supabase
+    .from('deal_room_messages')
+    .insert({ tenant_id: tenantId, deal_room_id: dealRoomId, ...messageData })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ---------------------------------------------------------------------------
 // Tenant middleware — validates X-Sandbox-Token header
 // ---------------------------------------------------------------------------
 

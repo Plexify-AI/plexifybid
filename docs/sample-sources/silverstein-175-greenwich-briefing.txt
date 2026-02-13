@@ -1,0 +1,124 @@
+DEAL BRIEFING: 175 Greenwich Street — Silverstein Properties
+Prepared for: BD Team Internal Review
+Date: February 2026
+
+---
+
+PROPERTY OVERVIEW
+
+175 Greenwich Street is a 1,079-foot supertall residential tower in Lower Manhattan, developed by Silverstein Properties. The project represents one of the most significant residential developments in the World Trade Center master plan area. The tower features 80 stories of luxury condominiums with panoramic views of the Hudson River, Statue of Liberty, and Manhattan skyline.
+
+Location: Financial District / World Trade Center, New York City
+Developer: Silverstein Properties
+Architect: Rafael Vinoly Architects
+Height: 1,079 feet (329 meters)
+Floors: 80 stories
+Units: Approximately 275 luxury condominiums
+Status: Pre-development / Design Phase
+Estimated Completion: 2029-2030
+
+---
+
+MARKET CONTEXT
+
+The Financial District has undergone a dramatic transformation from a purely commercial district to one of Manhattan's fastest-growing residential neighborhoods. Key market dynamics include:
+
+1. Post-Pandemic Demand Shift: Remote work has increased demand for larger residential units with dedicated home office space. FiDi's newer housing stock is well-positioned for this trend.
+
+2. Infrastructure Investment: The completion of the Fulton Center transit hub and ongoing improvements to the World Trade Center campus have significantly improved neighborhood accessibility.
+
+3. Competitive Landscape: Major residential projects in the area include 50 West Street (Helmut Jahn), One Manhattan Square, and 125 Greenwich Street. The Silverstein project differentiates through height, views, and WTC campus integration.
+
+4. Price Point: Comparable luxury condos in Lower Manhattan are trading at $1,800-$2,500 per square foot. The premium positioning of 175 Greenwich could command $2,200-$3,000/SF depending on floor and view orientation.
+
+---
+
+STAKEHOLDER MAP
+
+Key Decision Makers:
+- Larry Silverstein, Chairman, Silverstein Properties
+- Marty Burger, CEO, Silverstein Properties
+- Dara McQuillan, Chief Marketing Officer
+- Tal Kerret, President, Silverstein Properties
+
+Project Team:
+- Rafael Vinoly Architects (design)
+- WSP (structural engineering)
+- Jaros, Baum & Bolles (MEP engineering)
+- Tishman Construction (general contractor - TBD)
+
+Government & Regulatory:
+- NYC Department of Buildings
+- Port Authority of New York and New Jersey
+- Lower Manhattan Development Corporation (LMDC)
+- Community Board 1 (Financial District)
+
+---
+
+OPPORTUNITY ASSESSMENT
+
+Our firm's value proposition for this project centers on three capabilities:
+
+1. Safety & Compliance Technology: With the complex regulatory environment surrounding WTC-adjacent development, our safety monitoring platform can provide real-time compliance tracking during the 3-4 year construction phase. The post-9/11 building codes for this area are among the most stringent in the world.
+
+2. Digital Twin Integration: The supertall design requires sophisticated monitoring during construction. Our sensor network and digital twin platform can provide structural monitoring, wind load analysis, and construction progress tracking.
+
+3. Owner's Rep Technology Support: Silverstein has a track record of adopting technology for project management. Their existing portfolio includes advanced BMS systems, and they are receptive to innovation that improves construction efficiency and reduces risk.
+
+Estimated Contract Value: $2.4M - $3.8M over the project lifecycle
+Win Probability: 65% (based on existing relationship with Silverstein PM team)
+Competition: Autodesk Construction Cloud, Newforma, Oracle Aconex
+
+---
+
+WARM INTRODUCTION PATHS
+
+1. Direct: Our CEO served on a panel with Tal Kerret at the NYC Real Estate Technology Week in October 2025. Follow-up meeting was discussed but not scheduled.
+
+2. Via Tishman: We have an active contract with Tishman Construction on the Hudson Yards Phase 2 project. If Tishman wins the GC contract for 175 Greenwich, this becomes a warm referral.
+
+3. Via WSP Engineering: Our sensor technology was evaluated by WSP for the Merdeka 118 project in Kuala Lumpur. Positive technical review could translate to a recommendation.
+
+4. Industry Event: REBNY Spring Conference in April 2026 — Marty Burger is a confirmed speaker. This is the strongest near-term opportunity for a face-to-face introduction.
+
+---
+
+KEY RISKS
+
+1. Timeline Uncertainty: The project is still in pre-development. Any delay in financing or regulatory approval pushes our engagement window.
+
+2. Market Correction: A luxury condo market downturn could cause Silverstein to scale back or pause the project. Current market indicators are positive but interest rate sensitivity remains high.
+
+3. Competitive Displacement: Autodesk has a strong existing relationship with Silverstein Properties through BIM 360 on other projects. Displacing an incumbent requires a clear ROI narrative.
+
+4. Budget Sensitivity: At $2.4M-$3.8M, our solution is a significant line item. We need to frame this as risk mitigation (insurance cost reduction, regulatory penalty avoidance) rather than pure technology spend.
+
+5. Political Risk: WTC-area development carries unique political sensitivities. Any controversy around the project could create delays that impact our timeline.
+
+---
+
+RECOMMENDED NEXT STEPS
+
+1. [Week 1] Request intro to Tal Kerret through our CEO's existing connection
+2. [Week 2] Prepare customized safety monitoring demo using FiDi/WTC regulatory requirements
+3. [Week 3] Schedule technical deep-dive with WSP engineering team
+4. [Month 2] Submit formal capability statement to Silverstein procurement
+5. [Month 3] Target REBNY Spring Conference for executive-level meeting with Marty Burger
+
+---
+
+APPENDIX: FINANCIAL DISTRICT DEVELOPMENT PIPELINE
+
+Additional projects in the FiDi/WTC area that represent future opportunities:
+
+- 5 World Trade Center (Silverstein/Brookfield) — 900-foot mixed-use tower, $3.5B estimated cost
+- 2 World Trade Center (Silverstein) — 1,340-foot office tower, tenant search ongoing
+- Seaport District Redevelopment (Howard Hughes Corp) — Mixed-use waterfront, multiple phases
+- 80 South Street — 69-story residential tower by Lightstone Group
+- One Fulton Street — Office-to-residential conversion by Rockwood Capital
+
+Total pipeline represents approximately $1.2B in potential technology services contracts over the next decade.
+
+---
+
+CONFIDENTIALITY NOTICE: This document contains proprietary business intelligence prepared for internal use only. Do not distribute outside the organization without authorization from the BD team lead.
