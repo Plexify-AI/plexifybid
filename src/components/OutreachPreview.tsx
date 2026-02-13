@@ -44,13 +44,18 @@ interface OutreachPreviewProps {
 }
 
 /**
- * Try to extract subject line and body from Claude's markdown response.
+ * Try to extract subject line, email body, and post-email commentary
+ * from Claude's markdown response.
+ *
  * Claude typically formats outreach as:
  *   **Subject:** ...
- *   ... body ...
- * or uses markdown headers.
+ *   ... email body ...
+ *   Best regards, / Sincerely, etc.
+ *   [Your name]
+ *
+ *   **Why this works:** / **Key elements:** / --- (commentary section)
  */
-function parseEmail(content: string): { subject: string; body: string } {
+export function parseEmail(content: string): { subject: string; body: string; commentary: string } {
   // Try "Subject:" pattern (bold or plain)
   const subjectMatch = content.match(/\*{0,2}Subject:?\*{0,2}\s*(.+?)(?:\n|$)/i);
   let subject = '';
@@ -66,15 +71,37 @@ function parseEmail(content: string): { subject: string; body: string } {
   // Clean up body: remove leading --- or *** dividers
   body = body.replace(/^[-*]{3,}\s*\n/, '').trim();
 
-  // Remove "Dear [Name]," if it starts with it (we show contact separately)
-  // Actually keep it — it's part of the email
+  // Split email body from post-email commentary.
+  // Look for sign-off patterns followed by a commentary section.
+  // Common sign-offs: "Best regards," "Sincerely," "Best," "Regards," "[Your name]"
+  // Commentary starts with: "**Why", "**Key", "---", "***", "Here's why", "This email"
+  let commentary = '';
 
-  return { subject, body };
+  // Strategy: find the sign-off + name block, then check if what follows is commentary
+  const commentaryPatterns = [
+    /\n\n(\*{2}(?:Why|Key|How|What|Note|Email|Strategy|Approach)[^\n]*\*{2}[\s\S]*)$/i,
+    /\n\n((?:Here'?s?\s+(?:why|how|what))[\s\S]*)$/i,
+    /\n\n((?:This (?:email|outreach|approach|draft))[\s\S]*)$/i,
+    /\n\n([-*]{3,}\s*\n[\s\S]*)$/,
+    /\n\n(Ready to send[\s\S]*)$/i,
+  ];
+
+  for (const pattern of commentaryPatterns) {
+    const match = body.match(pattern);
+    if (match && match[1]) {
+      commentary = match[1].trim();
+      body = body.substring(0, match.index! + 1).trim();
+      break;
+    }
+  }
+
+  return { subject, body, commentary };
 }
 
 const OutreachPreview: React.FC<OutreachPreviewProps> = ({ replyContent, emailContext }) => {
   const [copied, setCopied] = useState(false);
   const { subject, body } = parseEmail(replyContent);
+  // commentary is handled by the parent (AskPlexiInterface) via Markdown
 
   const handleCopy = async () => {
     const fullEmail = subject ? `Subject: ${subject}\n\n${body}` : body;

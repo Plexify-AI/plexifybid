@@ -4,7 +4,7 @@ import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle } from '
 import Markdown from 'react-markdown';
 import { useSandbox } from '../contexts/SandboxContext';
 import ProspectCardList from './ProspectCardList';
-import OutreachPreview from './OutreachPreview';
+import OutreachPreview, { parseEmail } from './OutreachPreview';
 import PipelineAnalysis from './PipelineAnalysis';
 
 // Structured tool result from the API
@@ -408,10 +408,34 @@ const AskPlexiInterface: React.FC = () => {
                   <div className="text-sm leading-relaxed">{message.content}</div>
                 ) : (
                   <>
-                    {/* For draft_outreach, OutreachPreview renders the email — skip markdown */}
+                    {/* For draft_outreach: OutreachPreview for email, Markdown for commentary */}
                     {message.toolResults?.some((tr) => tr.tool === 'draft_outreach') ? (
                       <>
                         {renderToolResults(message)}
+                        {/* Render post-email commentary (e.g. "Why this works") through Markdown */}
+                        {(() => {
+                          const { commentary } = parseEmail(message.content);
+                          if (!commentary) return null;
+                          return (
+                            <div className="plexi-prose text-sm leading-relaxed mt-3 pt-3 border-t border-gray-700/50">
+                              <Markdown
+                                components={{
+                                  h1: ({ children }) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
+                                  h2: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
+                                  h3: ({ children }) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
+                                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  strong: ({ children }) => <strong className="font-semibold text-blue-200">{children}</strong>,
+                                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                                  li: ({ children }) => <li className="text-gray-200">{children}</li>,
+                                  hr: () => <hr className="border-gray-600 my-3" />,
+                                }}
+                              >
+                                {commentary}
+                              </Markdown>
+                            </div>
+                          );
+                        })()}
                       </>
                     ) : (
                       <>
