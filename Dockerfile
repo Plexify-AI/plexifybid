@@ -7,15 +7,13 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Cache-bust: force npm ci to re-run when deps change
-ARG CACHE_BUST=deal-rooms-v1
-
 # Copy package files + local shared-ui dependency
 COPY package.json package-lock.json* ./
 COPY plexify-shared-ui/ ./plexify-shared-ui/
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci --ignore-scripts
+# v2: added multer + mammoth for Deal Room feature
+RUN npm ci --ignore-scripts && echo "deps-v2"
 
 # Copy source
 COPY . .
@@ -36,15 +34,13 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Cache-bust: force npm ci to re-run when deps change
-ARG CACHE_BUST=deal-rooms-v1
-
 # Copy package files + local shared-ui (needed for npm ci)
 COPY package.json package-lock.json* ./
 COPY plexify-shared-ui/ ./plexify-shared-ui/
 
 # Install production dependencies only
-RUN npm ci --omit=dev --ignore-scripts
+# v2: added multer + mammoth for Deal Room feature
+RUN npm ci --omit=dev --ignore-scripts && echo "deps-v2"
 
 # Copy built frontend from build stage
 COPY --from=build /app/dist ./dist
