@@ -12,7 +12,8 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import pdfParse from 'pdf-parse';
+// pdf-parse is lazy-imported inside extractText() to avoid its startup bug
+// (it tries to load a test PDF at import time which crashes in production)
 import mammoth from 'mammoth';
 import {
   createDealRoom,
@@ -68,6 +69,8 @@ CRITICAL RULES:
 async function extractText(buffer, fileType, fileName) {
   switch (fileType) {
     case 'pdf': {
+      // Lazy import — pdf-parse crashes at top-level import in production
+      const pdfParse = (await import('pdf-parse')).default;
       const result = await pdfParse(buffer);
       return result.text;
     }
