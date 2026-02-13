@@ -3,6 +3,16 @@ import { useSearchParams } from 'react-router-dom';
 import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useSandbox } from '../contexts/SandboxContext';
+import ProspectCardList from './ProspectCardList';
+import OutreachPreview from './OutreachPreview';
+import PipelineAnalysis from './PipelineAnalysis';
+
+// Structured tool result from the API
+interface ToolResult {
+  tool: string;
+  input: Record<string, any>;
+  result: any;
+}
 
 interface Message {
   id: string;
@@ -10,6 +20,7 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   toolsUsed?: string[];
+  toolResults?: ToolResult[];
   isError?: boolean;
 }
 
@@ -206,8 +217,9 @@ const AskPlexiInterface: React.FC = () => {
         { role: 'assistant', content: data.reply },
       ]);
 
-      // Build tool labels for the footer
+      // Build tool labels + structured results for rich rendering
       const toolsUsed = data.tool_results?.map((t: any) => t.tool) || [];
+      const toolResults: ToolResult[] = data.tool_results || [];
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -215,6 +227,7 @@ const AskPlexiInterface: React.FC = () => {
         isUser: false,
         timestamp: new Date(),
         toolsUsed: toolsUsed.length > 0 ? toolsUsed : undefined,
+        toolResults: toolResults.length > 0 ? toolResults : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -294,6 +307,53 @@ const AskPlexiInterface: React.FC = () => {
     }
   };
 
+  // Action: send "Draft outreach for [prospect]" into chat
+  const handleDraftOutreach = (prospectName: string, refId: string) => {
+    handleSendMessage(`Draft an outreach email for ${prospectName} (${refId})`);
+  };
+
+  // Render structured tool results as rich UI components
+  const renderToolResults = (message: Message) => {
+    if (!message.toolResults || message.toolResults.length === 0) return null;
+
+    return message.toolResults.map((tr, i) => {
+      // search_prospects → ProspectCardList
+      if (tr.tool === 'search_prospects' && tr.result?.prospects?.length > 0) {
+        return (
+          <ProspectCardList
+            key={`tool-${i}`}
+            data={tr.result}
+            onDraftOutreach={handleDraftOutreach}
+          />
+        );
+      }
+
+      // draft_outreach → OutreachPreview (email is in Claude's text reply)
+      if (tr.tool === 'draft_outreach' && tr.result?.email_context) {
+        return (
+          <OutreachPreview
+            key={`tool-${i}`}
+            replyContent={message.content}
+            emailContext={tr.result.email_context}
+          />
+        );
+      }
+
+      // analyze_pipeline → PipelineAnalysis
+      if (tr.tool === 'analyze_pipeline' && tr.result?.total_prospects != null) {
+        return (
+          <PipelineAnalysis
+            key={`tool-${i}`}
+            data={tr.result}
+            onDraftOutreach={handleDraftOutreach}
+          />
+        );
+      }
+
+      return null;
+    });
+  };
+
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
       {/* Header */}
@@ -325,12 +385,14 @@ const AskPlexiInterface: React.FC = () => {
               className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-3xl rounded-2xl ${
+                className={`rounded-2xl ${
                   message.isUser
-                    ? 'bg-blue-600 text-white ml-12 px-4 py-3'
+                    ? 'max-w-3xl bg-blue-600 text-white ml-12 px-4 py-3'
                     : message.isError
-                    ? 'bg-red-900/30 backdrop-blur-sm border border-red-500/30 mr-12 px-5 py-4'
-                    : 'bg-gray-800/50 backdrop-blur-sm border border-gray-700 mr-12 px-5 py-4'
+                    ? 'max-w-3xl bg-red-900/30 backdrop-blur-sm border border-red-500/30 mr-12 px-5 py-4'
+                    : message.toolResults?.length
+                    ? 'w-full bg-gray-800/50 backdrop-blur-sm border border-gray-700 mr-4 px-5 py-4'
+                    : 'max-w-3xl bg-gray-800/50 backdrop-blur-sm border border-gray-700 mr-12 px-5 py-4'
                 }`}
               >
                 {/* Error icon for error messages */}
@@ -345,31 +407,44 @@ const AskPlexiInterface: React.FC = () => {
                 {message.isUser ? (
                   <div className="text-sm leading-relaxed">{message.content}</div>
                 ) : (
-                  <div className="plexi-prose text-sm leading-relaxed">
-                    <Markdown
-                      components={{
-                        h1: ({ children }) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
-                        h2: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
-                        h3: ({ children }) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
-                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                        strong: ({ children }) => <strong className="font-semibold text-blue-200">{children}</strong>,
-                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                        li: ({ children }) => <li className="text-gray-200">{children}</li>,
-                        a: ({ href, children }) => (
-                          <a href={href} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
-                            {children}
-                          </a>
-                        ),
-                        code: ({ children }) => (
-                          <code className="bg-gray-700/50 px-1.5 py-0.5 rounded text-xs font-mono text-blue-300">{children}</code>
-                        ),
-                        hr: () => <hr className="border-gray-600 my-3" />,
-                      }}
-                    >
-                      {message.content}
-                    </Markdown>
-                  </div>
+                  <>
+                    {/* For draft_outreach, OutreachPreview renders the email — skip markdown */}
+                    {message.toolResults?.some((tr) => tr.tool === 'draft_outreach') ? (
+                      <>
+                        {renderToolResults(message)}
+                      </>
+                    ) : (
+                      <>
+                        <div className="plexi-prose text-sm leading-relaxed">
+                          <Markdown
+                            components={{
+                              h1: ({ children }) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
+                              h2: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
+                              h3: ({ children }) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
+                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                              strong: ({ children }) => <strong className="font-semibold text-blue-200">{children}</strong>,
+                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                              li: ({ children }) => <li className="text-gray-200">{children}</li>,
+                              a: ({ href, children }) => (
+                                <a href={href} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
+                                  {children}
+                                </a>
+                              ),
+                              code: ({ children }) => (
+                                <code className="bg-gray-700/50 px-1.5 py-0.5 rounded text-xs font-mono text-blue-300">{children}</code>
+                              ),
+                              hr: () => <hr className="border-gray-600 my-3" />,
+                            }}
+                          >
+                            {message.content}
+                          </Markdown>
+                        </div>
+                        {/* Structured tool results below the markdown text */}
+                        {renderToolResults(message)}
+                      </>
+                    )}
+                  </>
                 )}
 
                 {/* Tool badges */}
