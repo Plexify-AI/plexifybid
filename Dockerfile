@@ -7,6 +7,9 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Cache-bust: force npm ci to re-run when deps change
+ARG CACHE_BUST=deal-rooms-v1
+
 # Copy package files + local shared-ui dependency
 COPY package.json package-lock.json* ./
 COPY plexify-shared-ui/ ./plexify-shared-ui/
@@ -32,6 +35,9 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 ENV NODE_ENV=production
+
+# Cache-bust: force npm ci to re-run when deps change
+ARG CACHE_BUST=deal-rooms-v1
 
 # Copy package files + local shared-ui (needed for npm ci)
 COPY package.json package-lock.json* ./
