@@ -8,6 +8,7 @@ import { notebookBDDocxMiddleware } from './src/server/docxApi';
 import { healthMiddleware } from './src/server/healthApi';
 import { agentManagementMiddleware } from './src/server/agentManagementApi';
 import { askPlexiMiddleware } from './src/server/askPlexiApi';
+import { usageEventsMiddleware } from './src/server/usageEventsApi';
 import { authMiddleware } from './src/server/authApi';
 import { sandboxAuthDevMiddleware } from './src/server/sandboxAuthMiddleware';
 
@@ -40,6 +41,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(healthMiddleware());
         server.middlewares.use(agentManagementMiddleware());
         server.middlewares.use(askPlexiMiddleware());
+        server.middlewares.use(usageEventsMiddleware());
       },
     },
   ],

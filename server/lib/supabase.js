@@ -172,6 +172,17 @@ export async function logUsageEvent(tenantId, eventType, eventData = {}) {
   if (error) console.error('[usage_events] insert failed:', error.message);
 }
 
+export async function getUsageEvents(tenantId, { limit = 10 } = {}) {
+  const { data, error } = await supabase
+    .from('usage_events')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
 // ---------------------------------------------------------------------------
 // Tenant middleware — validates X-Sandbox-Token header
 // ---------------------------------------------------------------------------

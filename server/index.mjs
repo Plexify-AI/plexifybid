@@ -99,6 +99,13 @@ app.post('/api/ask-plexi/chat', async (req, res) => {
   await handleChat(req, res, req.body);
 });
 
+// Usage events (agent activity feed)
+import { handleGetUsageEvents } from './routes/usage-events.js';
+
+app.get('/api/usage-events', async (req, res) => {
+  await handleGetUsageEvents(req, res);
+});
+
 // ---------------------------------------------------------------------------
 // Static files — serve the Vite build output
 // ---------------------------------------------------------------------------

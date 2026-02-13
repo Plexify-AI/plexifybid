@@ -37,6 +37,7 @@ import { MelDemo } from './features/mel-demo';
 import { SandboxProvider, useSandbox } from './contexts/SandboxContext';
 import SandboxEntry from './pages/SandboxEntry';
 import AccessRequired from './pages/AccessRequired';
+import PlexiCosAgentsPage from './pages/PlexiCosAgentsPage';
 
 // Agent Management route wrappers
 function SessionListWrapper() {
@@ -380,6 +381,7 @@ const AppBody: React.FC = () => {
                   <Route path="/" element={<Navigate to="/home" replace />} />
                   <Route path="/home" element={<ExecutiveFeed />} />
                   <Route path="/ask-plexi" element={<AskPlexiInterface />} />
+                  <Route path="/agents" element={<PlexiCosAgentsPage />} />
                   <Route
                     path="/settings"
                     element={
