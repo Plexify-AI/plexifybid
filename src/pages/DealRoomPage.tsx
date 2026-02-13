@@ -12,7 +12,7 @@ import {
   FileText, MessageSquare, Sparkles, BookOpen, AlertCircle
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import SourceCard, { type SourceDoc } from '../components/SourceCard';
+import DealRoomSourceCard, { type SourceDoc } from '../components/DealRoomSourceCard';
 import { useSandbox } from '../contexts/SandboxContext';
 
 // ---------------------------------------------------------------------------
@@ -373,7 +373,7 @@ const DealRoomPage: React.FC = () => {
             ) : (
               <div className="space-y-2">
                 {sources.map((source) => (
-                  <SourceCard
+                  <DealRoomSourceCard
                     key={source.id}
                     source={source}
                     onDelete={handleDeleteSource}
