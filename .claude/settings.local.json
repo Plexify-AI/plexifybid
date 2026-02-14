@@ -12,7 +12,8 @@
       "Bash(docker run:*)",
       "Bash(docker stop:*)",
       "Bash(docker rm:*)",
-      "Bash(ping:*)"
+      "Bash(ping:*)",
+      "Bash(cd:*)"
     ]
   }
 }
