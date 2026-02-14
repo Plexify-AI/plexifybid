@@ -69,8 +69,12 @@ CRITICAL RULES:
 async function extractText(buffer, fileType, fileName) {
   switch (fileType) {
     case 'pdf': {
-      // Lazy import — pdf-parse crashes at top-level import in production
-      const pdfParse = (await import('pdf-parse')).default;
+      // Import the inner lib directly — pdf-parse/index.js has a known bug
+      // where it runs test code when !module.parent (true under ESM import).
+      // Bypassing index.js and requiring lib/pdf-parse.js directly avoids it.
+      const { createRequire } = await import('module');
+      const require = createRequire(import.meta.url);
+      const pdfParse = require('pdf-parse/lib/pdf-parse.js');
       const result = await pdfParse(buffer);
       return result.text;
     }
