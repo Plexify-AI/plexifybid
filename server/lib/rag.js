@@ -165,17 +165,36 @@ function scoreChunk(chunk, queryKeywords) {
  * @param {number} topK - Number of chunks to return
  * @returns {Array<{chunk: object, score: number}>}
  */
+/**
+ * Detect if a query is a broad/meta request (summarize, overview, etc.)
+ * that should include all sources rather than keyword-filtered results.
+ */
+const BROAD_QUERY_PATTERNS = [
+  /\bsummar/i, /\boverview\b/i, /\ball\b.*\bsource/i, /\beverything\b/i,
+  /\bwhat.*(?:have|uploaded|got)\b/i, /\btell me about\b/i, /\bkey (?:takeaway|point|theme|finding)/i,
+  /\bhighlight/i, /\bbrief me\b/i, /\bcatch me up\b/i, /\bwhat.*\bknow\b/i,
+];
+
+function isBroadQuery(query) {
+  return BROAD_QUERY_PATTERNS.some((p) => p.test(query));
+}
+
 export function searchChunks(query, sources, topK = 6) {
   const queryKeywords = extractKeywords(query);
-  if (queryKeywords.length === 0) {
-    // No meaningful keywords — return first chunk from each source
-    return sources
-      .filter((s) => s.content_chunks?.length > 0)
-      .slice(0, topK)
-      .map((s) => ({
-        chunk: s.content_chunks[0],
-        score: 0.1,
-      }));
+  const broad = isBroadQuery(query);
+
+  // For broad queries or no meaningful keywords — return chunks from all sources
+  // so Claude always has material to work with
+  if (broad || queryKeywords.length === 0) {
+    const allChunks = [];
+    for (const source of sources) {
+      if (!source.content_chunks || source.content_chunks.length === 0) continue;
+      for (const chunk of source.content_chunks) {
+        allChunks.push({ chunk, score: 0.5 });
+      }
+    }
+    // For broad queries, include more chunks (up to topK * 2)
+    return allChunks.slice(0, broad ? topK * 2 : topK);
   }
 
   // Flatten all chunks from all sources
@@ -196,6 +215,15 @@ export function searchChunks(query, sources, topK = 6) {
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);
+
+  // Fallback: if keyword search found nothing, return first chunks from each source
+  // This ensures Claude always has some context to work with
+  if (scored.length === 0) {
+    return sources
+      .filter((s) => s.content_chunks?.length > 0)
+      .flatMap((s) => s.content_chunks.slice(0, 2).map((chunk) => ({ chunk, score: 0.1 })))
+      .slice(0, topK);
+  }
 
   return scored;
 }
