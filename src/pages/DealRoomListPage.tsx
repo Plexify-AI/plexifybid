@@ -213,19 +213,19 @@ const DealRoomListPage: React.FC = () => {
               <button
                 key={room.id}
                 onClick={() => navigate(`/deal-rooms/${room.id}`)}
-                className="group text-left bg-gray-800/40 border border-gray-700/40 rounded-xl p-5 hover:bg-gray-800/60 hover:border-gray-600/50 transition-all"
+                className="group text-left bg-gray-800/40 border border-gray-700/40 rounded-xl p-5 hover:bg-gray-800/60 hover:border-gray-600/50 transition-all overflow-hidden"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center shrink-0">
                       <Briefcase size={17} className="text-amber-400" />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <h3 className="text-sm font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
                         {room.name}
                       </h3>
                       {room.description && (
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{room.description}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1 overflow-hidden text-ellipsis">{room.description}</p>
                       )}
                     </div>
                   </div>
