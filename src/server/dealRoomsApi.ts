@@ -24,6 +24,8 @@ async function getHandlers() {
       upload: mod.handleUploadSource,
       deleteSource: mod.handleDeleteSource,
       chat: mod.handleDealRoomChat,
+      generateArtifact: mod.handleGenerateArtifact,
+      listArtifacts: mod.handleListArtifacts,
     };
   }
   return _handlers;
@@ -110,6 +112,12 @@ function parseRoute(url: string) {
     return { route: 'chat', dealRoomId: chatMatch[1] };
   }
 
+  // POST/GET /api/deal-rooms/:id/artifacts
+  const artifactsMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/artifacts$/);
+  if (artifactsMatch) {
+    return { route: 'artifacts', dealRoomId: artifactsMatch[1] };
+  }
+
   // GET /api/deal-rooms/:id
   const getMatch = path.match(/^\/api\/deal-rooms\/([^/]+)$/);
   if (getMatch) {
@@ -186,6 +194,18 @@ export function dealRoomsMiddleware() {
           if (req.method === 'POST') {
             const body = await readBody(req);
             await handlers.chat(req, res, parsed.dealRoomId, body);
+          } else {
+            sendError(res as any, 405, 'Method not allowed');
+          }
+          break;
+        }
+
+        case 'artifacts': {
+          if (req.method === 'POST') {
+            const body = await readBody(req);
+            await handlers.generateArtifact(req, res, parsed.dealRoomId, body);
+          } else if (req.method === 'GET') {
+            await handlers.listArtifacts(req, res, parsed.dealRoomId);
           } else {
             sendError(res as any, 405, 'Method not allowed');
           }

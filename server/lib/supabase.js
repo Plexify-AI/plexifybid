@@ -345,6 +345,42 @@ export async function createDealRoomMessage(tenantId, dealRoomId, messageData) {
 }
 
 // ---------------------------------------------------------------------------
+// Deal Room Artifacts
+// ---------------------------------------------------------------------------
+
+export async function createDealRoomArtifact(tenantId, dealRoomId, data) {
+  const { data: artifact, error } = await supabase
+    .from('deal_room_artifacts')
+    .insert({ tenant_id: tenantId, deal_room_id: dealRoomId, ...data })
+    .select()
+    .single();
+  if (error) throw error;
+  return artifact;
+}
+
+export async function updateDealRoomArtifact(artifactId, updates) {
+  const { data, error } = await supabase
+    .from('deal_room_artifacts')
+    .update(updates)
+    .eq('id', artifactId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getDealRoomArtifacts(tenantId, dealRoomId) {
+  const { data, error } = await supabase
+    .from('deal_room_artifacts')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('deal_room_id', dealRoomId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+// ---------------------------------------------------------------------------
 // Tenant middleware — validates X-Sandbox-Token header
 // ---------------------------------------------------------------------------
 

@@ -115,6 +115,8 @@ import {
   handleUploadSource,
   handleDeleteSource,
   handleDealRoomChat,
+  handleGenerateArtifact,
+  handleListArtifacts,
 } from './routes/deal-rooms.js';
 
 const dealRoomUpload = multer({
@@ -144,6 +146,14 @@ app.delete('/api/deal-rooms/:id/sources/:sourceId', async (req, res) => {
 
 app.post('/api/deal-rooms/:id/chat', async (req, res) => {
   await handleDealRoomChat(req, res, req.params.id, req.body);
+});
+
+app.post('/api/deal-rooms/:id/artifacts', async (req, res) => {
+  await handleGenerateArtifact(req, res, req.params.id, req.body);
+});
+
+app.get('/api/deal-rooms/:id/artifacts', async (req, res) => {
+  await handleListArtifacts(req, res, req.params.id);
 });
 
 // ---------------------------------------------------------------------------
