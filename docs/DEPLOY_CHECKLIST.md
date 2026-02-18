@@ -43,6 +43,7 @@ In the Railway service settings, go to **Variables** and add these:
 | `SUPABASE_ANON_KEY` | `eyJ...` | From Supabase dashboard → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJ...` | From Supabase dashboard → Settings → API (keep secret!) |
 | `ANTHROPIC_API_KEY` | `sk-ant-...` | From console.anthropic.com → API Keys |
+| `ELEVENLABS_API_KEY` | `sk_...` | From elevenlabs.io → Profile → API Keys (optional — audio features) |
 | `NODE_ENV` | `production` | Exactly this value |
 
 **Do NOT set** `PORT` — Railway assigns this automatically.
@@ -159,6 +160,7 @@ Replace `YOUR-DOMAIN` with your actual Railway domain.
 | `SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (full access) |
 | `ANTHROPIC_API_KEY` | Yes | Anthropic API key for Claude |
+| `ELEVENLABS_API_KEY` | No | ElevenLabs API key for audio briefings + podcasts |
 | `NODE_ENV` | Yes | Set to `production` |
 | `PORT` | No | Railway sets this automatically — do not set manually |
 | `ALLOWED_ORIGINS` | No | Comma-separated allowed CORS origins (default: allow all) |

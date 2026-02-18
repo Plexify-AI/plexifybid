@@ -9,6 +9,9 @@
  * POST   /api/deal-rooms/:id/chat      — RAG-grounded chat
  * POST   /api/deal-rooms/:id/artifacts — Generate structured artifact
  * GET    /api/deal-rooms/:id/artifacts — List artifacts
+ * POST   /api/deal-rooms/:id/audio    — Generate audio briefing or podcast
+ * GET    /api/deal-rooms/:id/audio    — List audio files
+ * GET    /api/deal-rooms/:id/audio/:audioId/stream — Stream mp3
  *
  * Auth: sandboxAuth middleware sets req.tenant before these handlers run.
  */
@@ -32,10 +35,16 @@ import {
   createDealRoomArtifact,
   updateDealRoomArtifact,
   getDealRoomArtifacts,
+  createDealRoomAudio,
+  updateDealRoomAudio,
+  getDealRoomAudios,
+  getDealRoomAudio,
   uploadFile,
+  downloadFile,
   logUsageEvent,
 } from '../lib/supabase.js';
 import { chunkText, searchChunks, buildRAGContext } from '../lib/rag.js';
+import { isElevenLabsConfigured, generateBriefing, generatePodcast } from '../lib/elevenlabs.js';
 
 // ---------------------------------------------------------------------------
 // Claude client (lazy init — same pattern as claude.js)
@@ -564,6 +573,217 @@ export async function handleListArtifacts(req, res, dealRoomId) {
   } catch (err) {
     console.error('[deal-rooms] List artifacts error:', err);
     return sendError(res, 500, 'Failed to list artifacts');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Audio Generation Prompts
+// ---------------------------------------------------------------------------
+
+const BRIEFING_SCRIPT_PROMPT = `You are a Bloomberg-style news anchor writing a 90-second audio briefing.
+Convert this deal intelligence into a spoken briefing script.
+Rules:
+- Write in first person, direct address ("Here's what you need to know...")
+- Lead with the most important finding
+- Use short, punchy sentences optimized for audio
+- No headers, bullets, or markdown — pure spoken text
+- No visual references — this is audio only
+- Target 200-250 words (about 90 seconds spoken)
+- End with one clear action item
+
+Return ONLY the script text, no JSON, no explanation.`;
+
+const PODCAST_SCRIPT_PROMPT = `You are writing a 2-3 minute podcast dialogue between a Host and an Analyst.
+Convert this deal intelligence into an engaging conversation.
+Rules:
+- Host asks smart questions, sets up topics, provides transitions
+- Analyst provides data-driven insights, specific numbers, key findings
+- Natural conversational flow — not robotic Q&A
+- Include brief intro ("Welcome to your deal briefing...") and wrap-up
+- Target 8-14 exchanges total (400-600 words)
+- Each speaker turn should be 1-3 sentences
+- Target audience: senior BD executive on their commute
+
+Return ONLY valid JSON array: [{"speaker": "host", "text": "..."}, {"speaker": "analyst", "text": "..."}]
+No markdown, no code fences, just the JSON array.`;
+
+// ---------------------------------------------------------------------------
+// Audio Handlers
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /api/deal-rooms/:id/audio — Generate audio briefing or podcast
+ */
+export async function handleGenerateAudio(req, res, dealRoomId, body) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  const { type, artifact_id } = body || {};
+  if (!type || !['briefing', 'podcast'].includes(type)) {
+    return sendError(res, 400, 'Invalid type. Must be "briefing" or "podcast".');
+  }
+  if (!artifact_id) {
+    return sendError(res, 400, 'Missing artifact_id');
+  }
+  if (!isElevenLabsConfigured()) {
+    return sendError(res, 503, 'Audio generation not available — ElevenLabs API key not configured');
+  }
+
+  try {
+    // 1. Verify deal room
+    await getDealRoom(tenant.id, dealRoomId);
+
+    // 2. Load artifact
+    const artifacts = await getDealRoomArtifacts(tenant.id, dealRoomId);
+    const artifact = artifacts.find((a) => a.id === artifact_id);
+    if (!artifact || artifact.status !== 'ready' || !artifact.content) {
+      return sendError(res, 400, 'Artifact not found or not ready');
+    }
+
+    // 3. Create DB record (status=generating)
+    const audioRecord = await createDealRoomAudio(tenant.id, dealRoomId, {
+      artifact_id,
+      audio_type: type,
+      title: `${type === 'podcast' ? 'Podcast' : 'Briefing'}: ${artifact.title}`,
+      status: 'generating',
+    });
+
+    // 4. Generate script via Claude
+    const artifactJSON = JSON.stringify(artifact.content.output, null, 2);
+    const prompt = type === 'briefing' ? BRIEFING_SCRIPT_PROMPT : PODCAST_SCRIPT_PROMPT;
+
+    const scriptResponse = await getClaude().messages.create({
+      model: MODEL,
+      max_tokens: 2048,
+      messages: [{
+        role: 'user',
+        content: `${prompt}\n\n--- ARTIFACT DATA ---\n${artifactJSON}`,
+      }],
+    });
+
+    const scriptText = scriptResponse.content
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
+      .join('\n')
+      .trim();
+
+    // 5. Generate audio via ElevenLabs
+    let audioBuffer;
+    let scriptData = {};
+
+    if (type === 'briefing') {
+      audioBuffer = await generateBriefing(scriptText);
+      scriptData = { script: scriptText };
+    } else {
+      // Parse podcast JSON
+      let sections;
+      try {
+        const cleaned = scriptText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+        sections = JSON.parse(cleaned);
+      } catch (parseErr) {
+        console.error('[deal-rooms] Podcast JSON parse failed:', parseErr.message);
+        await updateDealRoomAudio(audioRecord.id, {
+          status: 'error',
+          error_message: 'Failed to parse podcast script from Claude',
+        });
+        return sendError(res, 500, 'Failed to generate podcast script');
+      }
+      audioBuffer = await generatePodcast(sections);
+      scriptData = { podcast_script: sections };
+    }
+
+    // 6. Upload to Supabase Storage
+    const storagePath = `${tenant.id}/${dealRoomId}/audio/${audioRecord.id}.mp3`;
+    await uploadFile(storagePath, audioBuffer, 'audio/mpeg');
+
+    // 7. Estimate duration (150 words/minute)
+    const wordCount = type === 'briefing'
+      ? scriptText.split(/\s+/).length
+      : scriptData.podcast_script.reduce((acc, s) => acc + s.text.split(/\s+/).length, 0);
+    const durationSeconds = Math.round((wordCount / 150) * 60);
+
+    // 8. Update DB record
+    const updated = await updateDealRoomAudio(audioRecord.id, {
+      status: 'ready',
+      storage_path: storagePath,
+      duration_seconds: durationSeconds,
+      ...scriptData,
+    });
+
+    // 9. Log usage event
+    logUsageEvent(tenant.id, 'deal_room_audio_generated', {
+      deal_room_id: dealRoomId,
+      audio_id: audioRecord.id,
+      audio_type: type,
+      artifact_id,
+      duration_seconds: durationSeconds,
+    }).catch(() => {});
+
+    console.log(`[deal-room] Generated ${type}: ${audioRecord.id} (${durationSeconds}s)`);
+    return sendJSON(res, 201, updated);
+  } catch (err) {
+    console.error('[deal-rooms] Audio generation error:', err);
+    return sendError(res, 500, `Failed to generate audio: ${err.message}`);
+  }
+}
+
+/**
+ * GET /api/deal-rooms/:id/audio — List all audio for a deal room
+ */
+export async function handleListAudio(req, res, dealRoomId) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  try {
+    const audios = await getDealRoomAudios(tenant.id, dealRoomId);
+    return sendJSON(res, 200, { audios });
+  } catch (err) {
+    console.error('[deal-rooms] List audio error:', err);
+    return sendError(res, 500, 'Failed to list audio');
+  }
+}
+
+/**
+ * GET /api/deal-rooms/:id/audio/:audioId/stream — Stream mp3
+ */
+export async function handleStreamAudio(req, res, dealRoomId, audioId) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  try {
+    const audio = await getDealRoomAudio(tenant.id, audioId);
+    if (!audio || audio.deal_room_id !== dealRoomId) {
+      return sendError(res, 404, 'Audio not found');
+    }
+    if (audio.status !== 'ready' || !audio.storage_path) {
+      return sendError(res, 404, 'Audio not ready');
+    }
+
+    const blob = await downloadFile(audio.storage_path);
+    const buffer = Buffer.from(await blob.arrayBuffer());
+
+    // Support Range requests for seeking
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : buffer.length - 1;
+      res.statusCode = 206;
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${buffer.length}`);
+      res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('Content-Length', end - start + 1);
+      res.setHeader('Content-Type', 'audio/mpeg');
+      return res.end(buffer.slice(start, end + 1));
+    }
+
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Accept-Ranges', 'bytes');
+    return res.end(buffer);
+  } catch (err) {
+    console.error('[deal-rooms] Stream audio error:', err);
+    return sendError(res, 500, 'Failed to stream audio');
   }
 }
 

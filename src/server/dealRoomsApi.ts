@@ -26,6 +26,9 @@ async function getHandlers() {
       chat: mod.handleDealRoomChat,
       generateArtifact: mod.handleGenerateArtifact,
       listArtifacts: mod.handleListArtifacts,
+      generateAudio: mod.handleGenerateAudio,
+      listAudio: mod.handleListAudio,
+      streamAudio: mod.handleStreamAudio,
     };
   }
   return _handlers;
@@ -118,6 +121,18 @@ function parseRoute(url: string) {
     return { route: 'artifacts', dealRoomId: artifactsMatch[1] };
   }
 
+  // GET /api/deal-rooms/:id/audio/:audioId/stream
+  const audioStreamMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/audio\/([^/]+)\/stream$/);
+  if (audioStreamMatch) {
+    return { route: 'audio-stream', dealRoomId: audioStreamMatch[1], audioId: audioStreamMatch[2] };
+  }
+
+  // POST/GET /api/deal-rooms/:id/audio
+  const audioMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/audio$/);
+  if (audioMatch) {
+    return { route: 'audio', dealRoomId: audioMatch[1] };
+  }
+
   // GET /api/deal-rooms/:id
   const getMatch = path.match(/^\/api\/deal-rooms\/([^/]+)$/);
   if (getMatch) {
@@ -206,6 +221,27 @@ export function dealRoomsMiddleware() {
             await handlers.generateArtifact(req, res, parsed.dealRoomId, body);
           } else if (req.method === 'GET') {
             await handlers.listArtifacts(req, res, parsed.dealRoomId);
+          } else {
+            sendError(res as any, 405, 'Method not allowed');
+          }
+          break;
+        }
+
+        case 'audio': {
+          if (req.method === 'POST') {
+            const body = await readBody(req);
+            await handlers.generateAudio(req, res, parsed.dealRoomId, body);
+          } else if (req.method === 'GET') {
+            await handlers.listAudio(req, res, parsed.dealRoomId);
+          } else {
+            sendError(res as any, 405, 'Method not allowed');
+          }
+          break;
+        }
+
+        case 'audio-stream': {
+          if (req.method === 'GET') {
+            await handlers.streamAudio(req, res, parsed.dealRoomId, parsed.audioId);
           } else {
             sendError(res as any, 405, 'Method not allowed');
           }

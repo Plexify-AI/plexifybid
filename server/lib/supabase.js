@@ -381,6 +381,61 @@ export async function getDealRoomArtifacts(tenantId, dealRoomId) {
 }
 
 // ---------------------------------------------------------------------------
+// Deal Room Audio
+// ---------------------------------------------------------------------------
+
+export async function createDealRoomAudio(tenantId, dealRoomId, data) {
+  const { data: audio, error } = await supabase
+    .from('deal_room_audio')
+    .insert({ tenant_id: tenantId, deal_room_id: dealRoomId, ...data })
+    .select()
+    .single();
+  if (error) throw error;
+  return audio;
+}
+
+export async function updateDealRoomAudio(audioId, updates) {
+  const { data, error } = await supabase
+    .from('deal_room_audio')
+    .update(updates)
+    .eq('id', audioId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getDealRoomAudios(tenantId, dealRoomId) {
+  const { data, error } = await supabase
+    .from('deal_room_audio')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('deal_room_id', dealRoomId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getDealRoomAudio(tenantId, audioId) {
+  const { data, error } = await supabase
+    .from('deal_room_audio')
+    .select('*')
+    .eq('id', audioId)
+    .eq('tenant_id', tenantId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function downloadFile(storagePath) {
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .download(storagePath);
+  if (error) throw error;
+  return data; // Blob — use .arrayBuffer() to convert
+}
+
+// ---------------------------------------------------------------------------
 // Tenant middleware — validates X-Sandbox-Token header
 // ---------------------------------------------------------------------------
 

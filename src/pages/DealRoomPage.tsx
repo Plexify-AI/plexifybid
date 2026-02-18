@@ -15,7 +15,7 @@ import {
   Briefcase, Upload, Send, ArrowLeft, Loader2,
   FileText, MessageSquare, Sparkles, BookOpen, AlertCircle,
   BarChart3, Calendar, Download, ChevronDown, ChevronRight,
-  Clock, X
+  Clock, X, Headphones, Mic
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import DealRoomSourceCard, { type SourceDoc } from '../components/DealRoomSourceCard';
@@ -33,6 +33,7 @@ import DealSummaryRenderer from '../components/artifacts/DealSummaryRenderer';
 import CompetitiveAnalysisRenderer from '../components/artifacts/CompetitiveAnalysisRenderer';
 import MeetingPrepRenderer from '../components/artifacts/MeetingPrepRenderer';
 import { downloadArtifactPDF } from '../components/artifacts/ArtifactPDFDocument';
+import AudioBriefingPlayer, { type AudioRecord } from '../components/AudioBriefingPlayer';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -138,6 +139,12 @@ const DealRoomPage: React.FC = () => {
   const [artifactsExpanded, setArtifactsExpanded] = useState(true);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
 
+  // Audio state
+  const [audios, setAudios] = useState<AudioRecord[]>([]);
+  const [activeAudio, setActiveAudio] = useState<AudioRecord | null>(null);
+  const [generatingAudioType, setGeneratingAudioType] = useState<'briefing' | 'podcast' | null>(null);
+  const [audiosExpanded, setAudiosExpanded] = useState(true);
+
   // ---------------------------------------------------------------------------
   // API helpers
   // ---------------------------------------------------------------------------
@@ -181,10 +188,24 @@ const DealRoomPage: React.FC = () => {
     }
   }, [token, dealRoomId, headers]);
 
+  // Load audio records
+  const fetchAudios = useCallback(async () => {
+    if (!token || !dealRoomId) return;
+    try {
+      const res = await fetch(`/api/deal-rooms/${dealRoomId}/audio`, { headers: headers() });
+      if (!res.ok) return; // Non-critical
+      const data = await res.json();
+      setAudios(data.audios || []);
+    } catch {
+      // Non-critical
+    }
+  }, [token, dealRoomId, headers]);
+
   useEffect(() => {
     fetchRoom();
     fetchArtifacts();
-  }, [fetchRoom, fetchArtifacts]);
+    fetchAudios();
+  }, [fetchRoom, fetchArtifacts, fetchAudios]);
 
   // Scroll chat to bottom when messages change
   useEffect(() => {
@@ -376,6 +397,58 @@ const DealRoomPage: React.FC = () => {
   const handleViewArtifact = (artifact: DealRoomArtifactRecord) => {
     setActiveArtifact(artifact);
     setViewMode('artifact');
+  };
+
+  // ---------------------------------------------------------------------------
+  // Audio generation
+  // ---------------------------------------------------------------------------
+
+  const handleGenerateAudioFn = async (audioType: 'briefing' | 'podcast') => {
+    if (!token || !dealRoomId || !activeArtifact || generatingAudioType) return;
+
+    if (activeArtifact.status !== 'ready' || !activeArtifact.content) {
+      setError('Artifact must be ready before generating audio.');
+      return;
+    }
+
+    setGeneratingAudioType(audioType);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/deal-rooms/${dealRoomId}/audio`, {
+        method: 'POST',
+        headers: jsonHeaders(),
+        body: JSON.stringify({
+          type: audioType,
+          artifact_id: activeArtifact.id,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Audio generation failed (${res.status})`);
+      }
+
+      const audioRecord: AudioRecord = await res.json();
+      setAudios((prev) => [audioRecord, ...prev]);
+      setActiveAudio(audioRecord);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setGeneratingAudioType(null);
+    }
+  };
+
+  const handlePlayAudio = (audio: AudioRecord) => {
+    setActiveAudio(audio);
+    // If we have the artifact, show it too
+    if (audio.artifact_id) {
+      const art = artifacts.find((a) => a.id === audio.artifact_id);
+      if (art) {
+        setActiveArtifact(art);
+        setViewMode('artifact');
+      }
+    }
   };
 
   // ---------------------------------------------------------------------------
@@ -584,6 +657,66 @@ const DealRoomPage: React.FC = () => {
                 )}
               </div>
             )}
+
+            {/* Audio History */}
+            {audios.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-700/30">
+                <button
+                  onClick={() => setAudiosExpanded(!audiosExpanded)}
+                  className="flex items-center gap-1.5 text-[11px] text-gray-400 hover:text-gray-300 transition-colors mb-2 w-full"
+                >
+                  {audiosExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                  <span className="uppercase tracking-wider font-medium">Audio ({audios.length})</span>
+                </button>
+
+                {audiosExpanded && (
+                  <div className="space-y-1.5">
+                    {audios.map((audioItem) => (
+                      <button
+                        key={audioItem.id}
+                        onClick={() => handlePlayAudio(audioItem)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all ${
+                          activeAudio?.id === audioItem.id
+                            ? 'bg-blue-500/15 border border-blue-500/30 text-white'
+                            : 'bg-gray-800/30 border border-gray-700/30 text-gray-400 hover:bg-gray-800/50 hover:text-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {audioItem.audio_type === 'briefing' ? (
+                            <Headphones size={12} className="text-blue-400 shrink-0" />
+                          ) : (
+                            <Mic size={12} className="text-purple-400 shrink-0" />
+                          )}
+                          <span className="font-medium truncate flex-1">
+                            {audioItem.title || (audioItem.audio_type === 'briefing' ? 'Audio Briefing' : 'Podcast')}
+                          </span>
+                          {audioItem.status === 'error' && (
+                            <AlertCircle size={12} className="text-red-400 shrink-0" />
+                          )}
+                          {audioItem.status === 'generating' && (
+                            <Loader2 size={12} className="text-blue-400 animate-spin shrink-0" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-500">
+                          <Clock size={9} />
+                          <span>{timeAgo(audioItem.created_at)}</span>
+                          {audioItem.duration_seconds && (
+                            <>
+                              <span className="mx-1">·</span>
+                              <span>{Math.floor(audioItem.duration_seconds / 60)}:{(audioItem.duration_seconds % 60).toString().padStart(2, '0')}</span>
+                            </>
+                          )}
+                          <span className="mx-1">·</span>
+                          <span className={audioItem.audio_type === 'briefing' ? 'text-blue-400/70' : 'text-purple-400/70'}>
+                            {audioItem.audio_type === 'briefing' ? 'Briefing' : 'Podcast'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -612,21 +745,49 @@ const DealRoomPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {activeArtifact.status === 'ready' && activeArtifact.content && (
-                    <button
-                      onClick={handleDownloadPDF}
-                      disabled={downloadingPDF}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors"
-                    >
-                      {downloadingPDF ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : (
-                        <Download size={12} />
-                      )}
-                      PDF
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleGenerateAudioFn('briefing')}
+                        disabled={!!generatingAudioType}
+                        title="Generate audio briefing"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/50 border border-gray-700/40 hover:bg-gray-700/50 hover:border-gray-600/50 disabled:opacity-40 text-gray-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
+                      >
+                        {generatingAudioType === 'briefing' ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Headphones size={12} />
+                        )}
+                        Audio
+                      </button>
+                      <button
+                        onClick={() => handleGenerateAudioFn('podcast')}
+                        disabled={!!generatingAudioType}
+                        title="Generate two-voice podcast"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800/50 border border-gray-700/40 hover:bg-gray-700/50 hover:border-gray-600/50 disabled:opacity-40 text-gray-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
+                      >
+                        {generatingAudioType === 'podcast' ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Mic size={12} />
+                        )}
+                        Podcast
+                      </button>
+                      <button
+                        onClick={handleDownloadPDF}
+                        disabled={downloadingPDF}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white rounded-lg text-xs font-medium transition-colors"
+                      >
+                        {downloadingPDF ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Download size={12} />
+                        )}
+                        PDF
+                      </button>
+                    </>
                   )}
                   <button
-                    onClick={() => { setViewMode('chat'); setActiveArtifact(null); }}
+                    onClick={() => { setViewMode('chat'); setActiveArtifact(null); setActiveAudio(null); }}
                     className="p-1.5 rounded-lg hover:bg-gray-700/30 text-gray-400 hover:text-white transition-colors"
                     title="Back to chat"
                   >
@@ -674,6 +835,17 @@ const DealRoomPage: React.FC = () => {
                             </span>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Audio player */}
+                    {activeAudio && token && (
+                      <div className="mt-4">
+                        <AudioBriefingPlayer
+                          audio={activeAudio}
+                          dealRoomId={dealRoomId!}
+                          token={token}
+                        />
                       </div>
                     )}
                   </>

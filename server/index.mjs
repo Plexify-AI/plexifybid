@@ -117,6 +117,9 @@ import {
   handleDealRoomChat,
   handleGenerateArtifact,
   handleListArtifacts,
+  handleGenerateAudio,
+  handleListAudio,
+  handleStreamAudio,
 } from './routes/deal-rooms.js';
 
 const dealRoomUpload = multer({
@@ -154,6 +157,19 @@ app.post('/api/deal-rooms/:id/artifacts', async (req, res) => {
 
 app.get('/api/deal-rooms/:id/artifacts', async (req, res) => {
   await handleListArtifacts(req, res, req.params.id);
+});
+
+// Audio briefings + podcasts
+app.post('/api/deal-rooms/:id/audio', async (req, res) => {
+  await handleGenerateAudio(req, res, req.params.id, req.body);
+});
+
+app.get('/api/deal-rooms/:id/audio', async (req, res) => {
+  await handleListAudio(req, res, req.params.id);
+});
+
+app.get('/api/deal-rooms/:id/audio/:audioId/stream', async (req, res) => {
+  await handleStreamAudio(req, res, req.params.id, req.params.audioId);
 });
 
 // ---------------------------------------------------------------------------
