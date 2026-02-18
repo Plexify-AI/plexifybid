@@ -1,116 +1,160 @@
 # PlexifySOLO Sprint Status
-Last updated: 2026-02-12 (Session 5 committed: ea6bfbf)
+Last updated: 2026-02-18 (Session 11 committed: 1cba74f)
 
-## Current Sprint: Mel Sandbox Ship
+## Current Sprint: Mel Sandbox Ship + Deal Room
 Started: 2026-02-11
-Goal: Ship a working PlexifySOLO sandbox URL to Mel Wallace (Hexagon/Multivista) by Feb 17.
+Goal: Ship a working PlexifySOLO sandbox to Mel Wallace (Hexagon/Multivista) with AI-powered Deal Room, artifacts, and audio briefings.
 
-## Next Up
-- [ ] UX polish + loading states — Claude Code Session 6
-  - Branding, error handling, prospect card formatting
-  - Prereqs: Deployed and accessible ✅
+## Status: Sessions 1-11 Complete — All Features Live
 
-## Completed This Sprint
-- [x] Critical Analysis + Build Plan document — manual (Claude Opus chat)
-- [x] CLAUDE.md rewritten for PlexifySOLO best practices — manual
-- [x] SPRINT_STATUS.md created — manual
-- [x] Deployment decision: Railway.app over AWS — manual
-- [x] Architecture decision: Claude API over OpenAI — manual
-- [x] Architecture decision: Simple fork over turborepo (monorepo later) — manual
-- [x] Architecture decision: Real backend over mock data for sandbox — manual
-- [x] Payment decision: Manual invoicing for pilots, Stripe post-pilots — manual
-- [x] Fork PlexifyBID → PlexifySOLO rebrand — Claude Code Session 1
-  - package.json: name=plexifysolo, version=0.1.0, updated desc/keywords/repo
-  - index.html: title + meta description → PlexifySOLO branding
-  - NavigationSidebar: trimmed to 5 SOLO-relevant items (Home, SalesPlex Flow, Ask Plexi, Settings, Integrations)
-  - App.tsx: removed BID-specific routes, updated placeholder copy
-  - CSS/Tailwind/vite.config: all PlexifyBID → PlexifySOLO references updated
-  - IntegrationsPage: branding updated
-- [x] Dockerfile + production server — Claude Code Session 1
-  - Multi-stage Node 20 alpine Dockerfile (build + production stages)
-  - server/index.mjs: standalone Express server serving dist/ + /api/health + SPA fallback
-  - .dockerignore created
-- [x] Verification passed — Claude Code Session 1
-  - npm run build: succeeds (14s, 2348 modules)
-  - npm run dev: Vite dev server starts, /api/health returns 200
-  - node server/index.mjs: production server starts, health=200, app=200, /demo/mel=200 (SPA fallback)
-  - Docker build + run: all 3 endpoints verified (health, app, /demo/mel)
-- [x] Supabase schema + seed data — Claude Code Session 2
-  - Migration: supabase/migrations/20260212_solo_sales_tables.sql
-  - 9 tables: tenants, prospects (47), contacts (47), connections (8), case_studies (10), icp_configs (1), conversations, outreach_drafts, usage_events
-  - All tables: tenant_id FK, RLS enabled, service-role full access + anon read policies
-  - Indexes on tenant_id, warmth_score, stage, gc_slug, event_type
-  - updated_at triggers on all tables with that column
-  - Tenant has sandbox_token auth, features JSONB, expires_at
-- [x] Seed data generated — Claude Code Session 2
-  - supabase/seed.sql: 149 lines, all 113 records from Mel demo JSON data
-  - scripts/generate-seed-sql.mjs: deterministic generator from JSON files
-  - Mel Wallace tenant with sandbox_token, 30-day expiry, 3 feature flags
-- [x] Server Supabase client — Claude Code Session 2
-  - server/lib/supabase.js: service-role client, query helpers for all tables, tenant middleware
-  - tenantMiddleware(): validates X-Sandbox-Token header, checks expiry, attaches req.tenant
-  - Query helpers: getProspects, getContacts, getConnections, getCaseStudies, getICPConfig, etc.
-  - Conversation + outreach CRUD helpers
-  - Usage event logging
-- [x] Claude API integration — Claude Code Session 3 (25d9f20)
-  - @anthropic-ai/sdk installed, Claude client with tool_use conversation loop
-  - 3 AEC tools: search_prospects, draft_outreach, analyze_pipeline (server/tools/)
-  - POST /api/ask-plexi/chat route with tenant auth fallback + conversation persistence
-  - Vite dev middleware (src/server/askPlexiApi.ts) + production server wiring
-  - AskPlexiInterface.tsx rewritten: real API calls, rotating loading states, tool badges
-  - Lazy init for Claude + Supabase clients (Vite env var timing fix)
-  - Tested live: all 3 tools query real Supabase data (47 prospects, contacts, case studies)
-- [x] Sandbox auth + tenant isolation — Claude Code Session 4 (99fab49)
-  - sandboxAuth middleware: token from Bearer header / ?token= query / X-Sandbox-Token header
-  - Validates against Supabase tenants table, checks is_active + expires_at
-  - Logs auth attempts (success + failure) to usage_events
-  - POST /api/auth/validate: public endpoint returns tenant info or error
-  - SandboxContext: React state-only auth (no localStorage, no cookies — token lost on refresh by design)
-  - /sandbox?token=xxx entry → validates → redirects to /home; AccessRequired fallback
-  - NavigationSidebar shows tenant name + company; ExecutiveFeed welcome banner + action chips
-  - AskPlexiInterface sends Bearer token; ask-plexi route uses req.tenant (dev fallback removed)
-  - Vite dev middleware + production server both enforce auth on all /api/ routes
-  - Tested: health public ✅, auth validate ✅, ask-plexi rejects without token ✅, ask-plexi works with Bearer ✅, build passes (2351 modules) ✅
-- [x] Railway deployment config + production hardening — Claude Code Session 5 (ea6bfbf)
-  - railway.toml: Dockerfile builder, /api/health check path, on_failure restart (3 retries)
-  - server/index.mjs: helmet security headers, CORS (permissive, lockable via ALLOWED_ORIGINS), rate limiting (30 req/min on /api/)
-  - Dockerfile: removed hardcoded EXPOSE 3000 (Railway assigns PORT dynamically)
-  - .dockerignore: added railway.toml, supabase/, scripts/
-  - docs/DEPLOY_CHECKLIST.md: 8-step Railway deployment guide for non-devops founder
-  - Verified: npm run build ✅ (2351 modules, 14.16s), production server starts clean ✅
-- [x] Railway deployed + live — Manual + Claude Code Session 5 hotfixes
-  - Deployed to https://plexifybid-production.up.railway.app
-  - Hotfix: committed package-lock.json (npm ci requires it, was in .gitignore)
-  - Hotfix: Dockerfile ARG for VITE_ build-time vars (Railway Docker build args)
-  - Hotfix: frontend Supabase client placeholder (prevents crash when VITE_ vars not baked in)
-  - 12 Railway env vars: 5 backend runtime + 7 VITE_ build-time + Railway system vars
-  - Verified live: health ✅, sandbox auth ✅, dashboard ✅, Ask Plexi with real Claude + Supabase ✅
+### Production
+- **URL:** https://plexifybid-production.up.railway.app
+- **Domain:** solo.plexifyai.com
+- **Sandbox:** /sandbox?token=pxs_c13a257e1701ca2b148733ac591381cd8a284f9b7bd47084
+- **Railway:** 14 service variables + 8 Railway system vars
+- **Supabase:** 11 tables, RLS enabled, Storage bucket (deal-room-files)
+
+## Features Live in Production
+1. **Sandbox Auth** — Token-based tenant isolation, usage logging
+2. **Ask Plexi** — Claude AI chat with 3 AEC tools, prospect cards, outreach preview, pipeline charts
+3. **Deal Room** — Document upload, RAG chunking, source-grounded AI chat with citations
+4. **Deal Room Artifacts** — Deal Summary, Competitive Analysis, Meeting Prep generation; dark-themed renderers; PDF export
+5. **Deal Room Audio** — ElevenLabs TTS briefings (single voice) + podcasts (two-voice host/analyst); custom audio player
+6. **PlexiCoS Agents** — Agent registry, orchestration visual, activity feed
+7. **Home Dashboard** — Executive feed with welcome banner, action chips
+8. **Production Hardening** — Helmet security, CORS, rate limiting, Docker deployment
+
+## Completed — All Sessions
+
+### Session 1 — Fork + Rebrand + Docker
+Commit: `f2a1564`
+- PlexifyBID → PlexifySOLO rebrand (package.json, index.html, sidebar, routes, CSS)
+- Multi-stage Node 20 alpine Dockerfile + server/index.mjs production server
+- .dockerignore, SPA fallback, /api/health endpoint
+- Verified: build ✅, dev server ✅, production server ✅, Docker ✅
+
+### Session 2 — Supabase Schema + Seed Data
+Commit: `39afada`
+- Migration: 9 core tables (tenants, prospects, contacts, connections, case_studies, icp_configs, conversations, outreach_drafts, usage_events)
+- RLS on all tables, service-role full access, anon read policies
+- Seed data: 1 tenant, 47 prospects, 47 contacts, 8 connections, 10 case studies, 1 ICP config
+- server/lib/supabase.js: service-role client, query helpers, tenant middleware
+
+### Session 3 — Claude API Integration
+Commit: `25d9f20`
+- @anthropic-ai/sdk installed, Claude client with tool_use conversation loop
+- 3 AEC tools: search_prospects, draft_outreach, analyze_pipeline (server/tools/)
+- POST /api/ask-plexi/chat with conversation persistence
+- AskPlexiInterface.tsx: real API calls, rotating loading states, tool badges
+- Lazy init pattern for Claude + Supabase clients
+
+### Session 4 — Sandbox Auth + Tenant Isolation
+Commit: `99fab49`
+- sandboxAuth middleware: Bearer header / ?token= query / X-Sandbox-Token header
+- POST /api/auth/validate public endpoint
+- SandboxContext: React state-only auth (token lost on refresh by design)
+- /sandbox?token=xxx entry → validate → redirect to /home
+- NavigationSidebar shows tenant name + company; ExecutiveFeed welcome banner
+
+### Session 5 — Railway Deployment + Production Hardening
+Commit: `ea6bfbf` + hotfixes (`ec7da4c`, `d37cdcc`, `28da80d`)
+- railway.toml, helmet, CORS, rate limiting (30 req/min)
+- Dockerfile ARG for VITE_ build-time vars
+- docs/DEPLOY_CHECKLIST.md: 8-step deployment guide
+- Deployed live, verified: health ✅, auth ✅, dashboard ✅, Ask Plexi ✅
+
+### Session 6 — UX Polish + Loading States
+Commit: `e0a5721`
+- Branding improvements, error handling, prospect card formatting
+- Loading state animations for all AI operations
+- Structured tool responses with prospect cards, outreach preview, pipeline charts
+
+### Session 7 — Structured Tool Responses + Outreach
+Commits: `0c35cea`, `dd96be5`
+- Prospect cards with warmth scores and stage badges
+- Outreach email preview with plain text email + styled analysis
+- Pipeline analysis charts
+
+### Session 8 — PlexiCoS Agents Page
+Commit: `969a3b1`
+- Agent registry with cards and status indicators
+- Orchestration visualization
+- Activity feed from usage_events
+
+### Session 9 — Deal Room Core
+Commits: `5a593d9`, `4bdbe54`, `9771b4a`, `ef92041`, `d30abbc`, `ed8648e`, `c2e558f`, `8e146ba`
+- Deal Room CRUD (create, list, get)
+- Document upload to Supabase Storage (PDF, DOCX, TXT, MD, CSV; max 10MB)
+- RAG processing: text extraction → chunking → embedding storage
+- Source-grounded AI chat with citations
+- DealRoomPage: two-panel layout (40% sources / 60% chat)
+- DealRoomListPage: card grid with create dialog
+- Multiple hotfixes: pdf-parse lazy import, Docker cache busting, body limit increase
+
+### Session 10 — Deal Room Artifacts
+Commits: `b1e1d4d`, `5be2196`
+- 3 artifact types: Deal Summary, Competitive Analysis, Meeting Prep
+- ArtifactEnvelope<T> type pattern with JSON schema prompts
+- Claude generates structured JSON from uploaded sources
+- Dark-themed card renderers (DealSummaryRenderer, CompetitiveAnalysisRenderer, MeetingPrepRenderer)
+- @react-pdf/renderer PDF export (ArtifactPDFDocument.tsx)
+- Agent chip bar, artifact view toggle, artifact history in left panel
+- Migration fix: trigger function name correction (set_updated_at)
+
+### Session 11 — Deal Room Audio
+Commit: `1cba74f`
+- server/lib/elevenlabs.js: lazy-init client, generateBriefing (single voice), generatePodcast (two-voice via textToDialogue)
+- Claude generates Bloomberg-style briefing scripts + host/analyst podcast dialogues
+- ElevenLabs TTS → mp3 → Supabase Storage upload
+- Audio streaming endpoint with Range header support
+- AudioBriefingPlayer: custom HTML5 player (play/pause, seek, speed 1x-2x, download, expandable script with speaker labels)
+- Audio + Podcast buttons on artifact header, audio history in left panel
+- Supabase Storage bucket needed audio/mpeg MIME type added
 
 ## Decisions Made
-- Fork not turborepo: Ship speed > architecture elegance. Monorepo when 2+ products cause real maintenance pain. — 2026-02-11
-- Real backend not mock: Mel already saw the deterministic demo. A sandbox with mock data is a second demo, not a trial. He needs real AI responses + real persistence. — 2026-02-11
-- Railway over AWS: 15-min deploy vs 2-4 hours. Docker portability means zero lock-in. Migrate to AWS when Hexagon requires SOC 2. — 2026-02-11
-- Claude API over OpenAI: Aligns with Anthropic partnership pitch. Existing tool registry maps to Claude tool_use format. — 2026-02-11
-- Manual invoicing: Right for 1-3 pilot customers. Stripe self-serve is Sprint 4+. — 2026-02-11
-- Minimal process adoption: One Superpowers command (execute-plan for multi-file features), one BMAD artifact (this file). No full framework adoption. — 2026-02-11
-- server/index.mjs not .js: Package.json is CJS (no "type":"module"), so production server uses .mjs extension for ESM imports. Avoids cascading CJS/ESM conflicts with Vite, PostCSS, Tailwind configs. — 2026-02-11
-- Rich schema over flat table: Kept separate prospects/contacts/connections/case_studies tables matching demo JSON rather than a flat prospects-only table. Richer data = better Claude tool responses. — 2026-02-12
-- ref_id pattern: Each table has a text ref_id (e.g. 'proj-001') alongside the UUID primary key, so existing demo components can reference data by familiar IDs while the database uses proper UUIDs. — 2026-02-12
-- Lazy client init: Anthropic + Supabase clients use lazy initialization because Vite loads .env.local vars after module imports. VITE_ANTHROPIC_API_KEY used as fallback since Vite's loadEnv doesn't reliably surface non-VITE_ prefixed vars. — 2026-02-12
-- No streaming v1: Ask Plexi returns full response after Claude finishes (2-5s). Streaming deferred to Session 6 UX polish. — 2026-02-12
-- Dev tenant fallback: In dev mode, Ask Plexi auto-uses Mel's tenant_id when no X-Sandbox-Token header sent. Production will require the header (Session 4). — 2026-02-12
-- React state-only auth: Token stored in React context, not localStorage or cookies. Token lost on refresh — user re-enters via sandbox URL. Simpler, no stale token bugs. — 2026-02-12
-- Dev fallback removed: sandboxAuth middleware enforces token on all /api/ routes in both dev and prod. No more silent Mel fallback. — 2026-02-12
-- Token extraction priority: Authorization Bearer > ?token= query param > X-Sandbox-Token header. Bearer for API clients, query for URL entry, X-Sandbox-Token for backward compat. — 2026-02-12
-- Permissive CORS for sandbox: ALLOWED_ORIGINS defaults to allow-all (*). Lock down to Railway domain after first deploy. — 2026-02-12
-- Rate limiting: 30 req/min per IP on /api/ routes. Protects Claude API from abuse without blocking normal usage. — 2026-02-12
+- Fork not turborepo: Ship speed > architecture elegance — 2026-02-11
+- Real backend not mock: Mel needs real AI responses + persistence — 2026-02-11
+- Railway over AWS: 15-min deploy vs 2-4 hours, Docker portability — 2026-02-11
+- Claude API over OpenAI: Aligns with Anthropic partnership pitch — 2026-02-11
+- Manual invoicing: Right for 1-3 pilot customers — 2026-02-11
+- server/index.mjs: ESM extension avoids CJS/ESM conflicts — 2026-02-11
+- Rich schema: Separate tables matching demo JSON for richer Claude responses — 2026-02-12
+- Lazy client init: Vite loads .env.local after imports — 2026-02-12
+- React state-only auth: No localStorage, no cookies, simpler — 2026-02-12
+- No streaming v1: Full response after Claude finishes (2-5s) — 2026-02-12
+- Permissive CORS: Allow-all for sandbox, lockable via ALLOWED_ORIGINS — 2026-02-12
+- ArtifactEnvelope<T>: Shared type pattern for artifact consistency — 2026-02-14
+- ElevenLabs textToDialogue: Native two-voice concatenation, no manual stitching — 2026-02-18
+- Blob URL for audio: HTML5 audio can't send auth headers, fetch + blob workaround — 2026-02-18
 
-## Environment Setup (Done)
-- [x] .env.local created with Supabase URL + anon key + service role key + Anthropic API key
-- [x] Migration applied to live Supabase project
-- [x] Seed data loaded (1 tenant, 47 prospects, 47 contacts, 8 connections, 10 case studies, 1 ICP config)
+## Known Issues
+- **PDF upload fragile**: `createRequire` fix via lazy import of pdf-parse works but is brittle
+- **Citations "Chunk 0"**: Small single-chunk documents show "Chunk 0" instead of meaningful ref
+- **ElevenLabs free tier**: Character limits — monitor usage for Mel demo
+- **Supabase Storage MIME**: Must manually add `audio/mpeg` to deal-room-files bucket allowed types
+- **Large bundle**: 4.6MB main chunk — code-split when performance matters
+- **BID-era scaffolding**: Unused files in src/server/ (ttsService.ts, podcastApi.ts, etc.)
+
+## Environment Variables (14 Railway + 8 system)
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SUPABASE_URL` | Yes | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key for Claude |
+| `ELEVENLABS_API_KEY` | No | ElevenLabs API key for audio |
+| `NODE_ENV` | Yes | `production` |
+| `ALLOWED_ORIGINS` | No | CORS origins |
+| `PROCORE_CLIENT_ID` | No | Future Procore integration |
+| `PROCORE_CLIENT_SECRET` | No | Future Procore integration |
+| `VITE_ANTHROPIC_API_KEY` | Yes | Build-time for frontend |
+| `VITE_APP_DESCRIPTION` | Yes | Build-time branding |
+| `VITE_APP_NAME` | Yes | Build-time branding |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Build-time for frontend |
+| `VITE_SUPABASE_URL` | Yes | Build-time for frontend |
 
 ## Next Steps
-1. Manual: Lock down CORS — set ALLOWED_ORIGINS=https://plexifybid-production.up.railway.app in Railway
-2. Manual: Share sandbox URL with Mel Wallace
-3. Session 6: UX polish + loading states
+1. **Republic Events Australia** — Demo prep for Thursday meeting
+2. **Send Mel sandbox URL** — With instructions for testing Deal Room + Audio
+3. **Session 12+**: My SalesPlex Flow page, Home dashboard improvements, mobile responsive pass
+4. **Future**: Streaming responses, Procore integration, Stripe billing, SOC 2 prep
