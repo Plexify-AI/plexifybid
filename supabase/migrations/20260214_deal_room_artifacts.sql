@@ -34,4 +34,4 @@ CREATE POLICY "Service role full access on deal_room_artifacts"
 CREATE OR REPLACE TRIGGER set_updated_at_deal_room_artifacts
   BEFORE UPDATE ON deal_room_artifacts
   FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+  EXECUTE FUNCTION public.set_updated_at();
