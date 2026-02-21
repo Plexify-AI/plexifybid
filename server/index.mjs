@@ -159,6 +159,17 @@ app.get('/api/deal-rooms/:id/artifacts', async (req, res) => {
   await handleListArtifacts(req, res, req.params.id);
 });
 
+// Powerflow Pipeline
+import { handleGetToday, handleCompleteStage } from './routes/powerflow.js';
+
+app.get('/api/powerflow/today', async (req, res) => {
+  await handleGetToday(req, res);
+});
+
+app.post('/api/powerflow/complete', async (req, res) => {
+  await handleCompleteStage(req, res, req.body);
+});
+
 // Audio briefings + podcasts
 app.post('/api/deal-rooms/:id/audio', async (req, res) => {
   await handleGenerateAudio(req, res, req.params.id, req.body);

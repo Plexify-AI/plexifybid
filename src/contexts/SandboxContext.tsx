@@ -12,7 +12,13 @@ interface TenantInfo {
   name: string;
   company: string;
   slug: string;
-  features: string[];
+  features: Record<string, boolean> | string[];
+  vocab_skin: Record<string, string>;
+  timezone: string;
+  persona_code: string | null;
+  powerflow_quick_start: string | null;
+  dev_mode: boolean;
+  storefront_enabled: boolean;
 }
 
 interface SandboxState {

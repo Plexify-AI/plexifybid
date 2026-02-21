@@ -9,6 +9,8 @@ import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
 import AudioNarrationService from '../../services/AudioNarrationService';
 import { OpportunityCard } from '../home/components/OpportunityCard';
 import { useSandbox } from '../../contexts/SandboxContext';
+import PowerflowPyramid from '../../components/PowerflowPyramid';
+import { useTenantVocab } from '../../hooks/useTenantVocab';
 /**
  * ExecutiveFeed Component
  * 
@@ -18,6 +20,7 @@ import { useSandbox } from '../../contexts/SandboxContext';
 const ExecutiveFeed: React.FC = () => {
   const navigate = useNavigate();
   const { tenant, showWelcome, dismissWelcome } = useSandbox();
+  const { t } = useTenantVocab();
 
   // Auto-dismiss welcome after 5 seconds
   useEffect(() => {
@@ -252,7 +255,7 @@ const ExecutiveFeed: React.FC = () => {
               <span className="text-lg">&#x1F50D;</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">Ask Plexi about your pipeline</p>
+              <p className="text-sm font-semibold text-gray-800">Ask Plexi about your {t('pipeline').toLowerCase()}</p>
               <p className="text-xs text-gray-500">Get an instant overview</p>
             </div>
           </button>
@@ -264,7 +267,7 @@ const ExecutiveFeed: React.FC = () => {
               <span className="text-lg">&#x1F465;</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">View your top prospects</p>
+              <p className="text-sm font-semibold text-gray-800">View your top {t('prospects').toLowerCase()}</p>
               <p className="text-xs text-gray-500">Ranked by warmth score</p>
             </div>
           </button>
@@ -276,10 +279,36 @@ const ExecutiveFeed: React.FC = () => {
               <span className="text-lg">&#x1F4E7;</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-800">Draft outreach for a warm lead</p>
+              <p className="text-sm font-semibold text-gray-800">Draft {t('outreach').toLowerCase()} for a warm {t('lead').toLowerCase()}</p>
               <p className="text-xs text-gray-500">AI-written email ready to send</p>
             </div>
           </button>
+        </div>
+      )}
+
+      {/* Powerflow Quick-Start Pill + Pyramid */}
+      {tenant && (
+        <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            {/* Quick-Start prompt pill */}
+            {tenant.powerflow_quick_start && (
+              <button
+                onClick={() => navigate('/ask-plexi?q=' + encodeURIComponent(tenant.powerflow_quick_start!))}
+                className="mb-4 w-full group flex items-center gap-3 p-4 bg-gradient-to-r from-blue-900/80 to-indigo-900/80 hover:from-blue-800/90 hover:to-indigo-800/90 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all text-left cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">&#x26A1;</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">Quick Start</p>
+                  <p className="text-xs text-blue-300/70 truncate">{tenant.powerflow_quick_start}</p>
+                </div>
+              </button>
+            )}
+          </div>
+          <div>
+            <PowerflowPyramid />
+          </div>
         </div>
       )}
 

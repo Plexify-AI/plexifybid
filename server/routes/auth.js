@@ -44,6 +44,12 @@ export async function handleValidate(req, res, body) {
         company: tenant.company,
         slug: tenant.slug,
         features: tenant.features,
+        vocab_skin: tenant.vocab_skin || {},
+        timezone: tenant.timezone || 'America/New_York',
+        persona_code: tenant.persona_code || null,
+        powerflow_quick_start: tenant.powerflow_quick_start || null,
+        dev_mode: tenant.dev_mode || false,
+        storefront_enabled: tenant.storefront_enabled || false,
       },
     }));
   } catch (err) {

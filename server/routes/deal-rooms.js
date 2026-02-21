@@ -17,6 +17,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { markPowerflowStage } from './powerflow.js';
 // pdf-parse is lazy-imported inside extractText() to avoid its startup bug
 // (it tries to load a test PDF at import time which crashes in production)
 import mammoth from 'mammoth';
@@ -373,6 +374,9 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
       sources_count: sources.length,
     }).catch(() => {});
 
+    // Powerflow Stage 2: Deal Room RAG chat
+    markPowerflowStage(tenant, 2);
+
     return sendJSON(res, 200, {
       reply,
       citations,
@@ -552,6 +556,9 @@ export async function handleGenerateArtifact(req, res, dealRoomId, body) {
     }).catch(() => {});
 
     console.log(`[deal-room] Generated artifact: ${artifact_type} (${artifact.id})`);
+
+    // Powerflow Stage 5: Artifact generated
+    markPowerflowStage(tenant, 5);
 
     return sendJSON(res, 201, updated);
   } catch (err) {

@@ -15,14 +15,13 @@ import {
   updateConversation,
   logUsageEvent,
 } from '../lib/supabase.js';
+import { markPowerflowStage } from './powerflow.js';
 
 // ---------------------------------------------------------------------------
 // System prompt — AEC BD specialist
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are Plexi, an AI business development specialist for the AEC (Architecture, Engineering, Construction) industry. You help sales professionals find, prioritize, and pursue commercial construction opportunities.
-
-You speak the language of general contractors, developers, and project owners. You understand project phases, procurement methods, and relationship-based selling in construction.
+const DEFAULT_SYSTEM_PROMPT = `You are Plexi, an AI business development specialist. You help sales professionals find, prioritize, and pursue opportunities.
 
 Be direct, specific, and actionable. When you identify prospects, explain WHY they're good fits, not just that they match criteria. Keep responses concise — executives don't read walls of text.
 
@@ -36,7 +35,21 @@ When drafting outreach, write like a senior BD professional — no generic marke
 
 When analyzing the pipeline, give a clear executive summary first, then drill into details only if asked.
 
-You have access to the user's real prospect database, contact network, and case study library. Use the tools to query live data — never make up project names or contacts.`;
+You have access to the user's real prospect database, contact network, and case study library. Use the tools to query live data — never make up project names or contacts.
+
+Never use these words: leverage, seamless, transformative, delve.`;
+
+/**
+ * Build the system prompt for a tenant. If the tenant has a system_prompt_override
+ * with a context field, prepend it to the default prompt. The override augments
+ * the default — it does NOT replace it.
+ */
+function buildSystemPrompt(tenant) {
+  const override = tenant.system_prompt_override?.context || '';
+  return override
+    ? `${override}\n\n${DEFAULT_SYSTEM_PROMPT}`
+    : DEFAULT_SYSTEM_PROMPT;
+}
 
 // ---------------------------------------------------------------------------
 // Handler — req.tenant is set by sandboxAuth middleware
@@ -73,11 +86,14 @@ export async function handleChat(req, res, body) {
 
     console.log(`[ask-plexi] Processing message for tenant ${tenant.slug}: "${message.substring(0, 80)}..."`);
 
+    // Build tenant-specific system prompt (override augments default)
+    const systemPrompt = buildSystemPrompt(tenant);
+
     // Call Claude with tool support
     const result = await sendMessage({
       messages,
       tools: toolDefinitions,
-      systemPrompt: SYSTEM_PROMPT,
+      systemPrompt,
       toolExecutors,
       tenantId,
     });
@@ -112,6 +128,12 @@ export async function handleChat(req, res, body) {
       tool_calls: result.toolResults.map((t) => t.tool),
       usage: result.usage,
     }).catch(() => {}); // fire and forget
+
+    // Powerflow triggers (non-blocking)
+    markPowerflowStage(tenant, 1); // Stage 1: Ask Plexi query
+    const toolNames = result.toolResults.map((t) => t.tool);
+    if (toolNames.includes('draft_outreach')) markPowerflowStage(tenant, 3); // Stage 3: Outreach draft
+    if (toolNames.includes('analyze_pipeline')) markPowerflowStage(tenant, 4); // Stage 4: Pipeline analysis
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');

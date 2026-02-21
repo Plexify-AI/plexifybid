@@ -4,9 +4,11 @@ import {
   Home, Settings, ChevronLeft, Menu, Link2, Target, User, Brain, Briefcase
 } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
+import { useTenantVocab } from '../hooks/useTenantVocab';
 
 const NavigationSidebar: React.FC = () => {
   const { tenant } = useSandbox();
+  const { t } = useTenantVocab();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
 
@@ -35,7 +37,7 @@ const NavigationSidebar: React.FC = () => {
         },
         {
           path: '/deal-rooms',
-          label: 'Deal Room',
+          label: t('deal_room'),
           icon: Briefcase,
           isNew: true
         },

@@ -436,6 +436,59 @@ export async function downloadFile(storagePath) {
 }
 
 // ---------------------------------------------------------------------------
+// Powerflow State helpers
+// ---------------------------------------------------------------------------
+
+export async function getOrCreatePowerflowState(tenantId, localDate) {
+  // Try to get existing state for today
+  const { data: existing, error: fetchError } = await supabase
+    .from('powerflow_state')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('local_date', localDate)
+    .single();
+
+  if (existing) return existing;
+
+  // Create new state for today (new day = fresh pyramid)
+  const { data: created, error: createError } = await supabase
+    .from('powerflow_state')
+    .insert({ tenant_id: tenantId, local_date: localDate })
+    .select()
+    .single();
+  if (createError) throw createError;
+  return created;
+}
+
+export async function updatePowerflowStage(tenantId, localDate, stageNumber) {
+  const stageCol = `stage_${stageNumber}_completed`;
+  const stageAtCol = `stage_${stageNumber}_completed_at`;
+
+  // Only update if not already completed (idempotent)
+  const state = await getOrCreatePowerflowState(tenantId, localDate);
+  if (state[stageCol]) return state; // Already completed
+
+  const { data, error } = await supabase
+    .from('powerflow_state')
+    .update({ [stageCol]: true, [stageAtCol]: new Date().toISOString() })
+    .eq('id', state.id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getTenantById(tenantId) {
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('id', tenantId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ---------------------------------------------------------------------------
 // Tenant middleware — validates X-Sandbox-Token header
 // ---------------------------------------------------------------------------
 
