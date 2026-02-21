@@ -3,7 +3,7 @@
 Solo founder project. Ask before changing anything. Read Safety Rules first.
 
 ## Product Overview
-PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, Engineering, Construction) professionals. It combines prospect research, outreach drafting, deal room collaboration, and audio briefing generation into a single sandbox-authenticated workspace.
+PlexifySOLO is an AI-powered sales intelligence platform spanning AEC, events, broadcast, and consumer-tech verticals. It combines prospect research, outreach drafting, deal room collaboration, audio briefing generation, and a daily Powerflow pipeline into a multi-tenant sandbox-authenticated workspace.
 
 **Production URL:** https://plexifybid-production.up.railway.app
 **Custom Domain:** solo.plexifyai.com
@@ -29,20 +29,23 @@ PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, 
 - Node 20 LTS, npm (not yarn/pnpm)
 - Railway.app + Docker for deployment (auto-deploy from GitHub main)
 
-## Features Shipped (Sessions 1-11)
-1. **Ask Plexi** — Claude-powered AI chat with 3 AEC tools (search_prospects, draft_outreach, analyze_pipeline), prospect cards, outreach preview, pipeline charts
+## Features Shipped (Sessions 1-12)
+1. **Ask Plexi** — Claude-powered AI chat with 3 tools (search_prospects, draft_outreach, analyze_pipeline), prospect cards, outreach preview, pipeline charts; system_prompt_override for per-tenant persona
 2. **Deal Room** — Document upload (PDF, DOCX, TXT, MD, CSV) → Supabase Storage, RAG chunking + embedding, source-grounded AI chat with citations
 3. **Deal Room Artifacts** — Claude generates structured Deal Summary, Competitive Analysis, Meeting Prep from uploaded sources; dark-themed card renderers; PDF export
 4. **Deal Room Audio** — ElevenLabs TTS: Bloomberg-style single-voice briefings + two-voice host/analyst podcasts from artifacts; custom HTML5 player with seek, speed, download, script viewer
 5. **PlexiCoS Agents** — Agent registry display, orchestration visual, activity feed
-6. **Sandbox Auth** — Token-based tenant isolation, Bearer/query/header extraction, usage event logging
+6. **Sandbox Auth** — Token-based multi-tenant isolation (6 tenants), Bearer/query/header extraction, usage event logging
 7. **Production Deployment** — Railway + Docker, helmet, CORS, rate limiting (30 req/min)
+8. **Multi-Tenant** — 6 tenants (SB1-SB6) across AEC, events, broadcast, consumer-tech; vocab skins for render-layer label overrides; system_prompt_override for server-side persona injection
+9. **Powerflow Pipeline** — Timezone-aware daily 6-stage pipeline (Bloom-Maslow framework); inverted pyramid UI; auto-triggers from AI actions; manual close stage
 
 ## Directory Structure
 ```
 ├── src/                           # React frontend
-│   ├── components/                # Reusable UI components (28 files)
-│   │   └── artifacts/             # DealSummaryRenderer, CompetitiveAnalysisRenderer, MeetingPrepRenderer, ArtifactPDFDocument
+│   ├── components/                # Reusable UI components (29 files)
+│   │   ├── artifacts/             # DealSummaryRenderer, CompetitiveAnalysisRenderer, MeetingPrepRenderer, ArtifactPDFDocument
+│   │   └── PowerflowPyramid.tsx   # Inverted pyramid daily pipeline UI
 │   ├── pages/                     # Route-level pages (11 files)
 │   │   ├── DealRoomPage.tsx       # Two-panel Deal Room workspace
 │   │   ├── DealRoomListPage.tsx   # Deal Room listing
@@ -54,10 +57,13 @@ PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, 
 │   │   ├── mel-demo/              # Original Mel demo (DemoEngine, mock data)
 │   │   ├── agent-management/      # Agent registry + session tracker
 │   │   └── ecosystem/             # PlaceGraph visualization
+│   ├── hooks/                     # Custom hooks
+│   │   └── useTenantVocab.ts      # Render-layer vocab skin translations
 │   ├── contexts/                  # SandboxContext (auth), RealDocsContext
-│   ├── server/                    # Vite dev middleware wrappers (16 files)
+│   ├── server/                    # Vite dev middleware wrappers (17 files)
 │   │   ├── askPlexiApi.ts         # Ask Plexi dev middleware
 │   │   ├── dealRoomsApi.ts        # Deal Rooms dev middleware (CRUD, artifacts, audio)
+│   │   ├── powerflowApi.ts        # Powerflow pipeline dev middleware
 │   │   ├── authApi.ts             # Auth validation dev middleware
 │   │   └── usageEventsApi.ts      # Usage events dev middleware
 │   ├── types/                     # TypeScript types
@@ -66,8 +72,9 @@ PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, 
 ├── server/                        # Express backend
 │   ├── index.mjs                  # Production server (helmet, CORS, rate limit, routes)
 │   ├── routes/                    # API route handlers
-│   │   ├── ask-plexi.js           # Claude AI chat with tool_use loop
+│   │   ├── ask-plexi.js           # Claude AI chat with tool_use loop + system_prompt_override
 │   │   ├── deal-rooms.js          # CRUD, file upload, RAG chat, artifacts, audio gen
+│   │   ├── powerflow.js           # Powerflow pipeline API (today, complete, markStage)
 │   │   ├── auth.js                # POST /api/auth/validate
 │   │   └── usage-events.js        # GET /api/usage-events
 │   ├── lib/                       # Server libraries
@@ -82,12 +89,20 @@ PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, 
 │       ├── draft-outreach.js
 │       ├── analyze-pipeline.js
 │       └── index.js               # Tool registry
+├── scripts/superpowers/            # CLI tools
+│   ├── scaffold.js                # Generate boilerplate (agent, route, component, migration, tenant)
+│   ├── activate.js                # Load domain vocab + persona
+│   ├── test.js                    # STUB — test generation
+│   └── ship.js                    # Handoff doc + deploy checklist generator
 ├── supabase/                      # Database
-│   ├── migrations/                # 6 SQL migration files
+│   ├── migrations/                # 7 SQL migration files
 │   │   ├── 20260212_solo_sales_tables.sql    # Core 9 tables
 │   │   ├── 20260213_deal_rooms.sql           # Deal rooms + sources + messages
 │   │   ├── 20260214_deal_room_artifacts.sql  # Artifact storage
-│   │   └── 20260218_deal_room_audio.sql      # Audio records
+│   │   ├── 20260218_deal_room_audio.sql      # Audio records
+│   │   └── 20260221_session12_multi_tenant.sql # Multi-tenant: tenants cols, powerflow_state, 6 tenants
+│   ├── seeds/
+│   │   └── 20260221_gravity_media_prospects.sql # 30 broadcast prospects for SB4
 │   └── seed.sql                   # Mel Wallace sandbox data (113 records)
 ├── docs/                          # Documentation
 │   ├── SPRINT_STATUS.md           # Living sprint document
@@ -118,10 +133,12 @@ PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, 
 - `POST /api/deal-rooms/:id/audio` — Generate audio briefing/podcast (Claude + ElevenLabs)
 - `GET  /api/deal-rooms/:id/audio` — List audio records
 - `GET  /api/deal-rooms/:id/audio/:audioId/stream` — Stream audio (Range support)
+- `GET  /api/powerflow/today` — Get today's powerflow state (timezone-aware)
+- `POST /api/powerflow/complete` — Manually complete a powerflow stage
 
-## Database Schema (11 tables)
-- `tenants` — Sandbox accounts with token auth, features JSONB, expires_at
-- `prospects` — 47 NYC AEC projects with warmth_score, stage, gc_slug
+## Database Schema (15 tables)
+- `tenants` — Sandbox accounts with token auth, features JSONB, vocab_skin, system_prompt_override, timezone, persona_code, expires_at
+- `prospects` — 47 NYC AEC projects + 30 broadcast prospects, warmth_score, stage, source
 - `contacts` — 47 contacts linked to prospects
 - `connections` — 8 connection records
 - `case_studies` — 10 case studies for outreach
@@ -134,6 +151,7 @@ PlexifySOLO is an AI-powered sales intelligence platform for AEC (Architecture, 
 - `deal_room_messages` — RAG chat messages with citations
 - `deal_room_artifacts` — Generated artifacts (content JSONB, status)
 - `deal_room_audio` — Audio briefings + podcasts (storage_path, script, status)
+- `powerflow_state` — Daily pipeline tracking per tenant (local_date, stage_1_at through stage_6_at)
 
 All tables: UUID primary keys, tenant_id FK, RLS enabled, service-role full access.
 
@@ -150,6 +168,9 @@ All tables: UUID primary keys, tenant_id FK, RLS enabled, service-role full acce
 - Environment variables: `.env.local` (never committed), validated at startup
 - CSS: TailwindCSS utility classes, no custom CSS files unless unavoidable
 - File storage: Supabase Storage `deal-room-files` bucket, blob URL pattern for auth'd playback
+- Vocab skin: `useTenantVocab()` hook for render-layer label overrides, never modifies API/DB queries
+- System prompt override: Server-side only (`system_prompt_override.context` prepended to default prompt), never returned to client
+- Powerflow: Timezone-aware daily pipeline, `Intl.DateTimeFormat` for local date, non-blocking triggers
 
 ## Environment Variables
 | Variable | Required | Description |
@@ -168,7 +189,7 @@ Also requires `VITE_` prefixed versions of Supabase vars for frontend build.
 ## Specifications (read when relevant)
 @docs/SPRINT_STATUS.md
 @docs/DEPLOY_CHECKLIST.md
-@docs/HANDOFF_SESSION11_COMPLETE.md
+@docs/HANDOFF_SESSION12_COMPLETE.md
 
 ## Safety Rules (NON-NEGOTIABLE)
 
@@ -205,8 +226,9 @@ Also requires `VITE_` prefixed versions of Supabase vars for frontend build.
 - Supabase Storage bucket must have `audio/mpeg` in allowed MIME types
 
 ## Current Sprint Status
-Sessions 1-11 complete. Mel sandbox live and functional.
+Sessions 1-12 complete. 6 tenants provisioned, multi-tenant ready.
 See @docs/SPRINT_STATUS.md for full breakdown.
+See @docs/HANDOFF_SESSION12_COMPLETE.md for Session 12 details.
 
 ## Communication Style
 - Be direct, not verbose
