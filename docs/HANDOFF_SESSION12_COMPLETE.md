@@ -7,13 +7,20 @@ Last updated: 2026-02-21
 Paste this into your next Claude Code session:
 
 ```
-Continue building PlexifySOLO. Read CLAUDE.md first, then docs/SPRINT_STATUS.md
-for full context. Sessions 1-12 are complete. The app is live on Railway at
-https://plexifybid-production.up.railway.app. Session 12 expanded from 1 to 6
-tenants across AEC, events, broadcast, and consumer-tech verticals. Added vocab
-skins, system_prompt_override, timezone-aware Powerflow pipeline, and superpowers
-CLI. All code is on main branch, commit 74a2646. Run the Session 12 migration
-against Supabase before testing new tenants. Check SPRINT_STATUS.md for next steps.
+Continue building PlexifySOLO. Read CLAUDE.md first, then
+docs/SPRINT_STATUS.md for full context. Sessions 1-12 are
+complete and closed out. The app is live on Railway at
+https://plexifybid-production.up.railway.app with 10 tenants
+across AEC, events, broadcast, consumer-tech, and internal
+verticals.
+
+SESSION 13 PRIORITY ORDER:
+1. RLS leak test — dynamic, all tenants × all 15 tables
+   (security debt, do this FIRST)
+2. Republic Events demo prep (Thursday deadline)
+3. Streaming responses for Ask Plexi / Deal Room chat
+4. My SalesPlex Flow page (Ken's dogfooding sandbox)
+5. Home dashboard improvements
 ```
 
 ## What Was Built in Session 12
@@ -30,22 +37,26 @@ against Supabase before testing new tenants. Check SPRINT_STATUS.md for next ste
 | PowerflowPyramid | Inverted pyramid UI on ExecutiveFeed home page | `src/components/PowerflowPyramid.tsx` |
 | Gravity Media Seeds | 30 broadcast production prospects for SB4 | `supabase/seeds/20260221_gravity_media_prospects.sql` |
 | Superpowers CLI | scaffold, activate, test (stub), ship scripts | `scripts/superpowers/*.js` |
+| Ben Backfill | system_prompt_override for SunnAx/Xencelabs context | SQL applied directly in Supabase |
 
-## New Tenant Roster
+## Full Tenant Roster — All 10 Sandbox URLs
 
-| Code | Name | Company | Industry | Persona | Timezone |
-|------|------|---------|----------|---------|----------|
-| SB1 | Mel Wallace | Hexagon / Multivista | AEC | mel-closer | America/New_York |
-| SB2 | Priya Kapoor | Republic Events Australia | Events | priya-connector | Australia/Sydney |
-| SB3 | Tomás Rivera | Rivera & Sons Mechanical | AEC (Subcontractor) | tomas-grinder | America/Chicago |
-| SB4 | Josh Rosen | Gravity Media | Broadcast | josh-strategist | America/Los_Angeles |
-| SB5 | Anika Chen | NovaByte Consumer Electronics | Consumer Tech | anika-launcher | America/Los_Angeles |
-| SB6 | Internal Dev Playground | Plexify Engineering | Internal | dev-sandbox | America/New_York |
+Base URL: `https://plexifybid-production.up.railway.app/sandbox?token=`
 
-**Note:** Sandbox tokens for SB2-SB6 are generated dynamically in the migration via `gen_random_bytes(24)`. After running the migration, query the tenants table to get the actual tokens:
-```sql
-SELECT slug, sandbox_token FROM public.tenants ORDER BY created_at;
-```
+| # | Name | Company | Industry | Sandbox Token | Origin |
+|---|------|---------|----------|---------------|--------|
+| 1 | Mel Wallace | Hexagon / Multivista | AEC | `pxs_c13a257e1701ca2b148733ac591381cd8a284f9b7bd47084` | Pre-existing (SB1) |
+| 2 | Republic Events | Republic Events Australia | AEC (Event Construction) | `pxs_80b87ef1ae530bf4c34b6af0073d13404e6230fdd2532aec` | Pre-existing |
+| 3 | Josh Rosen | Gravity Media | Broadcast | `pxs_32092a7dac0fd24cf45a728ae7bc985830bc15d6be27755d` | Pre-existing |
+| 4 | Ken D'Amato | Plexify AI | Internal | `pxs_678b89a496e9a43f25e64ac3c8ef057db9cd7be48082ebd5` | Pre-existing |
+| 5 | Dev Team | Plexify AI (External) | Internal | `pxs_889ba81e96de708a2fb86618c80663a0228e5c5264e426de` | Pre-existing |
+| 6 | Ben D'Amprisi Jr. | SunnAx Technologies | Consumer Tech | `pxs_f07758ccc00e5b13b41615ec6af7c3e723699c24afb4f2ef` | Pre-existing + backfill |
+| 7 | Tomás Rivera | Rivera & Sons Mechanical | AEC (Sub) | `pxs_caf994027c4d18aaae5bb9c178785444fc6d7f4b536b79dd` | Session 12 (SB3) |
+| 8 | Anika Chen | NovaByte Consumer Electronics | Consumer Tech | `pxs_f744a6b1fe1e6dd1aefd8f88b49f7d31c939d0f9a81e0b33` | Session 12 (SB5) |
+| 9 | Internal Dev Playground | Plexify Engineering | Internal | `pxs_4d8ab9c4c8f3cfd1fa5d97b051f6efda59c72ef4a030fba9` | Session 12 (SB6) |
+| 10 | Priya Kapoor | Republic Events Australia | Events (Sponsorship) | `pxs_03890da9a8b9028b0df8aa69b482b04bbfc3f9d3ad1425d3` | Session 12 (SB2) |
+
+**Pre-existing vs. Session 12:** Tenants 1-6 existed before Session 12. Republic Events (#2) uses default AEC vocab (their team does event construction). Priya Kapoor (#10) is the events/sponsorship vocab skin tenant. Ben D'Amprisi (#6) was backfilled with SunnAx system_prompt_override during close-out.
 
 ## New Database Schema
 
@@ -134,32 +145,14 @@ supabase/
 | `src/features/executive/ExecutiveFeed.tsx` | Added PowerflowPyramid, Quick-Start pill, vocab skin on action cards |
 | `vite.config.ts` | Added powerflowMiddleware import + registration |
 
-## Post-Deploy Steps
+## Post-Deploy Steps (All Completed ✅)
 
-1. **Run migration** against Supabase:
-   ```
-   npx supabase db push
-   ```
-   Or paste `supabase/migrations/20260221_session12_multi_tenant.sql` into the Supabase SQL editor.
-
-2. **Run Gravity Media seeds** (optional, SB4 only):
-   Paste `supabase/seeds/20260221_gravity_media_prospects.sql` into the Supabase SQL editor.
-
-3. **Query sandbox tokens** for new tenants:
-   ```sql
-   SELECT name, company, slug, sandbox_token FROM public.tenants ORDER BY created_at;
-   ```
-
-4. **Push to GitHub** to trigger Railway auto-deploy:
-   ```
-   git push origin main
-   ```
-
-5. **Verify** after deploy:
-   - `/api/health` returns 200
-   - SB1 sandbox URL still works
-   - PowerflowPyramid renders on home page
-   - New tenant tokens work (after migration runs)
+1. ✅ **Migration applied** — SQL pasted in Supabase editor (partial re-run with idempotent WHERE NOT EXISTS)
+2. ✅ **Gravity Media seeds** — 30 broadcast prospects loaded for SB4
+3. ✅ **Sandbox tokens queried** — All 10 tenant URLs documented above
+4. ✅ **Pushed to GitHub** — Railway auto-deploy triggered and completed
+5. ✅ **Verified** — Health check 200, SB1 works, PowerflowPyramid renders, all 10 tenants accessible
+6. ✅ **Ben backfill** — system_prompt_override applied, Ask Plexi responds with SunnAx/Xencelabs context
 
 ## Known Issues (Carried Forward + New)
 
@@ -170,20 +163,21 @@ supabase/
 | ElevenLabs free tier limits | Audio gen may fail | Carried |
 | Large bundle (4.6MB) | Slow initial load | Carried |
 | BID-era unused files in src/server/ | Clutter | Carried |
-| SB2-SB6 tokens are random | Must query DB after migration | New — by design |
-| Powerflow test file not yet created | No automated test coverage | New |
+| RLS leak test not yet created | Security debt — 10 tenants × 15 tables = 150 checks | **Session 13 Priority 1** |
 | Pre-existing deleted binary files in working tree | Git status noise | Pre-existing |
 
-## Next Steps (Session 13+)
+## Deferred to Session 13+
 
-1. **Run migration + push to deploy** — Verify all 6 tenants work in production
-2. **My SalesPlex Flow page** — Sales process workflow visualization
-3. **Home dashboard improvements** — Activity feed, metrics per tenant
-4. **Mobile responsive pass** — Sidebar collapse, touch-friendly controls
-5. **Streaming responses** — SSE for Ask Plexi and Deal Room chat
-6. **RLS leak test** — Vitest test at `server/tests/rls-leak-test.mjs`
-7. **Procore integration** — OAuth flow, project sync
-8. **Stripe billing** — Self-serve for post-pilot customers
+| Item | Priority | Notes |
+|------|----------|-------|
+| RLS leak test | **P1 — Do FIRST** | Dynamic, all tenants × all 15 tables (150 isolation checks) |
+| Republic Events demo prep | P2 | Thursday deadline, SB2 (Priya) sandbox |
+| Streaming responses | P3 | SSE for Ask Plexi / Deal Room chat |
+| My SalesPlex Flow page | P4 | Ken's dogfooding sandbox |
+| Home dashboard improvements | P5 | Activity feed, metrics per tenant |
+| Mobile responsive pass | P6 | Sidebar collapse, touch-friendly controls |
+| Procore integration | Future | OAuth flow, project sync |
+| Stripe billing | Future | Self-serve for post-pilot customers |
 
 ## Backup Branches
 - `backup/pre-session12` — Sessions 1-11 state (before multi-tenant expansion)

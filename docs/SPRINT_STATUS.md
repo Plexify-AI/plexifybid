@@ -13,17 +13,23 @@ Goal: Expand PlexifySOLO from 1 tenant to 6 across AEC, events, broadcast, and c
 - **Sandbox (SB1):** /sandbox?token=pxs_c13a257e1701ca2b148733ac591381cd8a284f9b7bd47084
 - **Railway:** 14 service variables + 8 Railway system vars
 - **Supabase:** 15 tables, RLS enabled, Storage bucket (deal-room-files)
-- **Tenants:** 6 (SB1-SB6) — SB2-SB6 tokens generated dynamically, query DB after migration
+- **Tenants:** 10 (4 pre-existing + 6 from Session 12 migration)
 
-### Tenant Roster
-| Code | Name | Company | Industry | Timezone |
-|------|------|---------|----------|----------|
-| SB1 | Mel Wallace | Hexagon / Multivista | AEC | America/New_York |
-| SB2 | Priya Kapoor | Republic Events Australia | Events | Australia/Sydney |
-| SB3 | Tomás Rivera | Rivera & Sons Mechanical | AEC (Sub) | America/Chicago |
-| SB4 | Josh Rosen | Gravity Media | Broadcast | America/Los_Angeles |
-| SB5 | Anika Chen | NovaByte Consumer Electronics | Consumer Tech | America/Los_Angeles |
-| SB6 | Internal Dev | Plexify Engineering | Internal | America/New_York |
+### Tenant Roster — All 10 Sandbox URLs
+Base URL: `https://plexifybid-production.up.railway.app/sandbox?token=`
+
+| # | Name | Company | Industry | Sandbox Token | Origin |
+|---|------|---------|----------|---------------|--------|
+| 1 | Mel Wallace | Hexagon / Multivista | AEC | `pxs_c13a257e1701ca2b148733ac591381cd8a284f9b7bd47084` | Pre-existing (SB1) |
+| 2 | Republic Events | Republic Events Australia | AEC (Event Construction) | `pxs_80b87ef1ae530bf4c34b6af0073d13404e6230fdd2532aec` | Pre-existing |
+| 3 | Josh Rosen | Gravity Media | Broadcast | `pxs_32092a7dac0fd24cf45a728ae7bc985830bc15d6be27755d` | Pre-existing |
+| 4 | Ken D'Amato | Plexify AI | Internal | `pxs_678b89a496e9a43f25e64ac3c8ef057db9cd7be48082ebd5` | Pre-existing |
+| 5 | Dev Team | Plexify AI (External) | Internal | `pxs_889ba81e96de708a2fb86618c80663a0228e5c5264e426de` | Pre-existing |
+| 6 | Ben D'Amprisi Jr. | SunnAx Technologies | Consumer Tech | `pxs_f07758ccc00e5b13b41615ec6af7c3e723699c24afb4f2ef` | Pre-existing + backfill |
+| 7 | Tomás Rivera | Rivera & Sons Mechanical | AEC (Sub) | `pxs_caf994027c4d18aaae5bb9c178785444fc6d7f4b536b79dd` | Session 12 (SB3) |
+| 8 | Anika Chen | NovaByte Consumer Electronics | Consumer Tech | `pxs_f744a6b1fe1e6dd1aefd8f88b49f7d31c939d0f9a81e0b33` | Session 12 (SB5) |
+| 9 | Internal Dev Playground | Plexify Engineering | Internal | `pxs_4d8ab9c4c8f3cfd1fa5d97b051f6efda59c72ef4a030fba9` | Session 12 (SB6) |
+| 10 | Priya Kapoor | Republic Events Australia | Events (Sponsorship) | `pxs_03890da9a8b9028b0df8aa69b482b04bbfc3f9d3ad1425d3` | Session 12 (SB2) |
 
 ## Features Live in Production
 1. **Sandbox Auth** — Token-based tenant isolation, usage logging
@@ -125,7 +131,7 @@ Commit: `1cba74f`
 - Supabase Storage bucket needed audio/mpeg MIME type added
 
 ### Session 12 — Multi-Tenant Expansion
-Commit: `74a2646`
+Commits: `74a2646`, `2ef8b49` (docs), close-out commit TBD
 - Migration: 9 new columns on tenants, powerflow_state table, source column on prospects
 - 5 new tenants (SB2-SB6): Republic Events Australia, Rivera & Sons Mechanical, Gravity Media, NovaByte, Plexify Engineering
 - SB1 (Mel Wallace) updated with persona_code, timezone, vocab_skin, powerflow_quick_start
@@ -136,6 +142,8 @@ Commit: `74a2646`
 - PowerflowPyramid component on ExecutiveFeed home page with Quick-Start pill
 - 30 Gravity Media broadcast prospect seeds (OB/Remote, Sports, Live Event, Graphics, Streaming)
 - 4 superpowers CLI scripts: scaffold, activate, test (stub), ship
+- Close-out: Ben D'Amprisi Jr. system_prompt_override backfill (SunnAx/Xencelabs context) — verified ✅
+- Deployed + verified: all 10 tenants live, vocab skins active, Powerflow rendering ✅
 - Verified: `npx vite build` ✅ (3446 modules, 33s)
 
 ## Decisions Made
@@ -189,10 +197,10 @@ Commit: `74a2646`
 | `VITE_SUPABASE_ANON_KEY` | Yes | Build-time for frontend |
 | `VITE_SUPABASE_URL` | Yes | Build-time for frontend |
 
-## Next Steps
-1. **Run Session 12 migration** — `npx supabase db push` or paste SQL in Supabase editor
-2. **Push to GitHub** — `git push origin main` to trigger Railway deploy
-3. **Query new tenant tokens** — Get sandbox URLs for SB2-SB6
-4. **Republic Events Australia demo** — SB2 (Priya) sandbox with events vocab skin
-5. **Session 13+**: My SalesPlex Flow page, RLS leak test, home dashboard improvements, mobile responsive pass
-6. **Future**: Streaming responses, Procore integration, Stripe billing, SOC 2 prep
+## Next Steps — Session 13 Priority Order
+1. **RLS leak test** — Dynamic, all 10 tenants × 15 tables (security debt, do FIRST)
+2. **Republic Events demo prep** — Thursday deadline, SB2 (Priya) sandbox
+3. **Streaming responses** — SSE for Ask Plexi / Deal Room chat
+4. **My SalesPlex Flow page** — Ken's dogfooding sandbox
+5. **Home dashboard improvements** — Activity feed, metrics per tenant
+6. **Future**: Mobile responsive pass, Procore integration, Stripe billing, SOC 2 prep
