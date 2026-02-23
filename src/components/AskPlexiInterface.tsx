@@ -392,7 +392,7 @@ const AskPlexiInterface: React.FC = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
               <img
-                src="/assets/logos/Gray Plexify P-only no bkgrd.png"
+                src="/assets/logos/plexify-mark-gray.png"
                 alt="Ask Plexi"
                 className="w-8 h-8 filter brightness-0 invert"
               />

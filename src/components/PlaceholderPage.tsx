@@ -15,7 +15,7 @@ const PlaceholderPage: React.FC<PlaceholderPageProps> = ({
         <div className="placeholder-icon">
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6">
             <img 
-              src="/assets/logos/Plexify purple no background.png" 
+              src="/assets/logos/plexify-mark-gray.png" 
               alt="Plexify" 
               className="w-8 h-8 object-contain"
             />
