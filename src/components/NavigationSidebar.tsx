@@ -60,8 +60,8 @@ const NavigationSidebar: React.FC = () => {
     if (item.icon === 'custom-p-logo') {
       return (
         <img 
-          src="/assets/logos/Gray Plexify P-only no bkgrd.png"
-          alt="Plexify P" 
+          src="/assets/logos/flat_P_logo.png"
+          alt="Plexify P"
           className="w-5 h-5 nav-icon"
         />
       );
@@ -88,9 +88,9 @@ const NavigationSidebar: React.FC = () => {
           <div className="logo-section">
             <div className="logo-container">
               <img
-                src="/assets/logos/Plexify white no background.png"
+                src="/assets/logos/flat_P_logo.png"
                 alt="PlexifySOLO"
-                className="w-48 h-auto object-contain"
+                className="w-12 h-12 object-contain"
               />
               {!isCollapsed && (
                 <span className="inline-block ml-1 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-blue-200 bg-blue-500/20 border border-blue-400/30 rounded uppercase">SOLO</span>

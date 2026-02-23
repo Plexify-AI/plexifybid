@@ -49,7 +49,7 @@ const SandboxEntry: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
         <div className="max-w-md mx-auto text-center p-8">
           <img
-            src="/assets/logos/Gray Plexify P-only no bkgrd.png"
+            src="/assets/logos/plexify-mark-gray.png"
             alt="PlexifySOLO"
             className="w-16 h-16 mx-auto mb-6 filter brightness-0 invert"
           />
@@ -83,7 +83,7 @@ const SandboxEntry: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
         <div className="max-w-md mx-auto text-center p-8">
           <img
-            src="/assets/logos/Gray Plexify P-only no bkgrd.png"
+            src="/assets/logos/plexify-mark-gray.png"
             alt="PlexifySOLO"
             className="w-16 h-16 mx-auto mb-6 filter brightness-0 invert opacity-50"
           />
@@ -110,7 +110,7 @@ const SandboxEntry: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
         <div className="max-w-md mx-auto text-center p-8">
           <img
-            src="/assets/logos/Gray Plexify P-only no bkgrd.png"
+            src="/assets/logos/plexify-mark-gray.png"
             alt="PlexifySOLO"
             className="w-16 h-16 mx-auto mb-6 filter brightness-0 invert animate-pulse"
           />
@@ -133,7 +133,7 @@ const SandboxEntry: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
         <div className="max-w-md mx-auto text-center p-8">
           <img
-            src="/assets/logos/Gray Plexify P-only no bkgrd.png"
+            src="/assets/logos/plexify-mark-gray.png"
             alt="PlexifySOLO"
             className="w-16 h-16 mx-auto mb-6 filter brightness-0 invert opacity-50"
           />
@@ -162,7 +162,7 @@ const SandboxEntry: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
       <div className="w-16 h-16 mx-auto filter brightness-0 invert animate-pulse">
-        <img src="/assets/logos/Gray Plexify P-only no bkgrd.png" alt="" className="w-full h-full" />
+        <img src="/assets/logos/plexify-mark-gray.png" alt="" className="w-full h-full" />
       </div>
     </div>
   );
