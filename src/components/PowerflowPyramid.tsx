@@ -1,21 +1,17 @@
 /**
- * PowerflowPyramid — Inverted pyramid showing daily BD progress
+ * PowerflowPyramid — Display-only RIGHT pyramid (success logger shell)
  *
- * Fills from Stage 1 (bottom, narrowest) to Stage 6 (top, widest).
- * Completed stages use accent gradient; incomplete stages are muted.
+ * Shows daily BD progress. Inverted: Close It at top (widest),
+ * Find It at bottom (narrowest). Completed stages use accent gradient.
  * Timezone-aware — resets at the tenant's local midnight.
  *
- * All 6 capsule buttons are clickable:
- *   - Level 1: Fetches pipeline data, interpolates template, navigates to Ask Plexi
- *   - Levels 2-5: Navigate directly to Ask Plexi with prefill prompt
- *   - Level 6: Manual win logging (existing behavior)
+ * Only Stage 6 is interactive (manual win logging).
+ * All other stages are display-only — a future task will add
+ * encouragement quotes. For now it shows which stages are completed.
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useSandbox } from '../contexts/SandboxContext';
-import { POWERFLOW_LEFT_PROMPTS } from '../constants/powerflowLeftPyramidPrompts';
-import { getPipelineSummary, interpolatePrompt } from '../services/pipelineDataSource';
 
 interface PowerflowState {
   stage_1_completed: boolean;
@@ -46,11 +42,9 @@ const WIDTHS = [100, 88, 76, 64, 52, 40];
 
 export default function PowerflowPyramid() {
   const { token } = useSandbox();
-  const navigate = useNavigate();
   const [state, setState] = useState<PowerflowState | null>(null);
   const [localDate, setLocalDate] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [loadingLevel, setLoadingLevel] = useState<number | null>(null);
 
   const fetchState = useCallback(async () => {
     if (!token) return;
@@ -74,6 +68,7 @@ export default function PowerflowPyramid() {
     fetchState();
   }, [fetchState]);
 
+  // Stage 6 manual win logging — the only interactive button
   const handleManualComplete = async (stage: number) => {
     if (!token) return;
     try {
@@ -94,49 +89,6 @@ export default function PowerflowPyramid() {
     }
   };
 
-  /**
-   * Handle capsule button click.
-   * - Level 6: manual win logging (existing behavior)
-   * - Level 1: fetch pipeline data, interpolate template, navigate to Ask Plexi
-   * - Levels 2-5: navigate directly to Ask Plexi with prefill prompt
-   */
-  const handleCapsuleClick = async (level: number) => {
-    if (!token) return;
-
-    // Level 6 is manual complete only
-    if (level === 6) {
-      handleManualComplete(6);
-      return;
-    }
-
-    const promptEntry = POWERFLOW_LEFT_PROMPTS.find((p) => p.level === level);
-    if (!promptEntry) return;
-
-    // Level 1 needs pipeline data for template interpolation
-    if (level === 1) {
-      setLoadingLevel(1);
-      try {
-        const summary = await getPipelineSummary(token);
-        const promptText =
-          summary.activeOpportunityCount === 0 && promptEntry.emptyPipelineFallback
-            ? promptEntry.emptyPipelineFallback
-            : interpolatePrompt(promptEntry.userPrompt, summary);
-        navigate(`/ask-plexi?prefill=${encodeURIComponent(promptText)}&level=${level}`);
-      } catch (err) {
-        console.error('[PowerflowPyramid] pipeline summary error:', err);
-        // Fallback to empty pipeline prompt on error
-        const fallback = promptEntry.emptyPipelineFallback || promptEntry.userPrompt;
-        navigate(`/ask-plexi?prefill=${encodeURIComponent(fallback)}&level=${level}`);
-      } finally {
-        setLoadingLevel(null);
-      }
-      return;
-    }
-
-    // Levels 2-5: navigate directly with prompt text
-    navigate(`/ask-plexi?prefill=${encodeURIComponent(promptEntry.userPrompt)}&level=${level}`);
-  };
-
   const completedCount = state
     ? [1, 2, 3, 4, 5, 6].filter((n) => state[`stage_${n}_completed` as keyof PowerflowState]).length
     : 0;
@@ -154,7 +106,7 @@ export default function PowerflowPyramid() {
   }
 
   return (
-    <div className="bg-gray-800/40 rounded-xl border border-gray-700/40 p-6">
+    <div className="bg-gray-800/40 rounded-xl border border-gray-700/40 p-6 flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-white">Powerflow</h3>
@@ -175,30 +127,26 @@ export default function PowerflowPyramid() {
       </div>
 
       {/* Inverted pyramid — Stage 6 at top (widest), Stage 1 at bottom (narrowest) */}
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 flex-1">
         {STAGES.map((stage, idx) => {
           const completed = state?.[`stage_${stage.num}_completed` as keyof PowerflowState];
           const width = WIDTHS[idx];
-          const isLoading = loadingLevel === stage.num;
+          const isStage6 = stage.num === 6;
 
           return (
             <div key={stage.num} className="flex flex-col items-center">
               <button
-                onClick={() => handleCapsuleClick(stage.num)}
-                disabled={isLoading}
+                onClick={() => isStage6 && !completed && handleManualComplete(6)}
+                disabled={!isStage6 || !!completed}
                 className={`relative rounded-lg px-3 py-2 transition-all text-left ${
                   completed
-                    ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 border border-blue-500/30 hover:from-blue-600 hover:to-indigo-600 cursor-pointer'
-                    : stage.num === 6
+                    ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 border border-blue-500/30'
+                    : isStage6
                     ? 'bg-gray-700/30 border border-gray-600/30 hover:border-amber-500/40 cursor-pointer'
-                    : 'bg-gray-700/30 border border-gray-600/30 hover:border-blue-500/40 hover:bg-gray-700/50 cursor-pointer'
+                    : 'bg-gray-700/30 border border-gray-600/30 pointer-events-none'
                 }`}
                 style={{ width: `${width}%` }}
-                title={
-                  stage.num === 6 && !completed
-                    ? 'Click to log a win'
-                    : `Click to open Level ${stage.num} prompt`
-                }
+                title={isStage6 && !completed ? 'Click to log a win' : stage.trigger}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
@@ -206,7 +154,7 @@ export default function PowerflowPyramid() {
                       {stage.num}
                     </span>
                     <span className={`text-sm font-medium truncate ${completed ? 'text-white' : 'text-gray-400'}`}>
-                      {isLoading ? 'Loading pipeline...' : stage.label}
+                      {stage.label}
                     </span>
                   </div>
                   <span className={`text-[10px] hidden sm:inline ${completed ? 'text-blue-300/70' : 'text-gray-600'}`}>
@@ -222,7 +170,7 @@ export default function PowerflowPyramid() {
       {/* Legend */}
       <div className="mt-4 pt-3 border-t border-gray-700/40">
         <p className="text-[10px] text-gray-500 text-center">
-          Bloom-Maslow framework &middot; Click any level to start &middot; Resets at midnight
+          Bloom-Maslow framework &middot; Resets at midnight local time
         </p>
       </div>
     </div>

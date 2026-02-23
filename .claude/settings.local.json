@@ -14,7 +14,12 @@
       "Bash(docker rm:*)",
       "Bash(ping:*)",
       "Bash(cd:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npx vite build:*)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")",
+      "Bash(bash --noprofile --norc -c 'cd \"\"/c/Users/Ken'\"''\"'s BOXX/Documents/GitHub/plexifybid\"\" && npx vite build')",
+      "Bash(BASH_ENV=\"\" HOME=\"\" bash --noprofile --norc -c \"cd ''C:/Users/Ken''\\\\''''s BOXX/Documents/GitHub/plexifybid'' && npx vite build 2>&1\")",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")"
     ]
   }
 }

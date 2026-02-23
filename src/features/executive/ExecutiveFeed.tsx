@@ -10,6 +10,7 @@ import AudioNarrationService from '../../services/AudioNarrationService';
 import { OpportunityCard } from '../home/components/OpportunityCard';
 import { useSandbox } from '../../contexts/SandboxContext';
 import PowerflowPyramid from '../../components/PowerflowPyramid';
+import PowerflowMorningPyramid from '../../components/PowerflowMorningPyramid';
 import { useTenantVocab } from '../../hooks/useTenantVocab';
 /**
  * ExecutiveFeed Component
@@ -286,29 +287,11 @@ const ExecutiveFeed: React.FC = () => {
         </div>
       )}
 
-      {/* Powerflow Quick-Start Pill + Pyramid */}
+      {/* Powerflow — Two Pyramids Side by Side */}
       {tenant && (
-        <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            {/* Quick-Start prompt pill */}
-            {tenant.powerflow_quick_start && (
-              <button
-                onClick={() => navigate('/ask-plexi?q=' + encodeURIComponent(tenant.powerflow_quick_start!))}
-                className="mb-4 w-full group flex items-center gap-3 p-4 bg-gradient-to-r from-blue-900/80 to-indigo-900/80 hover:from-blue-800/90 hover:to-indigo-800/90 rounded-xl border border-blue-500/30 hover:border-blue-400/50 transition-all text-left cursor-pointer"
-              >
-                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-lg">&#x26A1;</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">Quick Start</p>
-                  <p className="text-xs text-blue-300/70 truncate">{tenant.powerflow_quick_start}</p>
-                </div>
-              </button>
-            )}
-          </div>
-          <div>
-            <PowerflowPyramid />
-          </div>
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          <PowerflowMorningPyramid />
+          <PowerflowPyramid />
         </div>
       )}
 
