@@ -2,8 +2,13 @@
  * PlexifySOLO — Ask Plexi chat route
  *
  * POST /api/ask-plexi/chat
- * Accepts: { message: string, conversation_id?: string, history?: Array }
+ * Accepts: { message: string, conversation_id?: string, history?: Array, powerflow_level?: number }
  * Returns: { reply: string, conversation_id: string, tool_results: Array, usage: object }
+ *
+ * When powerflow_level (1-6) is provided, the system prompt is stacked 3 layers:
+ *   Layer 1: tenant.system_prompt_override.context (industry/persona)
+ *   Layer 2: POWERFLOW_SYSTEM_PROMPTS[level] (capsule sales stage)
+ *   Layer 3: DEFAULT_SYSTEM_PROMPT (base Plexi behavior)
  *
  * Auth: sandboxAuth middleware sets req.tenant before this handler runs.
  */
@@ -16,9 +21,10 @@ import {
   logUsageEvent,
 } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
+import { POWERFLOW_SYSTEM_PROMPTS } from '../constants/powerflowPrompts.js';
 
 // ---------------------------------------------------------------------------
-// System prompt — AEC BD specialist
+// System prompt — AEC BD specialist (Layer 3 — base behavior)
 // ---------------------------------------------------------------------------
 
 const DEFAULT_SYSTEM_PROMPT = `You are Plexi, an AI business development specialist. You help sales professionals find, prioritize, and pursue opportunities.
@@ -40,15 +46,31 @@ You have access to the user's real prospect database, contact network, and case 
 Never use these words: leverage, seamless, transformative, delve.`;
 
 /**
- * Build the system prompt for a tenant. If the tenant has a system_prompt_override
- * with a context field, prepend it to the default prompt. The override augments
- * the default — it does NOT replace it.
+ * Build the system prompt for a tenant with optional Powerflow capsule layer.
+ *
+ * 3-layer stack (top to bottom):
+ *   Layer 1: tenant.system_prompt_override.context  (industry/persona context)
+ *   Layer 2: POWERFLOW_SYSTEM_PROMPTS[level]        (capsule sales stage context)
+ *   Layer 3: DEFAULT_SYSTEM_PROMPT                  (base Plexi behavior)
+ *
+ * Layer 2 is only included when powerflowLevel is provided (1-6).
  */
-function buildSystemPrompt(tenant) {
+function buildSystemPrompt(tenant, powerflowLevel) {
+  const layers = [];
+
+  // Layer 1: Tenant override (industry/persona context)
   const override = tenant.system_prompt_override?.context || '';
-  return override
-    ? `${override}\n\n${DEFAULT_SYSTEM_PROMPT}`
-    : DEFAULT_SYSTEM_PROMPT;
+  if (override) layers.push(override);
+
+  // Layer 2: Capsule system prompt (sales stage context)
+  if (powerflowLevel && POWERFLOW_SYSTEM_PROMPTS[powerflowLevel]) {
+    layers.push(POWERFLOW_SYSTEM_PROMPTS[powerflowLevel]);
+  }
+
+  // Layer 3: Base Plexi behavior
+  layers.push(DEFAULT_SYSTEM_PROMPT);
+
+  return layers.join('\n\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -64,7 +86,7 @@ export async function handleChat(req, res, body) {
     return res.end(JSON.stringify({ error: 'Not authenticated' }));
   }
 
-  const { message, conversation_id, history = [] } = body;
+  const { message, conversation_id, history = [], powerflow_level } = body;
 
   if (!message || typeof message !== 'string') {
     res.statusCode = 400;
@@ -84,10 +106,11 @@ export async function handleChat(req, res, body) {
       { role: 'user', content: message },
     ];
 
-    console.log(`[ask-plexi] Processing message for tenant ${tenant.slug}: "${message.substring(0, 80)}..."`);
+    const levelTag = powerflow_level ? ` [Powerflow L${powerflow_level}]` : '';
+    console.log(`[ask-plexi] Processing message for tenant ${tenant.slug}${levelTag}: "${message.substring(0, 80)}..."`);
 
-    // Build tenant-specific system prompt (override augments default)
-    const systemPrompt = buildSystemPrompt(tenant);
+    // Build tenant-specific system prompt (3-layer stack when powerflow_level present)
+    const systemPrompt = buildSystemPrompt(tenant, powerflow_level);
 
     // Call Claude with tool support
     const result = await sendMessage({
@@ -130,10 +153,14 @@ export async function handleChat(req, res, body) {
     }).catch(() => {}); // fire and forget
 
     // Powerflow triggers (non-blocking)
-    markPowerflowStage(tenant, 1); // Stage 1: Ask Plexi query
+    markPowerflowStage(tenant, 1); // Stage 1: Ask Plexi query (auto-trigger)
     const toolNames = result.toolResults.map((t) => t.tool);
     if (toolNames.includes('draft_outreach')) markPowerflowStage(tenant, 3); // Stage 3: Outreach draft
     if (toolNames.includes('analyze_pipeline')) markPowerflowStage(tenant, 4); // Stage 4: Pipeline analysis
+    // Explicit stage marking from powerflow capsule (belt-and-suspenders with auto-triggers)
+    if (powerflow_level && powerflow_level >= 1 && powerflow_level <= 6) {
+      markPowerflowStage(tenant, powerflow_level);
+    }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
