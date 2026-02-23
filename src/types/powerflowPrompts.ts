@@ -20,3 +20,13 @@ export interface PipelineSummary {
   topOpportunityName: string | null;
   topWarmthScore: number;
 }
+
+export interface PowerflowSuccessQuote {
+  level: number;
+  capsuleLabel: string;
+  bloom: string;
+  maslow: string;
+  activatedLabel: string;
+  encouragementQuote: string;
+  quoteAttribution: string;
+}

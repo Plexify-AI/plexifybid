@@ -1,8 +1,9 @@
 /**
  * PowerflowMorningPyramid — Interactive LEFT inverted pyramid
  *
- * The daily "morning coffee" sales catalyst. Inverted shape:
- * widest capsule at top (Level 6), narrowest at bottom (Level 1).
+ * The daily "morning coffee" sales catalyst. Pyramid shape:
+ * narrowest capsule at top (Level 6), widest at bottom (Level 1).
+ * Maslow metaphor: Physiological (L1) is the broad base.
  *
  * All 6 capsules are clickable:
  *   - Level 1: Fetches pipeline data, interpolates template, navigates to Ask Plexi
@@ -33,17 +34,17 @@ interface PowerflowState {
   stage_6_completed_at: string | null;
 }
 
-// Ordered top-to-bottom: Level 6 (widest) → Level 1 (narrowest)
+// Ordered top-to-bottom: Level 6 (narrowest) → Level 1 (widest)
 const LEVELS = [6, 5, 4, 3, 2, 1];
 
-// Width percentages — inverted pyramid tapers down
+// Width percentages — pyramid widens toward base
 const WIDTHS: Record<number, string> = {
-  6: '100%',
-  5: '90%',
-  4: '80%',
-  3: '70%',
-  2: '60%',
-  1: '50%',
+  6: '50%',
+  5: '60%',
+  4: '70%',
+  3: '80%',
+  2: '90%',
+  1: '100%',
 };
 
 export default function PowerflowMorningPyramid() {
@@ -153,7 +154,7 @@ export default function PowerflowMorningPyramid() {
         </div>
       </div>
 
-      {/* Inverted pyramid — Level 6 at top (widest), Level 1 at bottom (narrowest) */}
+      {/* Pyramid — Level 6 at top (narrowest), Level 1 at bottom (widest) */}
       <div className="space-y-2 flex-1">
         {LEVELS.map((level) => {
           const promptEntry = POWERFLOW_LEFT_PROMPTS.find((p) => p.level === level);
