@@ -1,17 +1,23 @@
 /**
- * PowerflowPyramid — Display-only RIGHT pyramid (success logger shell)
+ * PowerflowPyramid — RIGHT pyramid (Success Logger)
  *
- * Shows daily BD progress. Inverted: Close It at top (widest),
- * Find It at bottom (narrowest). Completed stages use accent gradient.
+ * Shows daily BD progress with encouragement quotes that expand
+ * when stages are completed. Inverted shape: Close It at top
+ * (widest), Find It at bottom (narrowest).
+ *
+ * Three visual states per capsule:
+ *   A: Locked  — dimmed, no quote, non-interactive
+ *   B: Activated — full opacity, quote expanded, amber ring
+ *   C: Most Recent — State B + pulse animation + "Just completed" pill
+ *
+ * Stage 6 is the only interactive button (manual win logging).
+ * Polls /api/powerflow/today every 15 seconds for live updates.
  * Timezone-aware — resets at the tenant's local midnight.
- *
- * Only Stage 6 is interactive (manual win logging).
- * All other stages are display-only — a future task will add
- * encouragement quotes. For now it shows which stages are completed.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSandbox } from '../contexts/SandboxContext';
+import { POWERFLOW_RIGHT_QUOTES } from '../constants/powerflowRightPyramidQuotes';
 
 interface PowerflowState {
   stage_1_completed: boolean;
@@ -28,23 +34,44 @@ interface PowerflowState {
   stage_6_completed_at: string | null;
 }
 
-const STAGES = [
-  { num: 6, maslow: 'Transcendence', bloom: 'Create', label: 'Close It', trigger: 'Win manually logged' },
-  { num: 5, maslow: 'Self-Actualization', bloom: 'Evaluate', label: 'Decide It', trigger: 'Artifact generated' },
-  { num: 4, maslow: 'Esteem', bloom: 'Analyze', label: 'See It', trigger: 'Pipeline analysis run' },
-  { num: 3, maslow: 'Belonging', bloom: 'Apply', label: 'Reach It', trigger: 'Outreach draft generated' },
-  { num: 2, maslow: 'Safety', bloom: 'Understand', label: 'Know It', trigger: 'Deal Room RAG chat' },
-  { num: 1, maslow: 'Physiological', bloom: 'Remember', label: 'Find It', trigger: 'Ask Plexi query' },
-];
+// Render order: Level 6 (widest) at top → Level 1 (narrowest) at bottom
+const LEVELS_TOP_DOWN = [...POWERFLOW_RIGHT_QUOTES].reverse();
 
 // Width percentages for the inverted pyramid (widest at top = Stage 6)
 const WIDTHS = [100, 88, 76, 64, 52, 40];
+
+/** Find the most recently completed stage by comparing timestamps. */
+function getMostRecentStage(state: PowerflowState): number | null {
+  let mostRecent: number | null = null;
+  let mostRecentTime = 0;
+
+  for (let n = 1; n <= 6; n++) {
+    const completedAt = state[`stage_${n}_completed_at` as keyof PowerflowState] as string | null;
+    if (completedAt) {
+      const ts = new Date(completedAt).getTime();
+      if (ts > mostRecentTime) {
+        mostRecentTime = ts;
+        mostRecent = n;
+      }
+    }
+  }
+
+  return mostRecent;
+}
+
+/** Check if a stage was completed within the last 60 minutes. */
+function isJustCompleted(completedAt: string | null): boolean {
+  if (!completedAt) return false;
+  const diff = Date.now() - new Date(completedAt).getTime();
+  return diff < 60 * 60 * 1000;
+}
 
 export default function PowerflowPyramid() {
   const { token } = useSandbox();
   const [state, setState] = useState<PowerflowState | null>(null);
   const [localDate, setLocalDate] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchState = useCallback(async () => {
     if (!token) return;
@@ -64,9 +91,19 @@ export default function PowerflowPyramid() {
     }
   }, [token]);
 
+  // Initial fetch
   useEffect(() => {
     fetchState();
   }, [fetchState]);
+
+  // 15-second polling for live updates
+  useEffect(() => {
+    if (!token) return;
+    intervalRef.current = setInterval(fetchState, 15000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [token, fetchState]);
 
   // Stage 6 manual win logging — the only interactive button
   const handleManualComplete = async (stage: number) => {
@@ -93,6 +130,8 @@ export default function PowerflowPyramid() {
     ? [1, 2, 3, 4, 5, 6].filter((n) => state[`stage_${n}_completed` as keyof PowerflowState]).length
     : 0;
 
+  const mostRecentStage = state ? getMostRecentStage(state) : null;
+
   if (loading) {
     return (
       <div className="bg-gray-800/40 rounded-xl border border-gray-700/40 p-6">
@@ -118,7 +157,7 @@ export default function PowerflowPyramid() {
               key={n}
               className={`w-2 h-2 rounded-full ${
                 state?.[`stage_${n}_completed` as keyof PowerflowState]
-                  ? 'bg-blue-400'
+                  ? 'bg-amber-400'
                   : 'bg-gray-600'
               }`}
             />
@@ -128,38 +167,79 @@ export default function PowerflowPyramid() {
 
       {/* Inverted pyramid — Stage 6 at top (widest), Stage 1 at bottom (narrowest) */}
       <div className="space-y-1.5 flex-1">
-        {STAGES.map((stage, idx) => {
-          const completed = state?.[`stage_${stage.num}_completed` as keyof PowerflowState];
+        {LEVELS_TOP_DOWN.map((entry, idx) => {
+          const level = entry.level;
+          const completed = state?.[`stage_${level}_completed` as keyof PowerflowState];
+          const completedAt = state?.[`stage_${level}_completed_at` as keyof PowerflowState] as string | null;
+          const isMostRecent = mostRecentStage === level && !!completed;
+          const justCompleted = isJustCompleted(completedAt);
+          const isStage6 = level === 6;
           const width = WIDTHS[idx];
-          const isStage6 = stage.num === 6;
+
+          // Three visual states
+          let capsuleClasses: string;
+          if (completed && isMostRecent) {
+            // STATE C — Most recently activated
+            capsuleClasses = 'bg-white/10 border border-white/20 ring-2 ring-amber-400/60 animate-pulse';
+          } else if (completed) {
+            // STATE B — Activated
+            capsuleClasses = 'bg-white/10 border border-white/20 ring-1 ring-amber-400/30';
+          } else if (isStage6) {
+            // STATE A — Locked (Stage 6 exception: interactive)
+            capsuleClasses = 'opacity-40 bg-white/5 border border-white/10 hover:opacity-70 hover:border-amber-500/40 cursor-pointer';
+          } else {
+            // STATE A — Locked (non-interactive)
+            capsuleClasses = 'opacity-40 bg-white/5 border border-white/10 pointer-events-none';
+          }
 
           return (
-            <div key={stage.num} className="flex flex-col items-center">
+            <div key={level} className="flex flex-col items-center">
               <button
                 onClick={() => isStage6 && !completed && handleManualComplete(6)}
                 disabled={!isStage6 || !!completed}
-                className={`relative rounded-lg px-3 py-2 transition-all text-left ${
-                  completed
-                    ? 'bg-gradient-to-r from-blue-600/80 to-indigo-600/80 border border-blue-500/30'
-                    : isStage6
-                    ? 'bg-gray-700/30 border border-gray-600/30 hover:border-amber-500/40 cursor-pointer'
-                    : 'bg-gray-700/30 border border-gray-600/30 pointer-events-none'
-                }`}
+                className={`relative rounded-lg px-3 py-2 transition-all duration-200 text-left ${capsuleClasses}`}
                 style={{ width: `${width}%` }}
-                title={isStage6 && !completed ? 'Click to log a win' : stage.trigger}
+                title={isStage6 && !completed ? 'Click to log a win' : entry.capsuleLabel}
               >
+                {/* Capsule header row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className={`text-xs font-bold ${completed ? 'text-blue-200' : 'text-gray-500'}`}>
-                      {stage.num}
-                    </span>
+                    {/* Star icon for activated stages */}
+                    {completed && (
+                      <span className="text-amber-400 text-xs flex-shrink-0">&#9733;</span>
+                    )}
                     <span className={`text-sm font-medium truncate ${completed ? 'text-white' : 'text-gray-400'}`}>
-                      {stage.label}
+                      {entry.capsuleLabel}
                     </span>
+                    {/* Activated label badge */}
+                    {completed && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 whitespace-nowrap">
+                        {entry.activatedLabel}
+                      </span>
+                    )}
+                    {/* "Just completed" micro-badge for most recent */}
+                    {isMostRecent && justCompleted && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-300 whitespace-nowrap">
+                        Just completed
+                      </span>
+                    )}
                   </div>
-                  <span className={`text-[10px] hidden sm:inline ${completed ? 'text-blue-300/70' : 'text-gray-600'}`}>
-                    {stage.bloom}
+                  <span className={`text-[10px] hidden sm:inline ${completed ? 'text-amber-300/70' : 'text-gray-600'}`}>
+                    {entry.bloom}
                   </span>
+                </div>
+
+                {/* Encouragement quote — expands on activation */}
+                <div
+                  className="overflow-hidden transition-all duration-300"
+                  style={{ maxHeight: completed ? '100px' : '0px' }}
+                >
+                  <p className="text-xs italic text-white/80 mt-1.5 leading-relaxed">
+                    {entry.encouragementQuote}
+                  </p>
+                  <p className="text-[10px] text-white/50 mt-0.5">
+                    {entry.quoteAttribution}
+                  </p>
                 </div>
               </button>
             </div>
