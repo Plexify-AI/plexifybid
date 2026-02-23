@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle } from 'lucide-react';
+import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle, Zap } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { useSandbox } from '../contexts/SandboxContext';
 import ProspectCardList from './ProspectCardList';
 import OutreachPreview, { parseEmail } from './OutreachPreview';
 import PipelineAnalysis from './PipelineAnalysis';
+import { POWERFLOW_LEFT_PROMPTS } from '../constants/powerflowLeftPyramidPrompts';
 
 // Structured tool result from the API
 interface ToolResult {
@@ -53,6 +54,8 @@ const AskPlexiInterface: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [autoSent, setAutoSent] = useState(false);
+  const [powerflowLevel, setPowerflowLevel] = useState<number | null>(null);
+  const [prefillApplied, setPrefillApplied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const loadingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -131,6 +134,30 @@ const AskPlexiInterface: React.FC = () => {
     }
   }, [searchParams, autoSent, messages.length]);
 
+  // Prefill from ?prefill= URL param (e.g., from PowerflowPyramid capsule buttons)
+  // Sets input text WITHOUT auto-sending — user reviews and clicks Send
+  useEffect(() => {
+    const prefill = searchParams.get('prefill');
+    const level = searchParams.get('level');
+    if (prefill && !prefillApplied) {
+      setPrefillApplied(true);
+      setCurrentQuery(prefill);
+      if (level) {
+        setPowerflowLevel(parseInt(level, 10));
+      }
+      // Clear URL params so refresh doesn't re-prefill
+      setSearchParams({}, { replace: true });
+      // Focus and auto-grow the textarea
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.style.height = 'auto';
+          inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px';
+        }
+      }, 100);
+    }
+  }, [searchParams, prefillApplied]);
+
   // Auto-grow textarea
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCurrentQuery(e.target.value);
@@ -191,6 +218,7 @@ const AskPlexiInterface: React.FC = () => {
           message: query,
           conversation_id: conversationId,
           history: chatHistory,
+          ...(powerflowLevel ? { powerflow_level: powerflowLevel } : {}),
         }),
         signal: controller.signal,
       });
@@ -243,6 +271,8 @@ const AskPlexiInterface: React.FC = () => {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      // Clear powerflow level after send (one-shot)
+      if (powerflowLevel) setPowerflowLevel(null);
       // Re-focus input after response
       setTimeout(() => inputRef.current?.focus(), 100);
     }
@@ -372,6 +402,17 @@ const AskPlexiInterface: React.FC = () => {
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
               <span className="text-xs text-green-300 font-medium">Live Data</span>
             </div>
+            {powerflowLevel && (() => {
+              const entry = POWERFLOW_LEFT_PROMPTS.find((p) => p.level === powerflowLevel);
+              return entry ? (
+                <div className="flex items-center space-x-2 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/30">
+                  <Zap size={12} className="text-blue-400" />
+                  <span className="text-xs text-blue-300 font-medium">
+                    Level {entry.level} &mdash; {entry.maslow} &rarr; {entry.bloom}
+                  </span>
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>

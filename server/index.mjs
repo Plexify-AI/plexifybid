@@ -159,6 +159,13 @@ app.get('/api/deal-rooms/:id/artifacts', async (req, res) => {
   await handleListArtifacts(req, res, req.params.id);
 });
 
+// Pipeline Summary (Level 1 template interpolation)
+import { handlePipelineSummary } from './routes/pipeline-summary.js';
+
+app.get('/api/pipeline-summary', async (req, res) => {
+  await handlePipelineSummary(req, res);
+});
+
 // Powerflow Pipeline
 import { handleGetToday, handleCompleteStage } from './routes/powerflow.js';
 
