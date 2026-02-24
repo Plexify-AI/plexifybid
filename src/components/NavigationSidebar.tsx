@@ -90,8 +90,7 @@ const NavigationSidebar: React.FC = () => {
               <img
                 src="/assets/logos/flat_P_logo.png"
                 alt="PlexifySOLO"
-                className="object-contain"
-                style={{ width: '192px', height: '192px' }}
+                className="!w-[163px] !h-[163px] max-w-none object-contain"
               />
               {!isCollapsed && (
                 <span className="inline-block ml-1 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-blue-200 bg-blue-500/20 border border-blue-400/30 rounded uppercase">SOLO</span>

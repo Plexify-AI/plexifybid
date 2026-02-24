@@ -228,6 +228,9 @@ const AskPlexiInterface: React.FC = () => {
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
+        if (err.details) {
+          console.error('[AskPlexi] Server error details:', err.details);
+        }
         throw new Error(err.error || `Request failed (${response.status})`);
       }
 

@@ -1,16 +1,19 @@
 /**
- * PowerflowPyramid — RIGHT pyramid (Success Logger)
+ * PowerflowPyramid — LEFT pyramid (Close It / Sales Funnel)
  *
- * Shows daily BD progress with encouragement quotes that expand
- * when stages are completed. Inverted shape: Close It at top
- * (widest), Find It at bottom (narrowest).
+ * Shows daily BD progress as a normal sales funnel:
+ * Level 1 "Find It" widest at top → Level 6 "Close It" narrowest at bottom.
+ *
+ * All capsules are clickable:
+ *   - Click increments a counter (shown upper-right badge, persisted in localStorage)
+ *   - Click marks the stage complete via API (idempotent)
+ *   - Click shows the encouragement quote as a 3-second popup overlay
  *
  * Three visual states per capsule:
- *   A: Locked  — dimmed, no quote, non-interactive
- *   B: Activated — full opacity, quote expanded, amber ring
+ *   A: Not yet completed — slightly dimmed, interactive
+ *   B: Activated — full opacity, amber ring
  *   C: Most Recent — State B + pulse animation + "Just completed" pill
  *
- * Stage 6 is the only interactive button (manual win logging).
  * Polls /api/powerflow/today every 15 seconds for live updates.
  * Timezone-aware — resets at the tenant's local midnight.
  */
@@ -34,10 +37,10 @@ interface PowerflowState {
   stage_6_completed_at: string | null;
 }
 
-// Render order: Level 6 (widest) at top → Level 1 (narrowest) at bottom
-const LEVELS_TOP_DOWN = [...POWERFLOW_RIGHT_QUOTES].reverse();
+// Render order: Level 1 (widest) at top → Level 6 (narrowest) at bottom — normal sales funnel
+const LEVELS_TOP_DOWN = POWERFLOW_RIGHT_QUOTES;
 
-// Width percentages for the inverted pyramid (widest at top = Stage 6)
+// Width percentages for the funnel (widest at top = Level 1)
 const WIDTHS = [100, 88, 76, 64, 52, 40];
 
 /** Find the most recently completed stage by comparing timestamps. */
@@ -73,6 +76,17 @@ export default function PowerflowPyramid() {
   const [loading, setLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Click counter state — persisted per tenant per date in localStorage
+  const [clickCounts, setClickCounts] = useState<Record<number, number>>({});
+
+  // Quote popup state
+  const [popupQuote, setPopupQuote] = useState<{
+    level: number;
+    quote: string;
+    attribution: string;
+  } | null>(null);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const fetchState = useCallback(async () => {
     if (!token) return;
     try {
@@ -105,7 +119,26 @@ export default function PowerflowPyramid() {
     };
   }, [token, fetchState]);
 
-  // Stage 6 manual win logging — the only interactive button
+  // Load click counts from localStorage when localDate is known
+  useEffect(() => {
+    if (!localDate || !token) return;
+    try {
+      const key = `powerflow_clicks_${token}_${localDate}`;
+      const stored = localStorage.getItem(key);
+      if (stored) setClickCounts(JSON.parse(stored));
+    } catch {
+      // Ignore parse errors
+    }
+  }, [localDate, token]);
+
+  // Cleanup popup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+    };
+  }, []);
+
+  // Mark a stage complete via API (idempotent — second call is a no-op server-side)
   const handleManualComplete = async (stage: number) => {
     if (!token) return;
     try {
@@ -126,6 +159,42 @@ export default function PowerflowPyramid() {
     }
   };
 
+  // Capsule click handler — increments counter, shows popup, marks stage
+  const handleCapsuleClick = async (level: number) => {
+    const entry = POWERFLOW_RIGHT_QUOTES.find((e) => e.level === level);
+
+    // Increment local counter + persist to localStorage
+    const newCounts = { ...clickCounts, [level]: (clickCounts[level] || 0) + 1 };
+    setClickCounts(newCounts);
+    if (localDate && token) {
+      try {
+        localStorage.setItem(
+          `powerflow_clicks_${token}_${localDate}`,
+          JSON.stringify(newCounts)
+        );
+      } catch {
+        // localStorage full or unavailable — non-critical
+      }
+    }
+
+    // Show quote popup with 3-second auto-dismiss
+    if (entry) {
+      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+      setPopupQuote({
+        level: entry.level,
+        quote: entry.encouragementQuote,
+        attribution: entry.quoteAttribution,
+      });
+      popupTimerRef.current = setTimeout(() => {
+        setPopupQuote(null);
+        popupTimerRef.current = null;
+      }, 3000);
+    }
+
+    // Mark stage complete via API (idempotent)
+    await handleManualComplete(level);
+  };
+
   const completedCount = state
     ? [1, 2, 3, 4, 5, 6].filter((n) => state[`stage_${n}_completed` as keyof PowerflowState]).length
     : 0;
@@ -134,10 +203,10 @@ export default function PowerflowPyramid() {
 
   if (loading) {
     return (
-      <div className="bg-gray-800/40 rounded-xl border border-gray-700/40 p-6">
+      <div className="rounded-xl bg-gradient-to-br from-amber-800/40 to-slate-800/60 border border-white/10 p-6">
         <div className="animate-pulse space-y-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-8 bg-gray-700/30 rounded mx-auto" style={{ width: `${100 - i * 12}%` }} />
+            <div key={i} className="h-8 bg-white/10 rounded mx-auto" style={{ width: `${100 - i * 12}%` }} />
           ))}
         </div>
       </div>
@@ -145,11 +214,11 @@ export default function PowerflowPyramid() {
   }
 
   return (
-    <div className="bg-gray-800/40 rounded-xl border border-gray-700/40 p-6 flex flex-col">
+    <div className="relative rounded-xl bg-gradient-to-br from-amber-800/40 to-slate-800/60 border border-white/10 p-6 flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-white">Powerflow</h3>
-          <p className="text-xs text-gray-400">{localDate} &middot; {completedCount}/6 stages</p>
+          <p className="text-xs text-white/40">{localDate} &middot; {completedCount}/6 stages</p>
         </div>
         <div className="flex items-center gap-1.5">
           {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -158,14 +227,14 @@ export default function PowerflowPyramid() {
               className={`w-2 h-2 rounded-full ${
                 state?.[`stage_${n}_completed` as keyof PowerflowState]
                   ? 'bg-amber-400'
-                  : 'bg-gray-600'
+                  : 'bg-white/20'
               }`}
             />
           ))}
         </div>
       </div>
 
-      {/* Inverted pyramid — Stage 6 at top (widest), Stage 1 at bottom (narrowest) */}
+      {/* Sales funnel — Level 1 at top (widest), Level 6 at bottom (narrowest) */}
       <div className="space-y-1.5 flex-1">
         {LEVELS_TOP_DOWN.map((entry, idx) => {
           const level = entry.level;
@@ -173,8 +242,8 @@ export default function PowerflowPyramid() {
           const completedAt = state?.[`stage_${level}_completed_at` as keyof PowerflowState] as string | null;
           const isMostRecent = mostRecentStage === level && !!completed;
           const justCompleted = isJustCompleted(completedAt);
-          const isStage6 = level === 6;
           const width = WIDTHS[idx];
+          const count = clickCounts[level] || 0;
 
           // Three visual states
           let capsuleClasses: string;
@@ -184,23 +253,27 @@ export default function PowerflowPyramid() {
           } else if (completed) {
             // STATE B — Activated
             capsuleClasses = 'bg-white/10 border border-white/20 ring-1 ring-amber-400/30';
-          } else if (isStage6) {
-            // STATE A — Locked (Stage 6 exception: interactive)
-            capsuleClasses = 'opacity-40 bg-white/5 border border-white/10 hover:opacity-70 hover:border-amber-500/40 cursor-pointer';
           } else {
-            // STATE A — Locked (non-interactive)
-            capsuleClasses = 'opacity-40 bg-white/5 border border-white/10 pointer-events-none';
+            // STATE A — Not yet completed (interactive — click to log)
+            capsuleClasses = 'opacity-60 bg-white/5 border border-white/10 hover:opacity-80 hover:border-amber-500/40 cursor-pointer';
           }
 
           return (
             <div key={level} className="flex flex-col items-center">
               <button
-                onClick={() => isStage6 && !completed && handleManualComplete(6)}
-                disabled={!isStage6 || !!completed}
+                onClick={() => handleCapsuleClick(level)}
+                disabled={!!completed}
                 className={`relative rounded-lg px-3 py-2 transition-all duration-200 text-left ${capsuleClasses}`}
                 style={{ width: `${width}%` }}
-                title={isStage6 && !completed ? 'Click to log a win' : entry.capsuleLabel}
+                title={!completed ? `Click to complete ${entry.capsuleLabel}` : entry.capsuleLabel}
               >
+                {/* Click counter badge — upper right */}
+                {count > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 flex items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-gray-900 px-1">
+                    {count}
+                  </span>
+                )}
+
                 {/* Capsule header row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
@@ -208,7 +281,7 @@ export default function PowerflowPyramid() {
                     {completed && (
                       <span className="text-amber-400 text-xs flex-shrink-0">&#9733;</span>
                     )}
-                    <span className={`text-sm font-medium truncate ${completed ? 'text-white' : 'text-gray-400'}`}>
+                    <span className={`text-sm font-medium truncate ${completed ? 'text-white' : 'text-white/50'}`}>
                       {entry.capsuleLabel}
                     </span>
                     {/* Activated label badge */}
@@ -224,22 +297,9 @@ export default function PowerflowPyramid() {
                       </span>
                     )}
                   </div>
-                  <span className={`text-[10px] hidden sm:inline ${completed ? 'text-amber-300/70' : 'text-gray-600'}`}>
+                  <span className={`text-[10px] hidden sm:inline ${completed ? 'text-amber-300/70' : 'text-white/30'}`}>
                     {entry.bloom}
                   </span>
-                </div>
-
-                {/* Encouragement quote — expands on activation */}
-                <div
-                  className="overflow-hidden transition-all duration-300"
-                  style={{ maxHeight: completed ? '100px' : '0px' }}
-                >
-                  <p className="text-xs italic text-white/80 mt-1.5 leading-relaxed">
-                    {entry.encouragementQuote}
-                  </p>
-                  <p className="text-[10px] text-white/50 mt-0.5">
-                    {entry.quoteAttribution}
-                  </p>
                 </div>
               </button>
             </div>
@@ -247,9 +307,30 @@ export default function PowerflowPyramid() {
         })}
       </div>
 
+      {/* Quote popup overlay — centered over pyramid, auto-dismisses in 3 seconds */}
+      {popupQuote && (
+        <div
+          className="absolute inset-x-4 top-1/2 -translate-y-1/2 z-10 bg-gray-900/95 backdrop-blur-sm border border-amber-400/40 rounded-xl p-5 shadow-2xl cursor-pointer"
+          onClick={() => {
+            setPopupQuote(null);
+            if (popupTimerRef.current) {
+              clearTimeout(popupTimerRef.current);
+              popupTimerRef.current = null;
+            }
+          }}
+        >
+          <p className="text-sm italic text-white/90 leading-relaxed">
+            &ldquo;{popupQuote.quote}&rdquo;
+          </p>
+          <p className="text-xs text-amber-300/70 mt-2">
+            {popupQuote.attribution}
+          </p>
+        </div>
+      )}
+
       {/* Legend */}
-      <div className="mt-4 pt-3 border-t border-gray-700/40">
-        <p className="text-[10px] text-gray-500 text-center">
+      <div className="mt-4 pt-3 border-t border-white/10">
+        <p className="text-[10px] text-white/30 text-center">
           Bloom-Maslow framework &middot; Resets at midnight local time
         </p>
       </div>
