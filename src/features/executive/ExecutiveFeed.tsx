@@ -290,8 +290,8 @@ const ExecutiveFeed: React.FC = () => {
       {/* Powerflow — Two Pyramids Side by Side */}
       {tenant && (
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          <PowerflowMorningPyramid />
           <PowerflowPyramid />
+          <PowerflowMorningPyramid />
         </div>
       )}
 

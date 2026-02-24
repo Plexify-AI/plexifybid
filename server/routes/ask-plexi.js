@@ -59,12 +59,18 @@ function buildSystemPrompt(tenant, powerflowLevel) {
   const layers = [];
 
   // Layer 1: Tenant override (industry/persona context)
-  const override = tenant.system_prompt_override?.context || '';
-  if (override) layers.push(override);
+  try {
+    const spo = tenant?.system_prompt_override;
+    const override = (typeof spo === 'object' && spo !== null) ? (spo.context || '') : '';
+    if (override) layers.push(override);
+  } catch {
+    // If system_prompt_override is malformed, skip it silently
+  }
 
   // Layer 2: Capsule system prompt (sales stage context)
-  if (powerflowLevel && POWERFLOW_SYSTEM_PROMPTS[powerflowLevel]) {
-    layers.push(POWERFLOW_SYSTEM_PROMPTS[powerflowLevel]);
+  const level = Number.isInteger(powerflowLevel) ? powerflowLevel : parseInt(powerflowLevel, 10);
+  if (level && POWERFLOW_SYSTEM_PROMPTS[level]) {
+    layers.push(POWERFLOW_SYSTEM_PROMPTS[level]);
   }
 
   // Layer 3: Base Plexi behavior
@@ -86,7 +92,8 @@ export async function handleChat(req, res, body) {
     return res.end(JSON.stringify({ error: 'Not authenticated' }));
   }
 
-  const { message, conversation_id, history = [], powerflow_level } = body;
+  const { message, conversation_id, history = [], powerflow_level: rawLevel } = body;
+  const powerflow_level = rawLevel ? (Number.isInteger(rawLevel) ? rawLevel : parseInt(rawLevel, 10) || null) : null;
 
   if (!message || typeof message !== 'string') {
     res.statusCode = 400;
@@ -111,15 +118,22 @@ export async function handleChat(req, res, body) {
 
     // Build tenant-specific system prompt (3-layer stack when powerflow_level present)
     const systemPrompt = buildSystemPrompt(tenant, powerflow_level);
+    console.log(`[ask-plexi] System prompt: ${systemPrompt.length} chars, powerflow_level: ${powerflow_level || 'none'}`);
 
     // Call Claude with tool support
-    const result = await sendMessage({
-      messages,
-      tools: toolDefinitions,
-      systemPrompt,
-      toolExecutors,
-      tenantId,
-    });
+    let result;
+    try {
+      result = await sendMessage({
+        messages,
+        tools: toolDefinitions,
+        systemPrompt,
+        toolExecutors,
+        tenantId,
+      });
+    } catch (claudeErr) {
+      console.error('[ask-plexi] Claude API / tool execution failed:', claudeErr);
+      throw new Error(`Claude API error: ${claudeErr.message}`);
+    }
 
     // Persist conversation
     let convId = conversation_id;
@@ -179,7 +193,7 @@ export async function handleChat(req, res, body) {
     return res.end(
       JSON.stringify({
         error: 'Failed to process message. Please try again.',
-        details: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+        details: err.message,
       })
     );
   }
