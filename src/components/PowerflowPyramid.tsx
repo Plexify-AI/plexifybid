@@ -177,7 +177,7 @@ export default function PowerflowPyramid() {
       }
     }
 
-    // Show quote popup with 3-second auto-dismiss
+    // Show quote popup with 7-second auto-dismiss
     if (entry) {
       if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
       setPopupQuote({
@@ -188,7 +188,7 @@ export default function PowerflowPyramid() {
       popupTimerRef.current = setTimeout(() => {
         setPopupQuote(null);
         popupTimerRef.current = null;
-      }, 3000);
+      }, 7000);
     }
 
     // Mark stage complete via API (idempotent)
