@@ -92,6 +92,13 @@ app.use(sandboxAuth());
 // Protected API routes
 // ---------------------------------------------------------------------------
 
+// System Status
+import { handleSystemStatus } from './routes/system-status.js';
+
+app.get('/api/system-status', async (req, res) => {
+  await handleSystemStatus(req, res);
+});
+
 // Ask Plexi chat
 import { handleChat } from './routes/ask-plexi.js';
 

@@ -16,7 +16,9 @@
  * Auth: sandboxAuth middleware sets req.tenant before these handlers run.
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { sendPrompt } from '../llm-gateway/index.js';
+import { TASK_TYPES } from '../llm-gateway/types.js';
+import { extractJSON } from '../llm-gateway/response-normalizer.js';
 import { markPowerflowStage } from './powerflow.js';
 // pdf-parse is lazy-imported inside extractText() to avoid its startup bug
 // (it tries to load a test PDF at import time which crashes in production)
@@ -46,22 +48,6 @@ import {
 } from '../lib/supabase.js';
 import { chunkText, searchChunks, buildRAGContext } from '../lib/rag.js';
 import { isElevenLabsConfigured, generateBriefing, generatePodcast } from '../lib/elevenlabs.js';
-
-// ---------------------------------------------------------------------------
-// Claude client (lazy init — same pattern as claude.js)
-// ---------------------------------------------------------------------------
-
-const MODEL = 'claude-sonnet-4-20250514';
-let _claude = null;
-
-function getClaude() {
-  if (!_claude) {
-    const apiKey = process.env.ANTHROPIC_API_KEY || process.env.VITE_ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('Missing ANTHROPIC_API_KEY');
-    _claude = new Anthropic({ apiKey });
-  }
-  return _claude;
-}
 
 // ---------------------------------------------------------------------------
 // Deal Room System Prompt
@@ -112,18 +98,17 @@ async function extractText(buffer, fileType, fileName) {
 async function generateSummary(text, fileName) {
   try {
     const truncated = text.substring(0, 3000); // First ~3000 chars for summary
-    const response = await getClaude().messages.create({
-      model: MODEL,
-      max_tokens: 100,
+    const result = await sendPrompt({
+      taskType: TASK_TYPES.DOCUMENT_SUMMARY,
       messages: [
         {
           role: 'user',
           content: `Summarize this document in one sentence (max 15 words). Be specific about the content, not generic.\n\nDocument: ${fileName}\n\n${truncated}`,
         },
       ],
+      maxTokens: 100,
     });
-    const textBlock = response.content.find((b) => b.type === 'text');
-    return textBlock?.text?.trim() || 'Document processed successfully';
+    return result.content?.trim() || 'Document processed successfully';
   } catch (err) {
     console.error('[deal-room] Summary generation failed:', err.message);
     return 'Document processed (summary unavailable)';
@@ -342,16 +327,16 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
       },
     ];
 
-    // 6. Call Claude
-    const response = await getClaude().messages.create({
-      model: MODEL,
-      max_tokens: 4096,
-      system: DEAL_ROOM_SYSTEM_PROMPT,
+    // 6. Call LLM Gateway
+    const result = await sendPrompt({
+      taskType: TASK_TYPES.DEAL_ROOM_ARTIFACT,
+      systemPrompt: DEAL_ROOM_SYSTEM_PROMPT,
       messages: claudeMessages,
+      maxTokens: 4096,
+      tenantId: tenant.id,
     });
 
-    const textBlocks = response.content.filter((b) => b.type === 'text');
-    const reply = textBlocks.map((b) => b.text).join('\n');
+    const reply = result.content;
 
     // 7. Parse citations from response
     const citations = parseCitations(reply, sources);
@@ -381,7 +366,7 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
       reply,
       citations,
       chunks_used: rankedChunks.length,
-      usage: response.usage,
+      usage: result.usage,
     });
   } catch (err) {
     console.error('[deal-rooms] Chat error:', err);
@@ -498,27 +483,26 @@ export async function handleGenerateArtifact(req, res, dealRoomId, body) {
       sources_used: sourcesUsed,
     });
 
-    // 5. Call Claude for structured generation
-    const response = await getClaude().messages.create({
-      model: MODEL,
-      max_tokens: 4096,
-      system: `You are Plexi, a BD intelligence specialist. Generate structured deal intelligence from uploaded source documents. Your output must be ONLY valid JSON — no markdown, no explanation, no code fences. Just the JSON object.`,
+    // 5. Call LLM Gateway for structured generation
+    const result = await sendPrompt({
+      taskType: TASK_TYPES.DEAL_ROOM_ARTIFACT,
+      systemPrompt: `You are Plexi, a BD intelligence specialist. Generate structured deal intelligence from uploaded source documents. Your output must be ONLY valid JSON — no markdown, no explanation, no code fences. Just the JSON object.`,
       messages: [
         {
           role: 'user',
           content: `${ragContext}\n\n---\n\n${prompt.instruction}`,
         },
       ],
+      maxTokens: 4096,
+      tenantId: tenant.id,
     });
 
-    const textBlocks = response.content.filter((b) => b.type === 'text');
-    const rawText = textBlocks.map((b) => b.text).join('\n').trim();
+    const rawText = result.content.trim();
 
     // 6. Parse JSON from response (strip markdown fences if Claude adds them)
     let parsed;
     try {
-      const jsonStr = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-      parsed = JSON.parse(jsonStr);
+      parsed = extractJSON(rawText);
     } catch (parseErr) {
       console.error('[deal-rooms] Artifact JSON parse failed:', parseErr.message);
       console.error('[deal-rooms] Raw response:', rawText.substring(0, 500));
@@ -655,24 +639,21 @@ export async function handleGenerateAudio(req, res, dealRoomId, body) {
       status: 'generating',
     });
 
-    // 4. Generate script via Claude
+    // 4. Generate script via LLM Gateway
     const artifactJSON = JSON.stringify(artifact.content.output, null, 2);
     const prompt = type === 'briefing' ? BRIEFING_SCRIPT_PROMPT : PODCAST_SCRIPT_PROMPT;
 
-    const scriptResponse = await getClaude().messages.create({
-      model: MODEL,
-      max_tokens: 2048,
+    const scriptResult = await sendPrompt({
+      taskType: TASK_TYPES.DEAL_ROOM_ARTIFACT,
       messages: [{
         role: 'user',
         content: `${prompt}\n\n--- ARTIFACT DATA ---\n${artifactJSON}`,
       }],
+      maxTokens: 2048,
+      tenantId: tenant.id,
     });
 
-    const scriptText = scriptResponse.content
-      .filter((b) => b.type === 'text')
-      .map((b) => b.text)
-      .join('\n')
-      .trim();
+    const scriptText = scriptResult.content.trim();
 
     // 5. Generate audio via ElevenLabs
     let audioBuffer;
@@ -685,8 +666,7 @@ export async function handleGenerateAudio(req, res, dealRoomId, body) {
       // Parse podcast JSON
       let sections;
       try {
-        const cleaned = scriptText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-        sections = JSON.parse(cleaned);
+        sections = extractJSON(scriptText);
       } catch (parseErr) {
         console.error('[deal-rooms] Podcast JSON parse failed:', parseErr.message);
         await updateDealRoomAudio(audioRecord.id, {

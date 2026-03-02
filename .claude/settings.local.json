@@ -19,7 +19,11 @@
       "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")",
       "Bash(bash --noprofile --norc -c 'cd \"\"/c/Users/Ken'\"''\"'s BOXX/Documents/GitHub/plexifybid\"\" && npx vite build')",
       "Bash(BASH_ENV=\"\" HOME=\"\" bash --noprofile --norc -c \"cd ''C:/Users/Ken''\\\\''''s BOXX/Documents/GitHub/plexifybid'' && npx vite build 2>&1\")",
-      "Bash(cmd /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")"
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")",
+      "Bash(git -C \"/c/Users/KensBOXX/Documents/GitHub/plexifybid\" branch -a)",
+      "Bash(BASH_ENV=\"\" git branch -a)",
+      "Bash(env -i HOME=\"$HOME\" PATH=\"$PATH\" git branch -a)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

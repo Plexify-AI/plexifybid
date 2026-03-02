@@ -2,6 +2,11 @@
 
 Solo founder project. Ask before changing anything. Read Safety Rules first.
 
+## Windows Path Rule
+- User profile path has an apostrophe: `C:\Users\Ken's BOXX\` — breaks shell escaping
+- Directory junction: `C:\Users\KensBOXX\` → `C:\Users\Ken's BOXX\`
+- **Always use `C:\Users\KensBOXX\`** in all CLI commands, file paths, and configs
+
 ## Product Overview
 PlexifySOLO is an AI-powered sales intelligence platform spanning AEC, events, broadcast, and consumer-tech verticals. It combines prospect research, outreach drafting, deal room collaboration, audio briefing generation, and a daily Powerflow pipeline into a multi-tenant sandbox-authenticated workspace.
 

@@ -14,6 +14,7 @@ import { powerflowMiddleware } from './src/server/powerflowApi';
 import { pipelineSummaryMiddleware } from './src/server/pipelineSummaryApi';
 import { authMiddleware } from './src/server/authApi';
 import { sandboxAuthDevMiddleware } from './src/server/sandboxAuthMiddleware';
+import { systemStatusMiddleware } from './src/server/systemStatusApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -48,6 +49,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(dealRoomsMiddleware());
         server.middlewares.use(powerflowMiddleware());
         server.middlewares.use(pipelineSummaryMiddleware());
+        server.middlewares.use(systemStatusMiddleware());
       },
     },
   ],
