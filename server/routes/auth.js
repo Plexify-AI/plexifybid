@@ -3,7 +3,7 @@
  *
  * POST /api/auth/validate
  * Accepts: { token: string }
- * Returns: { valid: true, tenant: { name, company, slug } } or { valid: false, error }
+ * Returns: { valid: true, tenant: { id, name, company, slug, ... } } or { valid: false, error }
  *
  * This route is PUBLIC (no auth middleware) — it IS the auth check.
  */
@@ -40,6 +40,7 @@ export async function handleValidate(req, res, body) {
     return res.end(JSON.stringify({
       valid: true,
       tenant: {
+        id: tenant.id,
         name: tenant.name,
         company: tenant.company,
         slug: tenant.slug,

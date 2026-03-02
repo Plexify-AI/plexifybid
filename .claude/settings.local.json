@@ -23,7 +23,18 @@
       "Bash(git -C \"/c/Users/KensBOXX/Documents/GitHub/plexifybid\" branch -a)",
       "Bash(BASH_ENV=\"\" git branch -a)",
       "Bash(env -i HOME=\"$HOME\" PATH=\"$PATH\" git branch -a)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(BASH_ENV=\"\" HOME=/tmp git -C \"C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid\" checkout -b feature/rme-sprint1-warmth-engine)",
+      "Bash(BASH_ENV=\"\" HOME=/tmp git -C \"C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid\" branch --show-current)",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" checkout -b feature/rme-sprint1-warmth-engine)",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" branch --show-current)",
+      "Bash(BASH_ENV= bash --norc --noprofile -c \"cat /etc/profile.d/git-prompt.sh\")",
+      "Bash(cmd /c type \"C:\\\\Program Files\\\\Git\\\\etc\\\\profile.d\\\\git-prompt.sh\")",
+      "Bash(/usr/bin/env bash --norc --noprofile -c \"echo hello\")",
+      "Bash(git checkout -b feature/rme-sprint1-warmth-engine)",
+      "Bash(BASH_SILENCE_DEPRECATION_WARNING=1 git branch --show-current)",
+      "Bash(set +e)",
+      "Bash(npx vitest run server/tests/warmth/ --config vitest.config.js)"
     ]
   }
 }

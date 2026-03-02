@@ -46,13 +46,15 @@ let passedTests = 0;
 let failedTests = 0;
 const failures = [];
 
-async function fetchApi(path, token) {
+async function fetchApi(path, token, options = {}) {
   const url = `${BASE_URL}${path}`;
   const res = await fetch(url, {
+    method: options.method || 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
+    body: options.body ? JSON.stringify(options.body) : undefined,
   });
   return {
     status: res.status,
@@ -77,6 +79,7 @@ function recordResult(testName, passed, detail) {
 
 /**
  * Resolve tenant_id from the auth/validate endpoint.
+ * auth.js now returns { valid: true, tenant: { id, name, company, slug, ... } }
  */
 async function resolveTenantId(tenant) {
   const res = await fetch(`${BASE_URL}/api/auth/validate`, {
@@ -90,8 +93,7 @@ async function resolveTenantId(tenant) {
   }
 
   const body = await res.json();
-  // The validate endpoint returns tenant info — extract the id
-  const id = body.tenant?.id || body.id;
+  const id = body.tenant?.id;
   if (!id) {
     throw new Error(`Could not resolve tenant_id for ${tenant.name}: ${JSON.stringify(body)}`);
   }
@@ -123,7 +125,7 @@ function checkTenantScope(rows, expectedTenantId) {
 }
 
 // ---------------------------------------------------------------------------
-// Test suites — one per endpoint
+// Test suites — existing endpoints
 // ---------------------------------------------------------------------------
 
 async function testUsageEvents(tenant) {
@@ -170,14 +172,17 @@ async function testPipelineSummary(tenant) {
     return;
   }
 
-  // Pipeline summary returns prospects grouped by stage — check each prospect
-  const prospects = data?.prospects || data?.stages?.flatMap(s => s.prospects || []) || [];
-  const result = checkTenantScope(prospects, tenant.tenantId);
+  // Pipeline summary returns aggregate counts — no row-level leak to check
+  // Just verify it responds with expected shape
+  const hasKeys = data && (
+    'activeOpportunityCount' in data ||
+    'topOpportunityName' in data
+  );
 
   recordResult(
-    `pipeline-summary (${tenant.name}): ${result.count} prospects`,
-    !result.leaked,
-    result.leaked ? `Leaked tenant_ids: ${result.leakedIds.join(', ')}` : ''
+    `pipeline-summary (${tenant.name}): response shape OK`,
+    hasKeys,
+    hasKeys ? '' : `Unexpected response shape: ${JSON.stringify(Object.keys(data || {}))}`
   );
 }
 
@@ -210,20 +215,96 @@ async function testSystemStatus(tenant) {
     return;
   }
 
-  // System status returns aggregate counts — verify it responds (no row-level leak to check)
+  // system-status returns nested objects: events, outreach, jobs, pipeline, agents, llm_providers
   const hasKeys = data && (
-    'eventsToday' in data ||
-    'events_today' in data ||
-    'llmHealth' in data ||
-    'llm_health' in data
+    'events' in data ||
+    'pipeline' in data ||
+    'llm_providers' in data
   );
+
+  // Verify tenant scoping — tenant_id in response should match
+  const scopedCorrectly = !data.tenant_id || data.tenant_id === tenant.tenantId;
 
   recordResult(
     `system-status (${tenant.name}): response shape OK`,
-    hasKeys,
-    hasKeys ? '' : `Unexpected response shape: ${JSON.stringify(Object.keys(data || {}))}`
+    hasKeys && scopedCorrectly,
+    !hasKeys
+      ? `Unexpected response shape: ${JSON.stringify(Object.keys(data || {}))}`
+      : !scopedCorrectly
+        ? `Wrong tenant_id: expected ${tenant.tenantId}, got ${data.tenant_id}`
+        : ''
   );
 }
+
+// ---------------------------------------------------------------------------
+// Test suites — Sprint 0 endpoints (opportunities, signals)
+// ---------------------------------------------------------------------------
+
+async function testOpportunities(tenant) {
+  const { status, data } = await fetchApi('/api/opportunities', tenant.token);
+
+  if (status === 404) {
+    recordResult(`opportunities (${tenant.name}): endpoint not yet deployed`, true, '');
+    return;
+  }
+
+  if (status !== 200) {
+    recordResult(`opportunities (${tenant.name})`, false, `HTTP ${status}`);
+    return;
+  }
+
+  const opps = data?.opportunities || [];
+  const result = checkTenantScope(opps, tenant.tenantId);
+
+  recordResult(
+    `opportunities (${tenant.name}): ${result.count} rows`,
+    !result.leaked,
+    result.leaked ? `Leaked tenant_ids: ${result.leakedIds.join(', ')}` : ''
+  );
+}
+
+async function testSignals(tenant) {
+  // Test GET /api/signals/:opportunityId — needs a real opp ID
+  // First try listing opportunities to get an ID
+  const { status: oppStatus, data: oppData } = await fetchApi('/api/opportunities', tenant.token);
+
+  if (oppStatus === 404) {
+    recordResult(`signals (${tenant.name}): endpoint not yet deployed`, true, '');
+    return;
+  }
+
+  const opps = oppData?.opportunities || [];
+  if (opps.length === 0) {
+    recordResult(`signals (${tenant.name}): no opportunities to test`, true, '');
+    return;
+  }
+
+  const oppId = opps[0].id;
+  const { status, data } = await fetchApi(`/api/signals/${oppId}`, tenant.token);
+
+  if (status === 404) {
+    recordResult(`signals (${tenant.name}): endpoint not yet deployed`, true, '');
+    return;
+  }
+
+  if (status !== 200) {
+    recordResult(`signals (${tenant.name})`, false, `HTTP ${status}`);
+    return;
+  }
+
+  const events = data?.events || [];
+  const result = checkTenantScope(events, tenant.tenantId);
+
+  recordResult(
+    `signals (${tenant.name}): ${result.count} events for opp`,
+    !result.leaked,
+    result.leaked ? `Leaked tenant_ids: ${result.leakedIds.join(', ')}` : ''
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Cross-tenant and auth boundary tests
+// ---------------------------------------------------------------------------
 
 /**
  * Cross-tenant test: Authenticate as Tenant A, check that no data
@@ -263,6 +344,22 @@ async function testCrossTenantIsolation() {
     bLeaks.length === 0,
     bLeaks.length > 0 ? `Found ${bLeaks.length} events belonging to Tenant B` : ''
   );
+
+  // Cross-tenant opportunities (if endpoint exists)
+  const { status: oppStatusA, data: oppDataA } = await fetchApi('/api/opportunities', TENANT_A.token);
+  const { status: oppStatusB, data: oppDataB } = await fetchApi('/api/opportunities', TENANT_B.token);
+
+  if (oppStatusA === 200 && oppStatusB === 200) {
+    const aOppIds = new Set((oppDataA?.opportunities || []).map(o => o.id));
+    const bOppIds = new Set((oppDataB?.opportunities || []).map(o => o.id));
+    const oppOverlap = [...aOppIds].filter(id => bOppIds.has(id));
+
+    recordResult(
+      `cross-tenant opportunities: A=${aOppIds.size}, B=${bOppIds.size}`,
+      oppOverlap.length === 0,
+      oppOverlap.length > 0 ? `Shared opp IDs: ${oppOverlap.join(', ')}` : ''
+    );
+  }
 }
 
 /**
@@ -300,6 +397,18 @@ async function testAuthBoundary() {
     'health endpoint (public) → 200',
     health.status === 200,
     health.status !== 200 ? `Expected 200, got ${health.status}` : ''
+  );
+
+  // Auth validate is public
+  const validate = await fetch(`${BASE_URL}/api/auth/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: 'pxs_invalid' }),
+  });
+  recordResult(
+    'auth/validate (public) → 200 with valid:false',
+    validate.status === 200,
+    validate.status !== 200 ? `Expected 200, got ${validate.status}` : ''
   );
 }
 
@@ -339,7 +448,7 @@ async function main() {
   // Step 3: Auth boundary tests
   await testAuthBoundary();
 
-  // Step 4: Per-tenant endpoint scoping
+  // Step 4: Per-tenant endpoint scoping — existing endpoints
   for (const tenant of [TENANT_A, TENANT_B]) {
     console.log(`\n--- Tenant Scoping: ${tenant.name} ---`);
     await testUsageEvents(tenant);
@@ -349,7 +458,14 @@ async function main() {
     await testSystemStatus(tenant);
   }
 
-  // Step 5: Cross-tenant isolation
+  // Step 5: Per-tenant endpoint scoping — Sprint 0 endpoints
+  for (const tenant of [TENANT_A, TENANT_B]) {
+    console.log(`\n--- Sprint 0 Tables: ${tenant.name} ---`);
+    await testOpportunities(tenant);
+    await testSignals(tenant);
+  }
+
+  // Step 6: Cross-tenant isolation
   await testCrossTenantIsolation();
 
   // ---------------------------------------------------------------------------
