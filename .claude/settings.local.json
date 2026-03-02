@@ -35,7 +35,14 @@
       "Bash(BASH_SILENCE_DEPRECATION_WARNING=1 git branch --show-current)",
       "Bash(set +e)",
       "Bash(npx vitest run server/tests/warmth/ --config vitest.config.js)",
-      "Bash(git status -u)"
+      "Bash(git status -u)",
+      "Bash(HOME=/tmp git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid status)",
+      "Bash(env -i PATH=\"$PATH\" HOME=/tmp git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid status)",
+      "Bash(bash --noprofile --norc -c 'git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid status')",
+      "Bash(export HOME=/c/Users/KensBOXX)",
+      "Bash(cmd.exe /c \"cd C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid && git status\")",
+      "Bash(HOME=/c/Users/KensBOXX BASH_ENV=/dev/null ENV=/dev/null bash --noprofile --norc -c \"cd /c/Users/KensBOXX/Documents/GitHub/plexifybid && git status --short\")",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" status --short)"
     ]
   }
 }
