@@ -9,6 +9,7 @@
 
 import { getSupabase } from '../lib/supabase.js';
 import { generateScoreExplanation } from '../services/evidence-bundler.js';
+import { computeWarmth } from '../services/warmth-engine.js';
 
 // ---------------------------------------------------------------------------
 // GET /api/opportunities — List with warmth data
@@ -78,37 +79,49 @@ export async function handleListOpportunities(req, res) {
     const { data: opportunities, error } = await query;
     if (error) throw error;
 
-    // Enrich each opportunity with latest 3 events + score explanation
+    // Enrich each opportunity with live warmth + latest events + explanation
     const enriched = await Promise.all(
       opportunities.map(async (opp) => {
-        // Fetch latest 3 events
-        const { data: recentEvents } = await supabase
+        // Fetch ALL events for live warmth computation
+        const { data: allEvents } = await supabase
           .from('events')
-          .select('id, event_type, payload, source, created_at')
+          .select('id, event_type, payload, source, created_at, opportunity_id')
           .eq('tenant_id', tenantId)
           .eq('opportunity_id', opp.id)
-          .order('created_at', { ascending: false })
-          .limit(3);
+          .order('created_at', { ascending: false });
 
-        // Fetch latest warmth history for drivers
+        // Compute warmth live from events (deterministic, no stale cache)
+        const warmth = computeWarmth(allEvents || []);
+        const liveScore = warmth.score;
+
+        // Use latest 3 events for display
+        const recentEvents = (allEvents || []).slice(0, 3);
+
+        // Generate explanation from live computation
+        const explanation = generateScoreExplanation(
+          liveScore,
+          warmth.drivers,
+          warmth.decayApplied,
+          warmth.spamPenalty
+        );
+
+        // Fetch latest warmth history for delta
         const { data: warmthHist } = await supabase
           .from('warmth_history')
-          .select('score_before, score_after, delta, top_3_drivers, computed_at')
+          .select('score_before, score_after, delta, computed_at')
           .eq('opportunity_id', opp.id)
           .order('computed_at', { ascending: false })
           .limit(1);
 
         const lastCompute = warmthHist?.[0];
-        const drivers = lastCompute?.top_3_drivers || [];
-
-        // Generate explanation
-        const explanation = generateScoreExplanation(opp.warmth_score, drivers, 0, 0);
 
         return {
           ...opp,
-          recent_events: recentEvents || [],
+          warmth_score: liveScore,
+          recent_events: recentEvents,
           explanation,
           last_delta: lastCompute?.delta || 0,
+          ejected: warmth.ejected || false,
         };
       })
     );

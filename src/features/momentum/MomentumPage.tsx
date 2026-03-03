@@ -45,7 +45,8 @@ const MomentumPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-6">
+      <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -136,6 +137,7 @@ const MomentumPage: React.FC = () => {
           <span className="text-sm text-white font-medium">{toast}</span>
         </div>
       )}
+      </div>
     </div>
   );
 };
