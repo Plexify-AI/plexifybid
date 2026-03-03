@@ -41,6 +41,7 @@ import PlexiCosAgentsPage from './pages/PlexiCosAgentsPage';
 import DealRoomListPage from './pages/DealRoomListPage';
 import DealRoomPage from './pages/DealRoomPage';
 import MomentumPage from './features/momentum/MomentumPage';
+import HomePage from './features/home/HomePage';
 
 // Agent Management route wrappers
 function SessionListWrapper() {
@@ -382,7 +383,8 @@ const AppBody: React.FC = () => {
               {isAuthenticated ? (
                 <>
                   <Route path="/" element={<Navigate to="/home" replace />} />
-                  <Route path="/home" element={<ExecutiveFeed />} />
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/legacy/executive-feed" element={<ExecutiveFeed />} />
                   <Route path="/momentum" element={<MomentumPage />} />
                   <Route path="/ask-plexi" element={<AskPlexiInterface />} />
                   <Route path="/agents" element={<PlexiCosAgentsPage />} />

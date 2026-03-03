@@ -210,6 +210,13 @@ app.post('/api/opportunities', async (req, res) => {
   await handleCreateOpportunity(req, res, req.body);
 });
 
+// Activity Feed (cross-opportunity events for Home screen)
+import { handleActivityFeed } from './routes/activity-feed.js';
+
+app.get('/api/activity-feed', async (req, res) => {
+  await handleActivityFeed(req, res);
+});
+
 // Audio briefings + podcasts
 app.post('/api/deal-rooms/:id/audio', async (req, res) => {
   await handleGenerateAudio(req, res, req.params.id, req.body);

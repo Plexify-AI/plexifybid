@@ -53,6 +53,10 @@ export async function handleListOpportunities(req, res) {
       case 'promoted':
         query = query.eq('promoted_to_home', true);
         break;
+      case 'home':
+        // Hot + promoted combined for Home screen cards
+        query = query.or('warmth_score.gte.40,promoted_to_home.eq.true');
+        break;
       case 'all':
       default:
         // No filter — exclude ejected by default
@@ -60,21 +64,27 @@ export async function handleListOpportunities(req, res) {
         break;
     }
 
-    // Apply sort
-    switch (sort) {
-      case 'warmth_asc':
-        query = query.order('warmth_score', { ascending: true });
-        break;
-      case 'created':
-        query = query.order('created_at', { ascending: false });
-        break;
-      case 'warmth_desc':
-      default:
-        query = query.order('warmth_score', { ascending: false });
-        break;
+    // Apply sort — home filter uses promoted-first ordering
+    if (filter === 'home') {
+      query = query
+        .order('promoted_to_home', { ascending: false })
+        .order('warmth_score', { ascending: false })
+        .limit(5);
+    } else {
+      switch (sort) {
+        case 'warmth_asc':
+          query = query.order('warmth_score', { ascending: true });
+          break;
+        case 'created':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'warmth_desc':
+        default:
+          query = query.order('warmth_score', { ascending: false });
+          break;
+      }
+      query = query.limit(limit);
     }
-
-    query = query.limit(limit);
 
     const { data: opportunities, error } = await query;
     if (error) throw error;
