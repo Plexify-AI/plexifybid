@@ -10,6 +10,7 @@
         "assets:check": "node scripts/assets-check.mjs",
         "assets:fix": "node scripts/assets-check.mjs --fix",
         "test": "vitest run",
+        "test:warmth": "vitest run server/tests/warmth/",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",
         "type-check": "tsc -p tsconfig.typecheck.json --noEmit"

@@ -19,7 +19,30 @@
       "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")",
       "Bash(bash --noprofile --norc -c 'cd \"\"/c/Users/Ken'\"''\"'s BOXX/Documents/GitHub/plexifybid\"\" && npx vite build')",
       "Bash(BASH_ENV=\"\" HOME=\"\" bash --noprofile --norc -c \"cd ''C:/Users/Ken''\\\\''''s BOXX/Documents/GitHub/plexifybid'' && npx vite build 2>&1\")",
-      "Bash(cmd /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")"
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\Ken''s BOXX\\\\Documents\\\\GitHub\\\\plexifybid && npx vite build\")",
+      "Bash(git -C \"/c/Users/KensBOXX/Documents/GitHub/plexifybid\" branch -a)",
+      "Bash(BASH_ENV=\"\" git branch -a)",
+      "Bash(env -i HOME=\"$HOME\" PATH=\"$PATH\" git branch -a)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(BASH_ENV=\"\" HOME=/tmp git -C \"C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid\" checkout -b feature/rme-sprint1-warmth-engine)",
+      "Bash(BASH_ENV=\"\" HOME=/tmp git -C \"C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid\" branch --show-current)",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" checkout -b feature/rme-sprint1-warmth-engine)",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" branch --show-current)",
+      "Bash(BASH_ENV= bash --norc --noprofile -c \"cat /etc/profile.d/git-prompt.sh\")",
+      "Bash(cmd /c type \"C:\\\\Program Files\\\\Git\\\\etc\\\\profile.d\\\\git-prompt.sh\")",
+      "Bash(/usr/bin/env bash --norc --noprofile -c \"echo hello\")",
+      "Bash(git checkout -b feature/rme-sprint1-warmth-engine)",
+      "Bash(BASH_SILENCE_DEPRECATION_WARNING=1 git branch --show-current)",
+      "Bash(set +e)",
+      "Bash(npx vitest run server/tests/warmth/ --config vitest.config.js)",
+      "Bash(git status -u)",
+      "Bash(HOME=/tmp git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid status)",
+      "Bash(env -i PATH=\"$PATH\" HOME=/tmp git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid status)",
+      "Bash(bash --noprofile --norc -c 'git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid status')",
+      "Bash(export HOME=/c/Users/KensBOXX)",
+      "Bash(cmd.exe /c \"cd C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid && git status\")",
+      "Bash(HOME=/c/Users/KensBOXX BASH_ENV=/dev/null ENV=/dev/null bash --noprofile --norc -c \"cd /c/Users/KensBOXX/Documents/GitHub/plexifybid && git status --short\")",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" status --short)"
     ]
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  Home, Settings, ChevronLeft, Menu, Link2, Target, User, Brain, Briefcase
+  Home, Settings, ChevronLeft, Menu, Link2, Target, User, Brain, Briefcase, Flame
 } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
 import { useTenantVocab } from '../hooks/useTenantVocab';
@@ -28,6 +28,7 @@ const NavigationSidebar: React.FC = () => {
       title: 'SALES INTELLIGENCE',
       items: [
         { path: '/home', label: 'Home', icon: Home },
+        { path: '/momentum', label: 'Momentum', icon: Flame, isNew: true },
         { path: '/demo/mel', label: 'My SalesPlex Flow', icon: Target },
         {
           path: '/ask-plexi',

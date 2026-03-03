@@ -92,6 +92,13 @@ app.use(sandboxAuth());
 // Protected API routes
 // ---------------------------------------------------------------------------
 
+// System Status
+import { handleSystemStatus } from './routes/system-status.js';
+
+app.get('/api/system-status', async (req, res) => {
+  await handleSystemStatus(req, res);
+});
+
 // Ask Plexi chat
 import { handleChat } from './routes/ask-plexi.js';
 
@@ -175,6 +182,32 @@ app.get('/api/powerflow/today', async (req, res) => {
 
 app.post('/api/powerflow/complete', async (req, res) => {
   await handleCompleteStage(req, res, req.body);
+});
+
+// Signals (warmth event logging)
+import { handleLogSignal, handleGetSignals, handleBulkSignals } from './routes/signals.js';
+
+app.post('/api/signals', async (req, res) => {
+  await handleLogSignal(req, res, req.body);
+});
+
+app.get('/api/signals/:opportunityId', async (req, res) => {
+  await handleGetSignals(req, res, req.params.opportunityId);
+});
+
+app.post('/api/signals/bulk', async (req, res) => {
+  await handleBulkSignals(req, res, req.body);
+});
+
+// Opportunities
+import { handleListOpportunities, handleCreateOpportunity } from './routes/opportunities.js';
+
+app.get('/api/opportunities', async (req, res) => {
+  await handleListOpportunities(req, res);
+});
+
+app.post('/api/opportunities', async (req, res) => {
+  await handleCreateOpportunity(req, res, req.body);
 });
 
 // Audio briefings + podcasts
