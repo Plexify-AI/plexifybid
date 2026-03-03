@@ -13,13 +13,19 @@ export interface RunAgentRequest {
 
 export async function runNotebookBDAgent<T = NotebookBDStructuredOutput>(
   agentId: NotebookBDAgentId,
-  request: RunAgentRequest
+  request: RunAgentRequest,
+  authToken?: string
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
   const res = await fetch(`/api/agents/${encodeURIComponent(agentId)}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(request),
   });
 

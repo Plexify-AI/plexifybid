@@ -217,6 +217,13 @@ app.get('/api/activity-feed', async (req, res) => {
   await handleActivityFeed(req, res);
 });
 
+// Board Report Agents (board-brief, assessment-trends, ozrf-section)
+import { handleAgentRequest } from './routes/agents.js';
+
+app.post('/api/agents/:agentId', async (req, res) => {
+  await handleAgentRequest(req, res);
+});
+
 // Audio briefings + podcasts
 app.post('/api/deal-rooms/:id/audio', async (req, res) => {
   await handleGenerateAudio(req, res, req.params.id, req.body);

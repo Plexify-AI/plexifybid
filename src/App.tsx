@@ -168,6 +168,7 @@ const AppBody: React.FC = () => {
   const currentProjectId = useWorkspaceStore(s => s.currentProject?.id);
   const closeWorkspace = useWorkspaceStore(s => s.closeWorkspace);
 
+  const { token } = useSandbox();
   const { state: realDocsState } = useRealDocs();
 
   const [notebookDocs, setNotebookDocs] = useState<NotebookBDSourceDoc[]>([]);
@@ -210,7 +211,7 @@ const AppBody: React.FC = () => {
     const result = await runNotebookBDAgent(agentId as any, {
       projectId: 'golden-triangle',
       documentIds: args.documentIds,
-    });
+    }, token || undefined);
 
     if (result?.agentId === 'board-brief') {
       setLatestBoardBrief(result);
