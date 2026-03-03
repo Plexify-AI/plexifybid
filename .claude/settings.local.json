@@ -42,7 +42,19 @@
       "Bash(export HOME=/c/Users/KensBOXX)",
       "Bash(cmd.exe /c \"cd C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid && git status\")",
       "Bash(HOME=/c/Users/KensBOXX BASH_ENV=/dev/null ENV=/dev/null bash --noprofile --norc -c \"cd /c/Users/KensBOXX/Documents/GitHub/plexifybid && git status --short\")",
-      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" status --short)"
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" status --short)",
+      "Bash(powershell -Command \"echo hello\")",
+      "Bash(cmd /c \"echo hello\")",
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" diff --name-only main...HEAD)",
+      "Bash(HOME=/tmp git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" diff --name-only main...HEAD)",
+      "Bash(BASH_ENV=\"\" ENV=\"\" git -C \"C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid\" diff --name-only main...HEAD)",
+      "Bash(bash --noprofile --norc -c 'git -C \"\"C:/Users/KensBOXX/Documents/GitHub/plexifybid\"\" diff --name-only main...HEAD')",
+      "Bash(cmd /c \"cd /d C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid && git diff --name-only main...HEAD\")",
+      "Bash(SHELL=/bin/sh /bin/sh -c 'git -C /c/Users/KensBOXX/Documents/GitHub/plexifybid diff --name-only main...HEAD')",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(HOME=\"C:/Users/KensBOXX\")",
+      "Bash(git checkout main)",
+      "Bash(git pull origin main)"
     ]
   }
 }
