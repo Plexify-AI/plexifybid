@@ -204,5 +204,9 @@ export async function execute(input, tenantId) {
     query,
     filters_applied: filters,
     prospects: enriched,
+    display_note:
+      'IMPORTANT: The UI automatically renders these prospects as interactive cards with warmth scores, contacts, and action buttons. ' +
+      'DO NOT list prospects in tables or bullet lists. Instead, provide a brief narrative: which prospects stand out and why, ' +
+      'what the user should do next with the top 1-2 prospects. Keep it conversational, 2-3 sentences.',
   };
 }

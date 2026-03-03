@@ -125,8 +125,9 @@ export async function execute(input, tenantId) {
     top_opportunities: topOpportunities,
     stalled_prospects: stalled,
     analysis_note:
-      'Use this data to provide the user with actionable pipeline insights. ' +
-      'Highlight top opportunities they should pursue this week. ' +
-      'Flag any stalled high-warmth prospects that need attention.',
+      'IMPORTANT: The UI automatically renders this data as interactive charts, KPI cards, and ranked opportunity lists. ' +
+      'DO NOT repeat the data in tables, lists, or raw text. Instead, provide a concise executive summary with: ' +
+      '1) The single most important insight (e.g. "Your proj-001 deal is your slam dunk — close it this week"), ' +
+      '2) One risk or concern, 3) One specific recommended next action. Keep it to 3-4 sentences max.',
   };
 }

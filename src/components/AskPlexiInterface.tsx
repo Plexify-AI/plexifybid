@@ -345,6 +345,47 @@ const AskPlexiInterface: React.FC = () => {
     handleSendMessage(`Draft an outreach email for ${prospectName} (${refId})`);
   };
 
+  /**
+   * Strip raw data dumps from Claude's text when the UI renders structured cards.
+   * Removes markdown tables (pipe-delimited), numbered data lists, and
+   * "Here are your top X" preamble that duplicates card content.
+   * Keeps narrative insights, recommendations, and commentary.
+   */
+  const stripRawDataFromText = (text: string): string => {
+    const lines = text.split('\n');
+    const cleaned: string[] = [];
+    let inTable = false;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Skip markdown table rows (start with | or are separator rows like |---|)
+      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        inTable = true;
+        continue;
+      }
+      // Skip table separator rows
+      if (/^\|[\s\-:|]+\|$/.test(trimmed)) {
+        inTable = true;
+        continue;
+      }
+      // If we were in a table and hit a non-table line, table ended
+      if (inTable && !trimmed.startsWith('|')) {
+        inTable = false;
+      }
+      if (inTable) continue;
+
+      // Skip headings that just label the data dump (the cards already show this)
+      if (/^#{1,3}\s*(Your )?Top\s+\d+\s+(Deals|Opportunities|Prospects)/i.test(trimmed)) continue;
+      if (/^#{1,3}\s*Pipeline (Overview|Snapshot|Summary)/i.test(trimmed)) continue;
+
+      cleaned.push(line);
+    }
+
+    // Collapse multiple blank lines
+    return cleaned.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  };
+
   // Render structured tool results as rich UI components
   const renderToolResults = (message: Message) => {
     if (!message.toolResults || message.toolResults.length === 0) return null;
@@ -480,6 +521,34 @@ const AskPlexiInterface: React.FC = () => {
                             </div>
                           );
                         })()}
+                      </>
+                    ) : message.toolResults?.some((tr) => tr.tool === 'analyze_pipeline' || tr.tool === 'search_prospects') ? (
+                      <>
+                        {/* Strip raw tables/data from Claude's text — the cards render it visually */}
+                        {(() => {
+                          const cleaned = stripRawDataFromText(message.content);
+                          if (!cleaned) return null;
+                          return (
+                            <div className="plexi-prose text-sm leading-relaxed mb-3">
+                              <Markdown
+                                components={{
+                                  h1: ({ children }) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
+                                  h2: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
+                                  h3: ({ children }) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
+                                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  strong: ({ children }) => <strong className="font-semibold text-blue-200">{children}</strong>,
+                                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                                  li: ({ children }) => <li className="text-gray-200">{children}</li>,
+                                  hr: () => <hr className="border-gray-600 my-3" />,
+                                }}
+                              >
+                                {cleaned}
+                              </Markdown>
+                            </div>
+                          );
+                        })()}
+                        {renderToolResults(message)}
                       </>
                     ) : (
                       <>
