@@ -347,37 +347,98 @@ const AskPlexiInterface: React.FC = () => {
 
   /**
    * Strip raw data dumps from Claude's text when the UI renders structured cards.
-   * Removes markdown tables (pipe-delimited), numbered data lists, and
-   * "Here are your top X" preamble that duplicates card content.
-   * Keeps narrative insights, recommendations, and commentary.
+   * Aggressively removes markdown tables, numbered/bullet data lists, intro
+   * preamble, and bold-labeled prospect entries that duplicate card content.
+   * Keeps only narrative insights, recommendations, and commentary.
    */
   const stripRawDataFromText = (text: string): string => {
     const lines = text.split('\n');
     const cleaned: string[] = [];
     let inTable = false;
+    let inDataList = false;
 
     for (const line of lines) {
       const trimmed = line.trim();
+      const pipeCount = (trimmed.match(/\|/g) || []).length;
 
-      // Skip markdown table rows (start with | or are separator rows like |---|)
-      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      // --- TABLE DETECTION (aggressive) ---
+      // Any line with 3+ pipe characters is almost certainly a table row
+      if (pipeCount >= 3) {
         inTable = true;
         continue;
       }
-      // Skip table separator rows
+      // Standard table rows (start + end with |)
+      if (trimmed.startsWith('|') && trimmed.endsWith('|') && pipeCount >= 1) {
+        inTable = true;
+        continue;
+      }
+      // Table separator rows: |---|---|
       if (/^\|[\s\-:|]+\|$/.test(trimmed)) {
         inTable = true;
         continue;
       }
-      // If we were in a table and hit a non-table line, table ended
-      if (inTable && !trimmed.startsWith('|')) {
+      // Table ended when we hit a line with fewer than 2 pipes
+      if (inTable && pipeCount < 2 && !trimmed.startsWith('|')) {
         inTable = false;
       }
       if (inTable) continue;
 
-      // Skip headings that just label the data dump (the cards already show this)
-      if (/^#{1,3}\s*(Your )?Top\s+\d+\s+(Deals|Opportunities|Prospects)/i.test(trimmed)) continue;
-      if (/^#{1,3}\s*Pipeline (Overview|Snapshot|Summary)/i.test(trimmed)) continue;
+      // --- DATA LIST DETECTION ---
+      // Numbered items with prospect data (warmth, score, value, phase, etc.)
+      // e.g. "1. **555 W 34th St** — Warmth: 87, Turner Construction"
+      if (/^\d+\.\s/.test(trimmed) && /(warmth|score|warm|phase|stage|\$[\d,]+[MmKk]?|\/100)/i.test(trimmed)) {
+        inDataList = true;
+        continue;
+      }
+      // Bullet items with prospect data
+      if (/^[-•*]\s/.test(trimmed) && /(warmth|score|warm|phase|stage|\$[\d,]+[MmKk]?|\/100)/i.test(trimmed)) {
+        inDataList = true;
+        continue;
+      }
+      // Numbered items with bold names followed by details (common Claude data dump pattern)
+      if (/^\d+\.\s+\*\*[^*]+\*\*/.test(trimmed) && trimmed.length > 60) {
+        inDataList = true;
+        continue;
+      }
+      // If we were in a data list, skip continuation list items
+      if (inDataList) {
+        if (/^\d+\.\s/.test(trimmed) || /^[-•*]\s/.test(trimmed)) {
+          continue; // still in list
+        }
+        if (trimmed === '') {
+          continue; // blank line between list items
+        }
+        // Non-list content → list ended
+        inDataList = false;
+      }
+
+      // --- HEADING DETECTION ---
+      // Skip headings that label data sections
+      if (/^#{1,3}\s*(Your\s+)?(Top|Warmest|Hottest|Best|Key)\s+\d*\s*(Deals|Opportunities|Prospects|Projects)/i.test(trimmed)) continue;
+      if (/^#{1,3}\s*Pipeline\s+(Overview|Snapshot|Summary|Analysis|Breakdown|Health)/i.test(trimmed)) continue;
+      if (/^#{1,3}\s*(Deal|Opportunity|Prospect|Project)\s+(Details|Breakdown|List|Rankings?|Overview|Summary)/i.test(trimmed)) continue;
+      if (/^#{1,3}\s*(Ranked|Complete|Full|Detailed)\s+(List|Breakdown|Overview|Summary)/i.test(trimmed)) continue;
+      // "### Summary Table" / "### Data Overview"
+      if (/^#{1,3}\s*(Summary|Overview|Breakdown)\s*(Table|Data|of\s)/i.test(trimmed)) continue;
+      // Bold-only headings acting as section labels for data dumps
+      if (/^\*\*(Your\s+)?(Top|Warmest|Hottest|Best)\s+\d*\s*(Deals|Opportunities|Prospects|Projects)/i.test(trimmed)) continue;
+      if (/^\*\*Pipeline\s+(Overview|Summary|Breakdown)/i.test(trimmed)) continue;
+
+      // --- PREAMBLE / INTRO SENTENCES ---
+      // "Here are your top 5 warmest deals:" / "Here is a breakdown..."
+      if (/^(Here (are|is)|Below (are|is))\s.*(top|warmest|hottest|coldest|pipeline|prospects?|deals?|opportunities?|ranked|sorted|breakdown)/i.test(trimmed)) continue;
+      // "Based on your pipeline data:" (only when ending with colon = introducing a list)
+      if (/^Based on\s.*(pipeline|data|analysis|warmth|score|prospects)/i.test(trimmed) && trimmed.endsWith(':')) continue;
+      // "I found X prospects/deals matching..."
+      if (/^I (found|identified)\s+\d+\s+(prospects?|deals?|opportunities?|projects?)/i.test(trimmed)) continue;
+      // "Looking at your pipeline/data:" (colon ending = introducing a list)
+      if (/^Looking at\s.*(pipeline|data|deals|prospects)/i.test(trimmed) && trimmed.endsWith(':')) continue;
+      // "Let me rank/list/show them..." (introducing data)
+      if (/^Let me\s+(rank|list|show|break|lay)/i.test(trimmed) && trimmed.endsWith(':')) continue;
+
+      // --- STANDALONE DATA LINES ---
+      // "**Project Name** - Warmth Score: 87/100"
+      if (/^\*\*[^*]+\*\*\s*[-—–:]\s*(Warmth|Score|Rating|Value|Phase|Stage|Est)/i.test(trimmed)) continue;
 
       cleaned.push(line);
     }
@@ -541,6 +602,13 @@ const AskPlexiInterface: React.FC = () => {
                                   ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
                                   li: ({ children }) => <li className="text-gray-200">{children}</li>,
                                   hr: () => <hr className="border-gray-600 my-3" />,
+                                  // Suppress any tables that survive text stripping — cards handle data display
+                                  table: () => null,
+                                  thead: () => null,
+                                  tbody: () => null,
+                                  tr: () => null,
+                                  th: () => null,
+                                  td: () => null,
                                 }}
                               >
                                 {cleaned}
