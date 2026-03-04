@@ -81,6 +81,14 @@ app.post('/api/auth/validate', async (req, res) => {
   await handleValidate(req, res, req.body);
 });
 
+// Board Report Agents — public route (reads local demo files + calls Anthropic API,
+// no tenant-specific DB access). Auth token support in frontend is pending fresh build.
+import { handleAgentRequest } from './routes/agents.js';
+
+app.post('/api/agents/:agentId', async (req, res) => {
+  await handleAgentRequest(req, res);
+});
+
 // ---------------------------------------------------------------------------
 // Sandbox auth gate — all /api/ routes below require valid token
 // ---------------------------------------------------------------------------
@@ -215,13 +223,6 @@ import { handleActivityFeed } from './routes/activity-feed.js';
 
 app.get('/api/activity-feed', async (req, res) => {
   await handleActivityFeed(req, res);
-});
-
-// Board Report Agents (board-brief, assessment-trends, ozrf-section)
-import { handleAgentRequest } from './routes/agents.js';
-
-app.post('/api/agents/:agentId', async (req, res) => {
-  await handleAgentRequest(req, res);
 });
 
 // Audio briefings + podcasts
