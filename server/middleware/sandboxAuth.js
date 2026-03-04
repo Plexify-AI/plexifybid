@@ -86,6 +86,12 @@ export function sandboxAuth() {
 
     const token = extractToken(req);
 
+    // Debug: log auth attempts for /api/agents/ to diagnose 401s
+    if (path.startsWith('/api/agents')) {
+      console.log('[sandboxAuth] agents path:', path, 'token extracted:', token ? `${token.slice(0, 12)}…` : 'NULL',
+        'auth header:', req.headers?.authorization ? 'present' : 'missing');
+    }
+
     if (!token) {
       // Log failed attempt
       logUsageEvent(null, 'auth_failed', {

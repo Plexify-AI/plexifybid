@@ -208,6 +208,13 @@ const AppBody: React.FC = () => {
     agentId: string,
     args: { projectId: string; documentIds: string[] }
   ) => {
+    // Debug: log token state so 401s can be diagnosed
+    console.log('[handleRunAgent]', agentId, 'token:', token ? `${token.slice(0, 12)}…` : 'NULL');
+
+    if (!token) {
+      console.error('[handleRunAgent] No sandbox token available — request will 401');
+    }
+
     const result = await runNotebookBDAgent(agentId as any, {
       projectId: 'golden-triangle',
       documentIds: args.documentIds,
