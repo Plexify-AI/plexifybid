@@ -24,7 +24,7 @@ ARG VITE_SUPABASE_ANON_KEY
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 
-# Build frontend
+# Build frontend — cache-bust v3: force fresh Vite build (2026-03-03)
 RUN npm run build
 
 # ---- Stage 2: Production ----
