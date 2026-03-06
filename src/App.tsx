@@ -39,7 +39,7 @@ import SandboxEntry from './pages/SandboxEntry';
 import AccessRequired from './pages/AccessRequired';
 import PlexiCosAgentsPage from './pages/PlexiCosAgentsPage';
 import DealRoomListPage from './pages/DealRoomListPage';
-import DealRoomPage from './pages/DealRoomPage';
+import DealRoomPage from './features/deal-room/DealRoomPage';
 import MomentumPage from './features/momentum/MomentumPage';
 import HomePage from './features/home/HomePage';
 
