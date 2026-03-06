@@ -4,6 +4,9 @@
  * POST   /api/deal-rooms               — Create deal room
  * GET    /api/deal-rooms               — List deal rooms
  * GET    /api/deal-rooms/:id           — Get deal room with sources + messages
+ * PATCH  /api/deal-rooms/:id           — Update deal room metadata
+ * PATCH  /api/deal-rooms/:id/tab-content — Save editor content for a specific tab
+ * GET    /api/deal-rooms/by-opportunity/:opportunityId — Find room by opportunity
  * POST   /api/deal-rooms/:id/sources   — Upload + process source document
  * DELETE /api/deal-rooms/:id/sources/:sourceId — Delete source
  * POST   /api/deal-rooms/:id/chat      — RAG-grounded chat
@@ -24,6 +27,7 @@ import { markPowerflowStage } from './powerflow.js';
 // (it tries to load a test PDF at import time which crashes in production)
 import mammoth from 'mammoth';
 import {
+  getSupabase,
   createDealRoom,
   getDealRooms,
   getDealRoom,
@@ -126,7 +130,7 @@ export async function handleCreateDealRoom(req, res, body) {
   const tenant = req.tenant;
   if (!tenant) return sendError(res, 401, 'Not authenticated');
 
-  const { name, description, prospect_id } = body || {};
+  const { name, description, prospect_id, opportunity_id, room_type } = body || {};
   if (!name?.trim()) return sendError(res, 400, 'Missing "name" field');
 
   try {
@@ -134,6 +138,8 @@ export async function handleCreateDealRoom(req, res, body) {
       name: name.trim(),
       description: description?.trim(),
       prospect_id,
+      opportunity_id: opportunity_id || undefined,
+      room_type: room_type || undefined,
     });
 
     logUsageEvent(tenant.id, 'deal_room_created', { deal_room_id: room.id, name }).catch(() => {});
@@ -142,6 +148,107 @@ export async function handleCreateDealRoom(req, res, body) {
   } catch (err) {
     console.error('[deal-rooms] Create error:', err);
     return sendError(res, 500, 'Failed to create deal room');
+  }
+}
+
+/**
+ * PATCH /api/deal-rooms/:id — Update deal room metadata
+ */
+export async function handleUpdateDealRoom(req, res, dealRoomId, body) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  const allowed = ['name', 'description', 'active_tab', 'status', 'warmth_score'];
+  const updates = {};
+  for (const key of allowed) {
+    if (body[key] !== undefined) updates[key] = body[key];
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return sendError(res, 400, 'No valid fields to update');
+  }
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('deal_rooms')
+      .update(updates)
+      .eq('id', dealRoomId)
+      .eq('tenant_id', tenant.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return sendJSON(res, 200, data);
+  } catch (err) {
+    console.error('[deal-rooms] Update error:', err);
+    return sendError(res, 500, 'Failed to update deal room');
+  }
+}
+
+/**
+ * PATCH /api/deal-rooms/:id/tab-content — Save editor content for a specific tab
+ */
+export async function handleSaveTabContent(req, res, dealRoomId, body) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  const { tab, content } = body || {};
+  const validTabs = ['deal_summary', 'competitive_analysis', 'meeting_prep', 'board_brief', 'ozrf_section'];
+  if (!tab || !validTabs.includes(tab)) {
+    return sendError(res, 400, `Invalid tab. Must be one of: ${validTabs.join(', ')}`);
+  }
+  if (content === undefined) {
+    return sendError(res, 400, 'Missing "content" field');
+  }
+
+  try {
+    // Use Supabase jsonb path update
+    const room = await getDealRoom(tenant.id, dealRoomId);
+    const tabContent = room.tab_content || {};
+    tabContent[tab] = content;
+
+    // Count words across all tabs
+    const wordCount = Object.values(tabContent)
+      .filter(v => typeof v === 'string')
+      .join(' ')
+      .split(/\s+/)
+      .filter(w => w.length > 0)
+      .length;
+
+    const { data, error } = await getSupabase()
+      .from('deal_rooms')
+      .update({ tab_content: tabContent, word_count: wordCount })
+      .eq('id', dealRoomId)
+      .eq('tenant_id', tenant.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return sendJSON(res, 200, { saved: true, word_count: wordCount, updated_at: data.updated_at });
+  } catch (err) {
+    console.error('[deal-rooms] Save tab content error:', err);
+    return sendError(res, 500, 'Failed to save tab content');
+  }
+}
+
+/**
+ * GET /api/deal-rooms/by-opportunity/:opportunityId — Find room by opportunity
+ */
+export async function handleGetByOpportunity(req, res, opportunityId) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  try {
+    const { data, error } = await getSupabase()
+      .from('deal_rooms')
+      .select('*')
+      .eq('tenant_id', tenant.id)
+      .eq('opportunity_id', opportunityId)
+      .eq('status', 'active')
+      .maybeSingle();
+    if (error) throw error;
+    return sendJSON(res, 200, { room: data });
+  } catch (err) {
+    console.error('[deal-rooms] Get by opportunity error:', err);
+    return sendError(res, 500, 'Failed to find deal room');
   }
 }
 
