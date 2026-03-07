@@ -68,7 +68,7 @@ const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, onSe
             key={chip.label}
             onClick={() => onSendMessage(chip.label, chip.label)}
             disabled={sending}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/20 hover:text-emerald-200 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/20 hover:text-emerald-200 transition-colors disabled:opacity-50"
           >
             <span>{chip.icon}</span>
             <span>{chip.label}</span>
