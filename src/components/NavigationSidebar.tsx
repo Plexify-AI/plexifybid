@@ -86,15 +86,15 @@ const NavigationSidebar: React.FC = () => {
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''} hidden lg:flex`}>
         <div className="sidebar-content">
           {/* Logo Section */}
-          <div className="logo-section">
-            <div className="logo-container">
+          <div className="mb-3">
+            <div className="flex flex-col items-center justify-center text-center">
               <img
                 src="/assets/logos/flat_P_logo.png"
                 alt="PlexifySOLO"
-                className="!w-[163px] !h-[163px] max-w-none object-contain"
+                className={`object-contain transition-all duration-300 ${isCollapsed ? 'w-11 h-11' : 'w-[108px] h-[108px]'}`}
               />
               {!isCollapsed && (
-                <span className="inline-block ml-1 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-blue-200 bg-blue-500/20 border border-blue-400/30 rounded uppercase">SOLO</span>
+                <span className="mt-1 inline-block px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-blue-200 bg-blue-500/20 border border-blue-400/30 rounded uppercase">SOLO</span>
               )}
             </div>
           </div>
@@ -107,8 +107,8 @@ const NavigationSidebar: React.FC = () => {
                   <User size={14} className="text-white/70" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{tenant.name}</p>
-                  <p className="text-xs text-white/50 truncate">{tenant.company}</p>
+                  <p className="text-[13px] font-semibold text-white truncate">{tenant.name}</p>
+                  <p className="text-[11px] text-white/50 truncate">{tenant.company}</p>
                 </div>
               </div>
             </div>

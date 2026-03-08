@@ -104,7 +104,7 @@ const SourcesPanel: React.FC<SourcesPanelProps> = ({
             Generated Artifacts ({visualArtifacts.length})
           </button>
           {artifactsExpanded && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
               {visualArtifacts.map((artifact) => (
                 <ArtifactThumbnail key={artifact.id} artifact={artifact} />
               ))}
