@@ -1,4 +1,5 @@
 import React from 'react';
+import { Paperclip } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { DealRoomMessage } from '../../../types/dealRoom';
 
@@ -46,6 +47,7 @@ const DealRoomChatMessage: React.FC<DealRoomChatMessageProps> = ({ message }) =>
                 key={i}
                 className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] bg-indigo-500/20 text-indigo-300 cursor-pointer hover:bg-indigo-500/30 transition-colors"
               >
+                <Paperclip size={10} className="mr-1 flex-shrink-0" />
                 {citation.source_name || `Source ${citation.source_id.slice(0, 8)}`}, Chunk {citation.chunk_index}
               </span>
             ))}

@@ -20,7 +20,7 @@ const ARTIFACT_COLORS: Record<string, string> = {
   knowledge_graph: 'from-sky-600/40 to-sky-800/40',
 };
 
-const AUDIO_VIDEO_TYPES = ['podcast', 'presentation', 'video_summary'];
+const AUDIO_VIDEO_TYPES = ['podcast', 'video_summary'];
 
 const ArtifactThumbnail: React.FC<ArtifactThumbnailProps> = ({ artifact, onClick }) => {
   const gradient = ARTIFACT_COLORS[artifact.artifact_type] || 'from-gray-600/40 to-gray-800/40';
