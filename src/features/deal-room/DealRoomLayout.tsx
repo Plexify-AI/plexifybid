@@ -16,7 +16,7 @@ const panelBg: React.CSSProperties = {
 };
 
 const gridStyle: React.CSSProperties = {
-  gridTemplateColumns: 'minmax(280px, 320px) minmax(480px, 1fr) minmax(320px, 380px)',
+  gridTemplateColumns: 'minmax(220px, 260px) minmax(400px, 1fr) minmax(300px, 360px)',
 };
 
 const DealRoomLayout: React.FC<DealRoomLayoutProps> = ({ leftPanel, centerPanel, rightPanel }) => {
