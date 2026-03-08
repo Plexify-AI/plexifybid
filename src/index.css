@@ -589,9 +589,9 @@
     @apply flex flex-col h-full p-4;
   }
 
-  /* Logo Section - Matching attached sidebar example */
+  /* Logo Section */
   .logo-section {
-    @apply mb-8;
+    @apply mb-3;
   }
 
   .logo-container {
