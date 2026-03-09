@@ -46,3 +46,5 @@ supabase/.temp/
 # Claude Code workaround scripts
 .claude/dev-bootstrap.*
 .claude/git-cmd.*
+
+.claude/worktrees/
