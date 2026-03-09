@@ -119,6 +119,7 @@ import {
   handleCreateDealRoom,
   handleListDealRooms,
   handleGetDealRoom,
+  handleGetByOpportunity,
   handleUploadSource,
   handleDeleteSource,
   handleDealRoomChat,
@@ -140,6 +141,10 @@ app.post('/api/deal-rooms', async (req, res) => {
 
 app.get('/api/deal-rooms', async (req, res) => {
   await handleListDealRooms(req, res);
+});
+
+app.get('/api/deal-rooms/by-opportunity/:opportunityId', async (req, res) => {
+  await handleGetByOpportunity(req, res, req.params.opportunityId);
 });
 
 app.get('/api/deal-rooms/:id', async (req, res) => {

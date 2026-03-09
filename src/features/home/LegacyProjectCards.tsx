@@ -11,9 +11,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { UnifiedDailyIntelligence } from '../../types';
 import useReportStore from '../../store/reportStore';
 import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
+import CreateDealRoomDialog from '../deal-room/components/CreateDealRoomDialog';
+import { useNavigateToDealRoom } from './hooks/useNavigateToDealRoom';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -37,13 +40,33 @@ const LegacyProjectCards: React.FC = () => {
   const navigate = useNavigate();
   const executiveReports = useReportStore(state => state.executiveIntelligence);
   const [reports, setReports] = useState<UnifiedDailyIntelligence[]>(executiveReports);
+  const { navigateOrCreate, loadingOppId } = useNavigateToDealRoom();
 
   const openWorkspace = useWorkspaceStore(state => state.openWorkspace);
   const setCurrentProject = useWorkspaceStore(state => state.setCurrentProject);
 
+  // Create Deal Room dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogOppId, setCreateDialogOppId] = useState<string | undefined>();
+  const [createDialogOppName, setCreateDialogOppName] = useState('');
+
   useEffect(() => {
     setReports(executiveReports);
   }, [executiveReports]);
+
+  const handleViewDealRoom = async (report: UnifiedDailyIntelligence) => {
+    const result = await navigateOrCreate(report.projectId);
+    if (result === 'create') {
+      setCreateDialogOppId(report.projectId);
+      setCreateDialogOppName(report.projectName);
+      setCreateDialogOpen(true);
+    }
+  };
+
+  const handleDealRoomCreated = (dealRoomId: string) => {
+    setCreateDialogOpen(false);
+    navigate(`/deal-rooms/${dealRoomId}`);
+  };
 
   if (reports.length === 0) return null;
 
@@ -172,8 +195,10 @@ const LegacyProjectCards: React.FC = () => {
             <div className="intelligence-card-footer flex items-center gap-3">
               <button
                 className="btn btn-secondary text-sm"
-                onClick={() => navigate('/deal-rooms/a1b2c3d4-e5f6-7890-abcd-ef1234567890')}
+                disabled={loadingOppId === report.projectId}
+                onClick={() => handleViewDealRoom(report)}
               >
+                {loadingOppId === report.projectId ? <Loader2 size={14} className="animate-spin inline mr-1" /> : null}
                 View Deal Room
               </button>
               <button
@@ -196,6 +221,15 @@ const LegacyProjectCards: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* Create Deal Room Dialog — opens when no room exists for a project */}
+      <CreateDealRoomDialog
+        isOpen={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        onCreated={handleDealRoomCreated}
+        defaultName={createDialogOppName}
+        opportunityId={createDialogOppId}
+      />
     </div>
   );
 };

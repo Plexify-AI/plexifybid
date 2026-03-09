@@ -21,6 +21,7 @@ async function getHandlers() {
       create: mod.handleCreateDealRoom,
       list: mod.handleListDealRooms,
       get: mod.handleGetDealRoom,
+      getByOpportunity: mod.handleGetByOpportunity,
       upload: mod.handleUploadSource,
       deleteSource: mod.handleDeleteSource,
       chat: mod.handleDealRoomChat,
@@ -133,6 +134,12 @@ function parseRoute(url: string) {
     return { route: 'audio', dealRoomId: audioMatch[1] };
   }
 
+  // GET /api/deal-rooms/by-opportunity/:opportunityId
+  const byOppMatch = path.match(/^\/api\/deal-rooms\/by-opportunity\/([^/]+)$/);
+  if (byOppMatch) {
+    return { route: 'by-opportunity', opportunityId: byOppMatch[1] };
+  }
+
   // GET /api/deal-rooms/:id
   const getMatch = path.match(/^\/api\/deal-rooms\/([^/]+)$/);
   if (getMatch) {
@@ -169,6 +176,15 @@ export function dealRoomsMiddleware() {
             await handlers.create(req, res, body);
           } else if (req.method === 'GET') {
             await handlers.list(req, res);
+          } else {
+            sendError(res as any, 405, 'Method not allowed');
+          }
+          break;
+        }
+
+        case 'by-opportunity': {
+          if (req.method === 'GET') {
+            await handlers.getByOpportunity(req, res, parsed.opportunityId);
           } else {
             sendError(res as any, 405, 'Method not allowed');
           }
