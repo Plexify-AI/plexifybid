@@ -42,7 +42,13 @@
       "Bash(export HOME=/c/Users/KensBOXX)",
       "Bash(cmd.exe /c \"cd C:\\\\Users\\\\KensBOXX\\\\Documents\\\\GitHub\\\\plexifybid && git status\")",
       "Bash(HOME=/c/Users/KensBOXX BASH_ENV=/dev/null ENV=/dev/null bash --noprofile --norc -c \"cd /c/Users/KensBOXX/Documents/GitHub/plexifybid && git status --short\")",
-      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" status --short)"
+      "Bash(git -C \"C:/Users/KensBOXX/Documents/GitHub/plexifybid\" status --short)",
+      "Bash(npm run build)",
+      "Bash(HOME=/c/Users/KensBOXX npx vite build --outDir dist)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(HOME=/c/Users/KensBOXX node \"C:/Dev/plexifybid/.claude/worktrees/sharp-mayer/.claude/git-cmd.mjs\" git log --oneline main..HEAD)",
+      "Bash(cmd.exe /c \"git log --oneline main..HEAD\")",
+      "Bash(git -C \"C:/Dev/plexifybid/.claude/worktrees/sharp-mayer\" log --oneline main..HEAD)"
     ]
   }
 }
