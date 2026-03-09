@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UnifiedDailyIntelligence } from '../../types';
 import useReportStore from '../../store/reportStore';
 import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
@@ -33,6 +34,7 @@ const formatDate = (date: Date): string => {
 // ---------------------------------------------------------------------------
 
 const LegacyProjectCards: React.FC = () => {
+  const navigate = useNavigate();
   const executiveReports = useReportStore(state => state.executiveIntelligence);
   const [reports, setReports] = useState<UnifiedDailyIntelligence[]>(executiveReports);
 
@@ -167,7 +169,13 @@ const LegacyProjectCards: React.FC = () => {
             </div>
 
             {/* Card Footer */}
-            <div className="intelligence-card-footer">
+            <div className="intelligence-card-footer flex items-center gap-3">
+              <button
+                className="btn btn-secondary text-sm"
+                onClick={() => navigate('/deal-rooms/a1b2c3d4-e5f6-7890-abcd-ef1234567890')}
+              >
+                View Deal Room
+              </button>
               <button
                 className="btn btn-secondary text-sm"
                 onClick={() => {
