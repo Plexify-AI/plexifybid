@@ -162,7 +162,7 @@ export async function handleCreateOpportunity(req, res, body) {
     return res.end(JSON.stringify({ error: 'Not authenticated' }));
   }
 
-  const { account_name, contact_name, contact_email, contact_title, deal_hypothesis } = body || {};
+  const { account_name, contact_name, contact_email, contact_title, deal_hypothesis, enrichment_data } = body || {};
 
   if (!account_name) {
     res.statusCode = 400;
@@ -184,6 +184,7 @@ export async function handleCreateOpportunity(req, res, body) {
         contact_email: contact_email || null,
         contact_title: contact_title || null,
         deal_hypothesis: deal_hypothesis || null,
+        enrichment_data: enrichment_data || {},
         stage: 'prospecting',
         warmth_score: 0,
       })
