@@ -226,41 +226,57 @@ async function main() {
       continue;
     }
 
-    // POST to API
-    try {
-      const resp = await fetch(`${BASE_URL}/api/opportunities`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SANDBOX_TOKEN}`,
-        },
-        body: JSON.stringify(body),
-      });
+    // POST to API (with 429 retry)
+    let success = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const resp = await fetch(`${BASE_URL}/api/opportunities`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SANDBOX_TOKEN}`,
+          },
+          body: JSON.stringify(body),
+        });
 
-      if (resp.ok) {
-        created++;
-        imported.add(dedupeKey);
+        if (resp.ok) {
+          created++;
+          imported.add(dedupeKey);
 
-        // Save progress every 10 records
-        if (created % 10 === 0) {
-          writeFileSync(PROGRESS_FILE, JSON.stringify({ imported: [...imported] }, null, 2));
+          // Save progress every 10 records
+          if (created % 10 === 0) {
+            writeFileSync(PROGRESS_FILE, JSON.stringify({ imported: [...imported] }, null, 2));
+          }
+
+          if (created % 25 === 0 || i === toProcess.length - 1) {
+            console.log(`  Progress: ${created} created, ${duplicates} duplicates, ${errors} errors (${i + 1}/${toProcess.length})`);
+          }
+          success = true;
+          break;
+        } else if (resp.status === 429 && attempt < 2) {
+          console.log(`  [429] Rate limited on ${contactName} @ ${company} — waiting 65s (retry ${attempt + 1}/2)`);
+          await sleep(65000);
+          continue;
+        } else {
+          const errBody = await resp.text();
+          console.error(`  ERROR creating ${contactName} @ ${company}: ${resp.status} ${errBody}`);
+          errors++;
+          success = true; // don't retry non-429 errors
+          break;
         }
-
-        if (created % 25 === 0 || i === toProcess.length - 1) {
-          console.log(`  Progress: ${created} created, ${duplicates} duplicates, ${errors} errors (${i + 1}/${toProcess.length})`);
+      } catch (err) {
+        if (attempt < 2) {
+          console.log(`  [NETWORK] ${err.message} — waiting 65s (retry ${attempt + 1}/2)`);
+          await sleep(65000);
+          continue;
         }
-      } else {
-        const errBody = await resp.text();
-        console.error(`  ERROR creating ${contactName} @ ${company}: ${resp.status} ${errBody}`);
+        console.error(`  NETWORK ERROR for ${contactName} @ ${company}: ${err.message}`);
         errors++;
       }
-    } catch (err) {
-      console.error(`  NETWORK ERROR for ${contactName} @ ${company}: ${err.message}`);
-      errors++;
     }
 
-    // Small delay between requests
-    await sleep(200);
+    // Delay between requests to stay under Railway rate limit
+    await sleep(1500);
   }
 
   // Save final progress
