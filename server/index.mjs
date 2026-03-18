@@ -205,14 +205,25 @@ app.post('/api/signals/bulk', async (req, res) => {
 });
 
 // Opportunities
-import { handleListOpportunities, handleCreateOpportunity } from './routes/opportunities.js';
+import { handleListOpportunities, handleGetOpportunity, handleCreateOpportunity } from './routes/opportunities.js';
 
 app.get('/api/opportunities', async (req, res) => {
   await handleListOpportunities(req, res);
 });
 
+app.get('/api/opportunities/:id', async (req, res) => {
+  await handleGetOpportunity(req, res, req.params.id);
+});
+
 app.post('/api/opportunities', async (req, res) => {
   await handleCreateOpportunity(req, res, req.body);
+});
+
+// Outreach Sequence Agent
+import { handleGenerateSequence } from './routes/outreach-sequence.js';
+
+app.post('/api/outreach-sequence', async (req, res) => {
+  await handleGenerateSequence(req, res, req.body);
 });
 
 // Activity Feed (cross-opportunity events for Home screen)

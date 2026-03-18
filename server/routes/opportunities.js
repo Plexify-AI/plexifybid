@@ -7,7 +7,7 @@
  * Auth: sandboxAuth middleware sets req.tenant before handlers run.
  */
 
-import { getSupabase } from '../lib/supabase.js';
+import { getSupabase, getOpportunityById } from '../lib/supabase.js';
 import { generateScoreExplanation } from '../services/evidence-bundler.js';
 import { computeWarmth } from '../services/warmth-engine.js';
 
@@ -147,6 +147,31 @@ export async function handleListOpportunities(req, res) {
       error: 'Failed to list opportunities',
       details: process.env.NODE_ENV !== 'production' ? err.message : undefined,
     }));
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/opportunities/:id — Get single opportunity
+// ---------------------------------------------------------------------------
+
+export async function handleGetOpportunity(req, res, opportunityId) {
+  const tenant = req.tenant;
+  if (!tenant) {
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Not authenticated' }));
+  }
+
+  try {
+    const opp = await getOpportunityById(tenant.id, opportunityId);
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ opportunity: opp }));
+  } catch (err) {
+    console.error('[opportunities] Error getting:', err.message);
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Opportunity not found' }));
   }
 }
 

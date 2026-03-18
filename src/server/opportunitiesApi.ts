@@ -14,6 +14,7 @@ async function getHandlers() {
     const mod = await import('../../server/routes/opportunities.js');
     handlers = {
       list: mod.handleListOpportunities,
+      getOne: mod.handleGetOpportunity,
       create: mod.handleCreateOpportunity,
     };
   }
@@ -37,14 +38,19 @@ export function opportunitiesMiddleware() {
   return async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const url = (req.url || '').split('?')[0];
 
-    if (url !== '/api/opportunities') return next();
+    // Match /api/opportunities or /api/opportunities/:id
+    const exactMatch = url === '/api/opportunities';
+    const idMatch = url.match(/^\/api\/opportunities\/([0-9a-f-]{36})$/);
+    if (!exactMatch && !idMatch) return next();
 
     try {
       const h = await getHandlers();
 
-      if (req.method === 'GET') {
+      if (idMatch && req.method === 'GET') {
+        await h.getOne(req, res, idMatch[1]);
+      } else if (exactMatch && req.method === 'GET') {
         await h.list(req, res);
-      } else if (req.method === 'POST') {
+      } else if (exactMatch && req.method === 'POST') {
         const body = await parseBody(req);
         await h.create(req, res, body);
       } else {

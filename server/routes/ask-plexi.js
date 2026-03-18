@@ -19,6 +19,7 @@ import {
   createConversation,
   updateConversation,
   logUsageEvent,
+  getOpportunities,
 } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
 import { POWERFLOW_SYSTEM_PROMPTS } from '../constants/powerflowPrompts.js';
@@ -46,16 +47,82 @@ You have access to the user's real prospect database, contact network, and case 
 Never use these words: leverage, seamless, transformative, delve.`;
 
 /**
+ * Build a brief pipeline summary from the opportunities table.
+ * Injected into the system prompt so Claude has context without a tool call.
+ */
+async function buildOpportunitySummary(tenantId) {
+  try {
+    const opps = await getOpportunities(tenantId, { limit: 2000 });
+    if (!opps || opps.length === 0) return '';
+
+    let withEmail = 0, withLinkedIn = 0, warmCount = 0, coldCount = 0;
+    let totalMessages = 0;
+    const industries = {};
+    const regions = {};
+    const stages = {};
+
+    for (const o of opps) {
+      const ed = o.enrichment_data || {};
+      if (o.contact_email) withEmail++;
+      if (ed.linkedin_url) withLinkedIn++;
+      if (ed.warm_status === 'Y' || ed.message_count > 0) {
+        warmCount++;
+        totalMessages += ed.message_count || 0;
+      } else {
+        coldCount++;
+      }
+      if (ed.industry) industries[ed.industry] = (industries[ed.industry] || 0) + 1;
+      if (ed.region) regions[ed.region] = (regions[ed.region] || 0) + 1;
+      stages[o.stage || 'unknown'] = (stages[o.stage || 'unknown'] || 0) + 1;
+    }
+
+    // Top 5 industries by count
+    const topIndustries = Object.entries(industries)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => `${name} (${count})`)
+      .join(', ');
+
+    // Top warm contacts
+    const topWarm = opps
+      .filter(o => (o.enrichment_data?.message_count || 0) > 0)
+      .sort((a, b) => (b.enrichment_data?.message_count || 0) - (a.enrichment_data?.message_count || 0))
+      .slice(0, 5)
+      .map(o => `${o.contact_name} @ ${o.account_name} (${o.enrichment_data.message_count} msgs)`)
+      .join('; ');
+
+    const regionList = Object.entries(regions).map(([r, c]) => `${r}: ${c}`).join(', ');
+    const stageList = Object.entries(stages).map(([s, c]) => `${s}: ${c}`).join(', ');
+
+    let summary = `\n--- OPPORTUNITY PIPELINE SNAPSHOT ---\n`;
+    summary += `Total: ${opps.length} opportunities | Stages: ${stageList}\n`;
+    summary += `Data: ${withEmail} have email, ${withLinkedIn} have LinkedIn | ${warmCount} warm, ${coldCount} cold\n`;
+    if (regionList) summary += `Regions: ${regionList}\n`;
+    if (topIndustries) summary += `Top industries: ${topIndustries}\n`;
+    if (topWarm) summary += `Warmest contacts: ${topWarm}\n`;
+    if (totalMessages > 0) summary += `Total LinkedIn messages across warm contacts: ${totalMessages}\n`;
+    summary += `Use the search_opportunities, analyze_opportunity_pipeline, and draft_opportunity_outreach tools to query live data.`;
+
+    return summary;
+  } catch (err) {
+    console.error('[ask-plexi] Failed to build opportunity summary:', err.message);
+    return '';
+  }
+}
+
+/**
  * Build the system prompt for a tenant with optional Powerflow capsule layer.
  *
- * 3-layer stack (top to bottom):
+ * 4-layer stack (top to bottom):
  *   Layer 1: tenant.system_prompt_override.context  (industry/persona context)
  *   Layer 2: POWERFLOW_SYSTEM_PROMPTS[level]        (capsule sales stage context)
  *   Layer 3: DEFAULT_SYSTEM_PROMPT                  (base Plexi behavior)
+ *   Layer 4: Opportunity pipeline snapshot           (live data context)
  *
  * Layer 2 is only included when powerflowLevel is provided (1-6).
+ * Layer 4 is async — fetched from opportunities table.
  */
-function buildSystemPrompt(tenant, powerflowLevel) {
+async function buildSystemPrompt(tenant, powerflowLevel) {
   const layers = [];
 
   // Layer 1: Tenant override (industry/persona context)
@@ -75,6 +142,10 @@ function buildSystemPrompt(tenant, powerflowLevel) {
 
   // Layer 3: Base Plexi behavior
   layers.push(DEFAULT_SYSTEM_PROMPT);
+
+  // Layer 4: Opportunity pipeline snapshot (live data)
+  const oppSummary = await buildOpportunitySummary(tenant.id);
+  if (oppSummary) layers.push(oppSummary);
 
   return layers.join('\n\n');
 }
@@ -116,8 +187,8 @@ export async function handleChat(req, res, body) {
     const levelTag = powerflow_level ? ` [Powerflow L${powerflow_level}]` : '';
     console.log(`[ask-plexi] Processing message for tenant ${tenant.slug}${levelTag}: "${message.substring(0, 80)}..."`);
 
-    // Build tenant-specific system prompt (3-layer stack when powerflow_level present)
-    const systemPrompt = buildSystemPrompt(tenant, powerflow_level);
+    // Build tenant-specific system prompt (4-layer stack with live opportunity data)
+    const systemPrompt = await buildSystemPrompt(tenant, powerflow_level);
     console.log(`[ask-plexi] System prompt: ${systemPrompt.length} chars, powerflow_level: ${powerflow_level || 'none'}`);
 
     // Call Claude with tool support
@@ -169,8 +240,8 @@ export async function handleChat(req, res, body) {
     // Powerflow triggers (non-blocking)
     markPowerflowStage(tenant, 1); // Stage 1: Ask Plexi query (auto-trigger)
     const toolNames = result.toolResults.map((t) => t.tool);
-    if (toolNames.includes('draft_outreach')) markPowerflowStage(tenant, 3); // Stage 3: Outreach draft
-    if (toolNames.includes('analyze_pipeline')) markPowerflowStage(tenant, 4); // Stage 4: Pipeline analysis
+    if (toolNames.includes('draft_outreach') || toolNames.includes('draft_opportunity_outreach')) markPowerflowStage(tenant, 3);
+    if (toolNames.includes('analyze_pipeline') || toolNames.includes('analyze_opportunity_pipeline')) markPowerflowStage(tenant, 4);
     // Explicit stage marking from powerflow capsule (belt-and-suspenders with auto-triggers)
     if (powerflow_level && powerflow_level >= 1 && powerflow_level <= 6) {
       markPowerflowStage(tenant, powerflow_level);
