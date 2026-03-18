@@ -18,6 +18,7 @@ import { systemStatusMiddleware } from './src/server/systemStatusApi';
 import { signalsMiddleware } from './src/server/signalsApi';
 import { opportunitiesMiddleware } from './src/server/opportunitiesApi';
 import { activityFeedMiddleware } from './src/server/activityFeedApi';
+import { outreachSequenceMiddleware } from './src/server/outreachSequenceApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -56,6 +57,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(signalsMiddleware());
         server.middlewares.use(opportunitiesMiddleware());
         server.middlewares.use(activityFeedMiddleware());
+        server.middlewares.use(outreachSequenceMiddleware());
       },
     },
   ],

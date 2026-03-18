@@ -3,20 +3,37 @@ import { Send, Paperclip, Mic } from 'lucide-react';
 import DealRoomChatMessage from '../components/DealRoomChatMessage';
 import type { DealRoomMessage } from '../../../types/dealRoom';
 
+interface OpportunityContext {
+  contact_name?: string;
+  account_name?: string;
+  contact_email?: string;
+}
+
 interface AssistantPanelProps {
   messages: DealRoomMessage[];
   sending: boolean;
   onSendMessage: (message: string, actionChip?: string) => Promise<any>;
+  opportunity?: OpportunityContext | null;
 }
 
-const ACTION_CHIPS = [
+const DEFAULT_ACTION_CHIPS = [
   { label: 'Generate Board Brief', icon: '📄' },
   { label: 'Extract Assessment Trends', icon: '📊' },
   { label: 'Draft OZRF Section', icon: '🏛️' },
 ];
 
-const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, onSendMessage }) => {
+function getOpportunityChips(opp: OpportunityContext) {
+  const name = opp.contact_name || opp.account_name || 'this contact';
+  return [
+    { label: `Draft Outreach Email for ${name}`, icon: '✉️' },
+    { label: `Meeting Prep Brief for ${name}`, icon: '📋' },
+    { label: `Follow-Up Message for ${name}`, icon: '🔄' },
+  ];
+}
+
+const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, onSendMessage, opportunity }) => {
   const [input, setInput] = useState('');
+  const actionChips = opportunity ? getOpportunityChips(opportunity) : DEFAULT_ACTION_CHIPS;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll on new messages
@@ -63,7 +80,7 @@ const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, onSe
 
       {/* Action chips */}
       <div className="px-4 py-2 border-b border-white/10 flex flex-wrap gap-1.5">
-        {ACTION_CHIPS.map((chip) => (
+        {actionChips.map((chip) => (
           <button
             key={chip.label}
             onClick={() => onSendMessage(chip.label, chip.label)}

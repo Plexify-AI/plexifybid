@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDealRoom } from './hooks/useDealRoom';
 import { useDealRoomSources } from './hooks/useDealRoomSources';
@@ -9,6 +9,7 @@ import DealRoomLayout from './DealRoomLayout';
 import SourcesPanel from './panels/SourcesPanel';
 import EditorPanel from './panels/EditorPanel';
 import AssistantPanel from './panels/AssistantPanel';
+import { useSandbox } from '../../contexts/SandboxContext';
 import type { DealRoomMessage, DealRoomTab, DealRoomArtifact } from '../../types/dealRoom';
 import { GOLDEN_TRIANGLE_ROOM_ID } from '../../types/dealRoom';
 
@@ -125,9 +126,17 @@ const GOLDEN_TRIANGLE_TAB_CONTENT: Partial<Record<DealRoomTab, string>> = {
 <ol><li>Approve spring event calendar and associated budget allocation</li><li>Review Innovation District partnership agreements for board vote</li><li>Authorize boundary expansion feasibility study (deferred from prior term)</li></ol>`,
 };
 
+interface LinkedOpportunity {
+  contact_name?: string;
+  account_name?: string;
+  contact_email?: string;
+}
+
 const DealRoomPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { token } = useSandbox();
   const [messages, setMessages] = useState<DealRoomMessage[]>([]);
+  const [linkedOpportunity, setLinkedOpportunity] = useState<LinkedOpportunity | null>(null);
 
   const {
     room,
@@ -143,6 +152,26 @@ const DealRoomPage: React.FC = () => {
     saveTabContent,
     refetch,
   } = useDealRoom(id);
+
+  // Fetch linked opportunity data if room has opportunity_id
+  useEffect(() => {
+    const roomAny = room as any;
+    if (!roomAny?.opportunity_id || !token) return;
+    fetch(`/api/opportunities/${roomAny.opportunity_id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.opportunity) {
+          setLinkedOpportunity({
+            contact_name: data.opportunity.contact_name,
+            account_name: data.opportunity.account_name,
+            contact_email: data.opportunity.contact_email,
+          });
+        }
+      })
+      .catch(() => {}); // Non-fatal
+  }, [room, token]);
 
   // Sync initial messages once — seed demo messages for Golden Triangle if API returns none
   React.useEffect(() => {
@@ -259,6 +288,7 @@ const DealRoomPage: React.FC = () => {
             messages={messages}
             sending={sending}
             onSendMessage={handleSendMessage}
+            opportunity={linkedOpportunity}
           />
         }
       />

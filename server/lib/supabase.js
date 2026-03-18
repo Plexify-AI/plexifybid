@@ -478,6 +478,33 @@ export async function updatePowerflowStage(tenantId, localDate, stageNumber) {
   return data;
 }
 
+// ---------------------------------------------------------------------------
+// Opportunity query helpers (Sprint 0 — opportunities table)
+// ---------------------------------------------------------------------------
+
+export async function getOpportunities(tenantId, { limit = 200, orderBy = 'warmth_score', ascending = false } = {}) {
+  const { data, error } = await supabase
+    .from('opportunities')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .not('stage', 'eq', 'ejected')
+    .order(orderBy, { ascending })
+    .limit(limit);
+  if (error) throw error;
+  return data;
+}
+
+export async function getOpportunityById(tenantId, opportunityId) {
+  const { data, error } = await supabase
+    .from('opportunities')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('id', opportunityId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function getTenantById(tenantId) {
   const { data, error } = await supabase
     .from('tenants')

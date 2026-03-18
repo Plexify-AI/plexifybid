@@ -425,7 +425,53 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
       content: m.content,
     }));
 
-    // 5. Build messages for Claude
+    // 4b. If this deal room is linked to an opportunity, inject its context
+    let opportunityContext = '';
+    try {
+      const { data: room } = await getSupabase()
+        .from('deal_rooms')
+        .select('opportunity_id')
+        .eq('id', dealRoomId)
+        .eq('tenant_id', tenant.id)
+        .single();
+
+      if (room?.opportunity_id) {
+        const { data: opp } = await getSupabase()
+          .from('opportunities')
+          .select('*')
+          .eq('id', room.opportunity_id)
+          .eq('tenant_id', tenant.id)
+          .single();
+
+        if (opp) {
+          const ed = opp.enrichment_data || {};
+          const isWarm = ed.warm_status === 'Y' || (ed.message_count && ed.message_count > 0);
+          opportunityContext = `\n--- LINKED OPPORTUNITY ---\n` +
+            `Account: ${opp.account_name}\n` +
+            (opp.contact_name ? `Contact: ${opp.contact_name}\n` : '') +
+            (opp.contact_title ? `Title: ${opp.contact_title}\n` : '') +
+            (opp.contact_email ? `Email: ${opp.contact_email}\n` : '') +
+            `Stage: ${opp.stage}\n` +
+            (opp.deal_hypothesis ? `Hypothesis: ${opp.deal_hypothesis}\n` : '') +
+            `Relationship: ${isWarm ? `Warm (${ed.message_count || 0} prior messages)` : 'Cold lead — no prior relationship'}\n` +
+            (ed.industry ? `Industry: ${ed.industry}\n` : '') +
+            (ed.region ? `Region: ${ed.region}\n` : '') +
+            (ed.linkedin_url ? `LinkedIn: ${ed.linkedin_url}\n` : '') +
+            `\nAdapt your tone: ${isWarm ? 'familiar, reference past interactions' : 'professional, insight-led, value-first'}.\n` +
+            `When drafting outreach: ${opp.contact_email ? 'email is available — generate email-ready content with subject lines' : ed.linkedin_url ? 'suggest LinkedIn-appropriate outreach' : 'suggest the best available channel'}.\n`;
+        }
+      }
+    } catch (err) {
+      // Non-fatal — proceed without opportunity context
+      console.error('[deal-rooms] Failed to load opportunity context:', err.message);
+    }
+
+    // 5. Build system prompt (base + opportunity context if available)
+    const systemPrompt = opportunityContext
+      ? DEAL_ROOM_SYSTEM_PROMPT + '\n' + opportunityContext
+      : DEAL_ROOM_SYSTEM_PROMPT;
+
+    // 6. Build messages for Claude
     const claudeMessages = [
       ...history,
       {
@@ -434,10 +480,10 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
       },
     ];
 
-    // 6. Call LLM Gateway
+    // 7. Call LLM Gateway
     const result = await sendPrompt({
       taskType: TASK_TYPES.DEAL_ROOM_ARTIFACT,
-      systemPrompt: DEAL_ROOM_SYSTEM_PROMPT,
+      systemPrompt,
       messages: claudeMessages,
       maxTokens: 4096,
       tenantId: tenant.id,
