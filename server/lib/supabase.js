@@ -208,15 +208,18 @@ export async function deleteFile(storagePath) {
 // Deal Room CRUD helpers
 // ---------------------------------------------------------------------------
 
-export async function createDealRoom(tenantId, { name, description, prospect_id }) {
+export async function createDealRoom(tenantId, { name, description, prospect_id, opportunity_id, room_type }) {
+  const row = {
+    tenant_id: tenantId,
+    name,
+    description: description || null,
+    prospect_id: prospect_id || null,
+  };
+  if (opportunity_id) row.opportunity_id = opportunity_id;
+  if (room_type) row.room_type = room_type;
   const { data, error } = await supabase
     .from('deal_rooms')
-    .insert({
-      tenant_id: tenantId,
-      name,
-      description: description || null,
-      prospect_id: prospect_id || null,
-    })
+    .insert(row)
     .select()
     .single();
   if (error) throw error;
