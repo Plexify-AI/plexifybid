@@ -19,6 +19,7 @@ import { signalsMiddleware } from './src/server/signalsApi';
 import { opportunitiesMiddleware } from './src/server/opportunitiesApi';
 import { activityFeedMiddleware } from './src/server/activityFeedApi';
 import { outreachSequenceMiddleware } from './src/server/outreachSequenceApi';
+import { voiceDnaMiddleware } from './src/server/voiceDnaApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -58,6 +59,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(opportunitiesMiddleware());
         server.middlewares.use(activityFeedMiddleware());
         server.middlewares.use(outreachSequenceMiddleware());
+        server.middlewares.use(voiceDnaMiddleware());
       },
     },
   ],

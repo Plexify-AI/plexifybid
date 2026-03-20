@@ -23,6 +23,7 @@ import {
 } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
 import { POWERFLOW_SYSTEM_PROMPTS } from '../constants/powerflowPrompts.js';
+import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
 
 // ---------------------------------------------------------------------------
 // System prompt — AEC BD specialist (Layer 3 — base behavior)
@@ -132,6 +133,14 @@ async function buildSystemPrompt(tenant, powerflowLevel) {
     if (override) layers.push(override);
   } catch {
     // If system_prompt_override is malformed, skip it silently
+  }
+
+  // Layer 1.5: Voice DNA (writing style injection)
+  try {
+    const voiceBlock = await injectVoicePrompt(tenant.id, 'general');
+    if (voiceBlock) layers.push(voiceBlock);
+  } catch {
+    // Non-fatal — agents work normally without Voice DNA
   }
 
   // Layer 2: Capsule system prompt (sales stage context)
