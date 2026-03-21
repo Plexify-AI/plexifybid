@@ -23,6 +23,7 @@ import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 import { extractJSON } from '../llm-gateway/response-normalizer.js';
 import { markPowerflowStage } from './powerflow.js';
+import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
 // pdf-parse is lazy-imported inside extractText() to avoid its startup bug
 // (it tries to load a test PDF at import time which crashes in production)
 import mammoth from 'mammoth';
@@ -467,9 +468,17 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
     }
 
     // 5. Build system prompt (base + opportunity context if available)
-    const systemPrompt = opportunityContext
+    let systemPrompt = opportunityContext
       ? DEAL_ROOM_SYSTEM_PROMPT + '\n' + opportunityContext
       : DEAL_ROOM_SYSTEM_PROMPT;
+
+    // Voice DNA injection — prepend voice style block if active profile exists
+    try {
+      const voiceBlock = await injectVoicePrompt(tenant.id, 'meeting-brief');
+      if (voiceBlock) systemPrompt = voiceBlock + '\n\n' + systemPrompt;
+    } catch {
+      // Non-fatal — proceed without voice styling
+    }
 
     // 6. Build messages for Claude
     const claudeMessages = [

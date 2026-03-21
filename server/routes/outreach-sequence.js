@@ -14,6 +14,7 @@ import { TASK_TYPES } from '../llm-gateway/types.js';
 import { extractJSON } from '../llm-gateway/response-normalizer.js';
 import { getOpportunityById, logUsageEvent } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
+import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
 
 // ---------------------------------------------------------------------------
 // Handler
@@ -77,7 +78,7 @@ Touch 4: Break-up email — last chance, offer alternative resource
 Tone: Professional, value-first. No familiarity. Earn attention with insight.`;
     }
 
-    const systemPrompt = `You are a B2B sales outreach specialist generating a ${touches}-touch outreach cadence over ${duration_days} days.
+    let systemPrompt = `You are a B2B sales outreach specialist generating a ${touches}-touch outreach cadence over ${duration_days} days.
 
 CONTACT:
 - Name: ${opp.contact_name || 'Unknown'}
@@ -116,6 +117,14 @@ Return ONLY valid JSON (no markdown, no code fences) matching this schema:
     "intent": "string (1-line description of this touch's goal)"
   }
 ]`;
+
+    // Voice DNA injection — prepend voice style block if active profile exists
+    try {
+      const voiceBlock = await injectVoicePrompt(tenant.id, isWarm ? 'outreach-warm' : 'outreach-cold');
+      if (voiceBlock) systemPrompt = voiceBlock + '\n\n' + systemPrompt;
+    } catch {
+      // Non-fatal — proceed without voice styling
+    }
 
     const result = await sendPrompt({
       taskType: TASK_TYPES.OUTREACH_GENERATION,

@@ -189,6 +189,35 @@ app.post('/api/powerflow/complete', async (req, res) => {
   await handleCompleteStage(req, res, req.body);
 });
 
+// Voice DNA
+import {
+  handleCreateProfile as handleVoiceDnaCreate,
+  handleGetActive as handleVoiceDnaActive,
+  handleGetProfile as handleVoiceDnaGet,
+  handleApproveProfile as handleVoiceDnaApprove,
+  handleUpdateDimensions as handleVoiceDnaDimensions,
+} from './routes/voice-dna.js';
+
+app.post('/api/voice-dna/profiles', async (req, res) => {
+  await handleVoiceDnaCreate(req, res, req.body);
+});
+
+app.get('/api/voice-dna/profiles/active', async (req, res) => {
+  await handleVoiceDnaActive(req, res);
+});
+
+app.get('/api/voice-dna/profiles/:id', async (req, res) => {
+  await handleVoiceDnaGet(req, res, req.params.id);
+});
+
+app.put('/api/voice-dna/profiles/:id/approve', async (req, res) => {
+  await handleVoiceDnaApprove(req, res, req.params.id);
+});
+
+app.put('/api/voice-dna/profiles/:id/dimensions', async (req, res) => {
+  await handleVoiceDnaDimensions(req, res, req.params.id, req.body);
+});
+
 // Signals (warmth event logging)
 import { handleLogSignal, handleGetSignals, handleBulkSignals } from './routes/signals.js';
 
