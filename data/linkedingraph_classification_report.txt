@@ -1,0 +1,83 @@
+╔══════════════════════════════════════════════════════════════╗
+║       LinkedInGraph Agent — Classification Report           ║
+║       PlexifyAEC BD Operating System                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+Generated: 2026-03-16
+Source: ken_SOLO_tier1_CLASSIFIED.csv
+
+Total Tier 1 Contacts: 3214
+
+── Vertical Distribution ──
+  (untagged)                     1766  ( 54.9%)  ██████████████████████
+  AEC Tech                        415  ( 12.9%)  █████
+  GC                              386  ( 12.0%)  █████
+  MEP/Engineering                 259  (  8.1%)  ███
+  Developer                       253  (  7.9%)  ███
+  Architecture/Design              98  (  3.0%)  █
+  BID/EcoDev                       24  (  0.7%)  
+  GC | MEP/Engineering              7  (  0.2%)  
+  GC | Developer                    4  (  0.1%)  
+  Developer | MEP/Engineering       1  (  0.0%)  
+  Developer | BID/EcoDev            1  (  0.0%)  
+
+── Warm Status by Vertical ──
+  Vertical                       Y   Maybe   (none)   Total
+  ------------------------- ------ ------- -------- -------
+  (untagged)                   450     785      531    1766
+  AEC Tech                      77     117      221     415
+  GC                            59     200      127     386
+  MEP/Engineering               27     119      113     259
+  Developer                     42     129       82     253
+  Architecture/Design           16      46       36      98
+  BID/EcoDev                     7       6       11      24
+  GC | MEP/Engineering           2       3        2       7
+  GC | Developer                 1       3        0       4
+  Developer | MEP/Engineering      0       0        1       1
+  Developer | BID/EcoDev         0       0        1       1
+
+── Gold List: Top 25 (Warm + Tagged) ──
+Total Gold List contacts: 231
+
+    # Name                         Company                      Vertical              Msgs
+  --- ---------------------------- ---------------------------- -------------------- -----
+    1 Rob Rinderman                Craft Capital Management, L  Developer              126
+    2 Mel Wallace                  Hexagon Geosystems           AEC Tech                94
+    3 Hosney Abdelgelil            WSP                          MEP/Engineering         73
+    4 Matthew Byrd                 Reality Capture Network      AEC Tech                52
+    5 William Fleck                STOCK Development            Developer               27
+    6 Donald Interdonato, CM-BIM   VEC                          GC                      23
+    7 Joseph P Candella, Jr.       Cohen Brothers               Developer               22
+    8 Alex Von Svoboda             Hexagon Manufacturing Intel  AEC Tech                21
+    9 Shelley Armato               MySmartPlans - Construction  AEC Tech                20
+   10 Agustin Huerta               Globant                      AEC Tech                19
+   11 Shobhit Baadkar              TITAN AEC                    AEC Tech                18
+   12 Ankur Sardana                VK BIM Solutions             AEC Tech                18
+   13 Dean R. Robateau             McKissack                    Developer               17
+   14 Brendan Leavy                Queens Chamber of Commerce   BID/EcoDev              16
+   15 Darrin McIntyre              Sciame Construction, LLC     GC                      16
+   16 Jason Vesuvio                Pavarini McGovern            GC                      16
+   17 Bob DeSimone MBA             Peace Of Mind Technologies,  AEC Tech                15
+   18 RJ Grimshaw ♾                The AI CEO                   AEC Tech                15
+   19 Jack Herrick                 JH Electric of NY Inc        MEP/Engineering         15
+   20 Quincy Lunford               Vanguard Steel Corporation   GC                      15
+   21 AHMED ZAZA                   Future Engineering & Manage  MEP/Engineering         13
+   22 Andrew Weinberg, FSMPS, CPS  LF Driscoll                  Developer               13
+   23 Ewald Schwarzenegger, P.E.   Schwarzenegger Engineering,  MEP/Engineering         13
+   24 Diana Darling                The Architect's Newspaper    Architecture/Design     13
+   25 Julio Bautista               Cumming Group                GC                      13
+
+── Coverage Delta ──
+  Before LLM classification: 915 tagged (28.5%)
+  After LLM classification:  1448 tagged (45.1%)
+  Improvement: +533 contacts classified
+  Remaining untagged: 1766
+
+── Priority Tier Preview ──
+  P0 (Immediate):  34 contacts
+  P1 (High):       197 contacts
+  P2 (Review):     6 contacts
+  P3 (Backlog):    617 contacts
+  Total in queue:  854 contacts
+
+══════════════════════════════════════════════════════════════
