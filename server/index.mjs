@@ -196,6 +196,7 @@ import {
   handleGetProfile as handleVoiceDnaGet,
   handleApproveProfile as handleVoiceDnaApprove,
   handleUpdateDimensions as handleVoiceDnaDimensions,
+  handleVoiceGenerate as handleVoiceDnaGenerate,
 } from './routes/voice-dna.js';
 
 app.post('/api/voice-dna/profiles', async (req, res) => {
@@ -216,6 +217,10 @@ app.put('/api/voice-dna/profiles/:id/approve', async (req, res) => {
 
 app.put('/api/voice-dna/profiles/:id/dimensions', async (req, res) => {
   await handleVoiceDnaDimensions(req, res, req.params.id, req.body);
+});
+
+app.post('/api/voice-dna/generate', async (req, res) => {
+  await handleVoiceDnaGenerate(req, res, req.body);
 });
 
 // Signals (warmth event logging)

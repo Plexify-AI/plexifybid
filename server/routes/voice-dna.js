@@ -6,6 +6,7 @@
  * GET    /api/voice-dna/profiles/:id        — Get profile by ID
  * PUT    /api/voice-dna/profiles/:id/approve    — Approve and activate profile
  * PUT    /api/voice-dna/profiles/:id/dimensions — Update dimension overrides
+ * POST   /api/voice-dna/generate            — Voice-match content using active profile
  *
  * Auth: sandboxAuth middleware sets req.tenant before these handlers run.
  */
@@ -18,6 +19,9 @@ import {
   updateDimensions,
   saveSamples,
 } from '../lib/voice-dna/voice-dna-service.js';
+import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { sendPrompt } from '../llm-gateway/index.js';
+import { TASK_TYPES } from '../llm-gateway/types.js';
 
 // ---------------------------------------------------------------------------
 // Handlers
@@ -121,6 +125,77 @@ export async function handleUpdateDimensions(req, res, profileId, body) {
   } catch (err) {
     console.error('[voice-dna] Update dimensions error:', err);
     return sendError(res, 500, 'Failed to update dimensions');
+  }
+}
+
+/**
+ * POST /api/voice-dna/generate — Voice-match content using active profile
+ * Body: { content, contentType, context?: { opportunityId?, recipientName? } }
+ *
+ * This is the PlexiCoS → PlexiVoice handoff endpoint.
+ * Loads the active voice profile, injects it as a system prompt block,
+ * and rewrites the content to match the tenant's voice.
+ */
+export async function handleVoiceGenerate(req, res, body) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  const { content, contentType = 'general', context } = body || {};
+  if (!content?.trim()) {
+    return sendError(res, 400, 'Missing "content" field');
+  }
+
+  try {
+    // 1. Get active voice profile
+    const profile = await getActiveProfile(tenant.id);
+    if (!profile) {
+      return sendError(res, 404, 'No active Voice DNA profile for this tenant. Create one first.');
+    }
+
+    // 2. Build voice-injected system prompt
+    const voiceBlock = await injectVoicePrompt(tenant.id, contentType);
+    const systemPrompt = `${voiceBlock || ''}
+
+You are a professional communications specialist. Rewrite the following content to precisely match the Voice DNA profile above. Preserve all factual content — names, dates, numbers, and key information must remain unchanged. Change ONLY voice, tone, vocabulary, and sentence patterns to match the profile.
+
+${context?.recipientName ? `Recipient: ${context.recipientName}` : ''}
+Content type: ${contentType}
+
+Return ONLY the rewritten text. No commentary, no explanations, no markdown fencing.`;
+
+    // 3. Send to LLM Gateway
+    const result = await sendPrompt({
+      taskType: TASK_TYPES.GENERAL,
+      systemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: content.trim(),
+        },
+      ],
+      maxTokens: 4096,
+      temperature: 0.6,
+      tenantId: tenant.id,
+    });
+
+    // 4. Extract dimension summary for response
+    const dims = profile.profile_data?.voiceDimensions || {};
+    const dimensionsApplied = {};
+    for (const [key, val] of Object.entries(dims)) {
+      if (val && typeof val === 'object' && typeof val.score === 'number') {
+        dimensionsApplied[key] = val.score;
+      }
+    }
+
+    return sendJSON(res, 200, {
+      voiceMatched: result.content,
+      profileUsed: profile.id,
+      confidenceScore: profile.confidence_score,
+      dimensionsApplied,
+    });
+  } catch (err) {
+    console.error('[voice-dna] Generate error:', err);
+    return sendError(res, 500, 'Failed to generate voice-matched content');
   }
 }
 

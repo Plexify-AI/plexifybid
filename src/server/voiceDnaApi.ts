@@ -18,6 +18,7 @@ async function getHandlers() {
       get: mod.handleGetProfile,
       approve: mod.handleApproveProfile,
       dimensions: mod.handleUpdateDimensions,
+      generate: mod.handleVoiceGenerate,
     };
   }
   return handlers;
@@ -80,6 +81,13 @@ export function voiceDnaMiddleware() {
       if (dimMatch && req.method === 'PUT') {
         const body = await readBody(req);
         await h.dimensions(req, res, dimMatch[1], body);
+        return;
+      }
+
+      // POST /api/voice-dna/generate
+      if (url === '/api/voice-dna/generate' && req.method === 'POST') {
+        const body = await readBody(req);
+        await h.generate(req, res, body);
         return;
       }
 

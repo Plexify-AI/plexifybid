@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Voice DNA Profile",
+  "description": "Structured voice profile for PlexifyAI agents. Captures writing style, tone, vocabulary, and behavioral patterns.",
+  "type": "object",
+  "required": ["meta", "persona", "voiceDimensions", "voiceContrasts", "vocabulary", "sentenceStructure", "toneAdaptations", "examples", "antiPatterns"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["schemaVersion", "analyzedAt", "sampleCount", "confidenceScore"],
+      "properties": {
+        "schemaVersion": { "type": "string", "const": "1.0" },
+        "analyzedAt": { "type": "string", "format": "date-time" },
+        "sampleCount": { "type": "integer", "minimum": 1 },
+        "confidenceScore": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+      }
+    },
+    "persona": {
+      "type": "object",
+      "required": ["summary", "archetype", "traits"],
+      "properties": {
+        "summary": { "type": "string", "description": "2-3 sentence character summary" },
+        "archetype": { "type": "string", "description": "Archetype label, e.g. 'Creative Tech Sommelier'" },
+        "traits": { "type": "array", "items": { "type": "string" }, "minItems": 2, "maxItems": 5 }
+      }
+    },
+    "voiceDimensions": {
+      "type": "object",
+      "required": ["formality", "warmth", "directness", "technicalDepth", "enthusiasm", "confidence", "humor"],
+      "additionalProperties": false,
+      "properties": {
+        "formality": { "$ref": "#/$defs/dimension" },
+        "warmth": { "$ref": "#/$defs/dimension" },
+        "directness": { "$ref": "#/$defs/dimension" },
+        "technicalDepth": { "$ref": "#/$defs/dimension" },
+        "enthusiasm": { "$ref": "#/$defs/dimension" },
+        "confidence": { "$ref": "#/$defs/dimension" },
+        "humor": { "$ref": "#/$defs/dimension" }
+      }
+    },
+    "voiceContrasts": {
+      "type": "object",
+      "required": ["weAre", "weAreNot"],
+      "properties": {
+        "weAre": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
+        "weAreNot": { "type": "array", "items": { "type": "string" }, "minItems": 2 }
+      }
+    },
+    "vocabulary": {
+      "type": "object",
+      "required": ["preferredTerms", "avoidedTerms", "signaturePhrases", "jargonPolicy"],
+      "properties": {
+        "preferredTerms": { "type": "array", "items": { "type": "string" } },
+        "avoidedTerms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Must always include: delve, leverage, seamless, transformative"
+        },
+        "signaturePhrases": { "type": "array", "items": { "type": "string" } },
+        "jargonPolicy": { "type": "string" }
+      }
+    },
+    "sentenceStructure": {
+      "type": "object",
+      "required": ["averageLength", "voice", "useContractions", "perspective", "useFragments"],
+      "properties": {
+        "averageLength": { "type": "string", "enum": ["short", "medium", "long"] },
+        "voice": { "type": "string", "enum": ["active", "passive", "mixed"] },
+        "useContractions": { "type": "boolean" },
+        "perspective": { "type": "string", "enum": ["first", "second", "third", "mixed"] },
+        "useFragments": { "type": "boolean" }
+      }
+    },
+    "toneAdaptations": {
+      "type": "object",
+      "required": ["general"],
+      "properties": {
+        "email": { "type": "string" },
+        "social": { "type": "string" },
+        "proposal": { "type": "string" },
+        "meeting-brief": { "type": "string" },
+        "outreach-cold": { "type": "string" },
+        "outreach-warm": { "type": "string" },
+        "general": { "type": "string" }
+      }
+    },
+    "examples": {
+      "type": "object",
+      "required": ["onBrand", "offBrand"],
+      "properties": {
+        "onBrand": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["text", "why"],
+            "properties": {
+              "text": { "type": "string" },
+              "why": { "type": "string" }
+            }
+          },
+          "minItems": 2
+        },
+        "offBrand": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["text", "why"],
+            "properties": {
+              "text": { "type": "string" },
+              "why": { "type": "string" }
+            }
+          },
+          "minItems": 2
+        }
+      }
+    },
+    "antiPatterns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Things this voice should NEVER do"
+    }
+  },
+  "$defs": {
+    "dimension": {
+      "type": "object",
+      "required": ["score", "notes"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "notes": { "type": "string", "description": "Evidence from writing samples" }
+      }
+    }
+  }
+}

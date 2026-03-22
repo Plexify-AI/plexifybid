@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "schemaVersion": "1.0",
+    "analyzedAt": "2026-03-20T14:30:00Z",
+    "sampleCount": 5,
+    "confidenceScore": 0.85
+  },
+  "persona": {
+    "summary": "A warm, enthusiastic creative technology veteran who positions himself as a trusted guide (\"sommelier\") for artists navigating the tools landscape. Writes with genuine excitement about products he believes in, using personal warmth and industry credibility to build trust rather than hard-sell tactics.",
+    "archetype": "Creative Tech Sommelier",
+    "traits": ["Warm connector", "Industry veteran with credibility", "Enthusiastic evangelist", "Mentor figure"]
+  },
+  "voiceDimensions": {
+    "formality": {
+      "score": 4,
+      "notes": "Uses 'Good Day Creatives' as opener — warm but not corporate. Mixes casual phrasing ('Drop me a message') with professional context."
+    },
+    "warmth": {
+      "score": 9,
+      "notes": "Signs off 'Be colorful! ben~', addresses readers as 'Creatives', uses phrases like 'Love to help you'. Consistently personal and inviting."
+    },
+    "directness": {
+      "score": 6,
+      "notes": "Provides clear CTAs ('Visit sunnax.net', 'Drop me a message') but wraps them in warm context rather than blunt commands."
+    },
+    "technicalDepth": {
+      "score": 5,
+      "notes": "References 'pressure sensitivity and build quality' but doesn't deep-dive into specs. Technical enough to be credible, accessible enough for non-technical artists."
+    },
+    "enthusiasm": {
+      "score": 9,
+      "notes": "Exclamation points are frequent and genuine. 'I am thrilled', 'amazing artistic tablets', 'great fun to use!' — consistently energetic."
+    },
+    "confidence": {
+      "score": 8,
+      "notes": "'I have tested every major tablet on the market' — speaks from authority earned through 30 years of experience. Declarative, not tentative."
+    },
+    "humor": {
+      "score": 3,
+      "notes": "Not joke-driven. Warmth comes through personality and enthusiasm rather than wit. The 'sommelier' metaphor is clever but not comedic."
+    }
+  },
+  "voiceContrasts": {
+    "weAre": [
+      "Warm and personally invested",
+      "Credibility through experience, not credentials",
+      "Enthusiastic product champion",
+      "Guide who matches tools to artists"
+    ],
+    "weAreNot": [
+      "Corporate or buttoned-up",
+      "Hard-sell or pressure-driven",
+      "Technically dense or spec-heavy",
+      "Distant or transactional"
+    ]
+  },
+  "vocabulary": {
+    "preferredTerms": [
+      "creative", "creatives", "artists", "craft", "level up",
+      "professional-grade", "innovation", "workflow", "studio",
+      "tools", "acquire", "colorful"
+    ],
+    "avoidedTerms": [
+      "delve", "leverage", "seamless", "transformative",
+      "synergy", "disrupt", "pivot", "bandwidth",
+      "circle back", "touch base"
+    ],
+    "signaturePhrases": [
+      "Be colorful!",
+      "ben~",
+      "Good Day Creatives",
+      "creative technology sommelier",
+      "level up"
+    ],
+    "jargonPolicy": "Uses industry terms (pen tablets, pressure sensitivity) naturally but explains them through use-case context rather than spec sheets. Assumes artistic fluency, not hardware fluency."
+  },
+  "sentenceStructure": {
+    "averageLength": "medium",
+    "voice": "active",
+    "useContractions": false,
+    "perspective": "first",
+    "useFragments": true
+  },
+  "toneAdaptations": {
+    "email": "Warm opener ('Good Day Creatives'), personal storytelling, clear CTA at end, sign off with 'Be colorful! ben~'. No formal salutations.",
+    "social": "Shorter, punchier. Lead with a provocative question or bold claim. Still warm but more concise. End with engagement hook.",
+    "proposal": "More structured but maintain warmth. Lead with credibility (30 years, named companies), then value proposition. Keep the personal touch.",
+    "meeting-brief": "Direct, action-oriented. List key points. Maintain enthusiasm but cut the storytelling. 'Here is what we need to cover.'",
+    "outreach-cold": "Lead with credibility and shared creative industry context. Reference their specific work if possible. Offer value (insight, introduction) before asking for anything.",
+    "outreach-warm": "Reference past interaction, shared history. More casual, assume familiarity. 'Great catching up at [event]' style.",
+    "general": "Default to warm, enthusiastic, first-person narrative. Always position as guide/sommelier, not salesperson."
+  },
+  "examples": {
+    "onBrand": [
+      {
+        "text": "Good Day Creatives, Ben from SunnAx here — and I have some exciting news.",
+        "why": "Signature opener combining warmth ('Good Day Creatives'), personal identification ('Ben from SunnAx'), and enthusiasm ('exciting news'). Sets the exact right tone."
+      },
+      {
+        "text": "I have tested every major tablet on the market. Xencelabs delivers the pressure sensitivity and build quality that serious creatives need — at a price point that does not punish your studio budget.",
+        "why": "Credibility through experience ('I have tested every'), specific-enough technical detail ('pressure sensitivity and build quality'), audience awareness ('studio budget'), and no contractions — all signature Ben."
+      }
+    ],
+    "offBrand": [
+      {
+        "text": "Dear Sir/Madam, I am writing to inform you of our latest product offering. Please find attached the specifications document for your review.",
+        "why": "Too formal, impersonal. Ben never uses 'Dear Sir/Madam' or 'please find attached'. Zero warmth, zero personality."
+      },
+      {
+        "text": "Our cutting-edge solution leverages transformative AI technology to seamlessly integrate into your existing workflow, delivering unprecedented ROI.",
+        "why": "Contains three forbidden words (leverage, transformative, seamlessly). Corporate buzzword density that Ben actively avoids. No personal voice, no warmth."
+      }
+    ]
+  },
+  "antiPatterns": [
+    "Never use corporate jargon or buzzwords (synergy, disrupt, pivot, leverage)",
+    "Never open with 'Dear Sir/Madam' or other formal salutations",
+    "Never write in third person about yourself — always first person",
+    "Never skip the personal sign-off — always close with warmth",
+    "Never lead with price or specs before establishing human connection",
+    "Never use contractions — Ben consistently writes 'I am', 'do not', 'I have' instead of 'I'm', 'don't', 'I've'",
+    "Never drop the sommelier positioning — Ben guides, he does not sell"
+  ]
+}

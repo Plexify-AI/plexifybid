@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MessageSquare, Mail, BarChart3, BookOpen, MapPin, Users,
-  Brain, ArrowRight, Activity, Clock, Zap, Shield
+  Brain, ArrowRight, Activity, Clock, Zap, Shield, Mic
 } from 'lucide-react';
 import AgentCard, { type AgentDef } from '../components/AgentCard';
 import { useSandbox } from '../contexts/SandboxContext';
@@ -57,6 +57,19 @@ const AGENTS: AgentDef[] = [
     model: 'Claude Sonnet 4',
     actionLabel: 'Analyze Pipeline',
     actionQuery: "How's my pipeline looking?",
+  },
+  {
+    id: 'plexivoice',
+    name: 'PlexiVoice',
+    role: 'Voice DNA Intelligence',
+    description:
+      'Captures your unique writing voice and ensures every AI-generated message sounds authentically like you. Analyzes writing patterns, vocabulary, and tone to create a Voice DNA profile.',
+    icon: Mic,
+    status: 'active',
+    capabilities: ['Voice Analysis', 'Style Matching', 'Tone Enforcement', 'Profile Creation'],
+    model: 'Claude Sonnet 4',
+    actionLabel: 'Create Voice Profile',
+    actionQuery: 'I want to create my Voice DNA profile',
   },
   {
     id: 'notebookbd',
@@ -161,8 +174,9 @@ const PlexiCosAgentsPage: React.FC = () => {
   const { token } = useSandbox();
   const [events, setEvents] = useState<any[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
+  const [voiceProfile, setVoiceProfile] = useState<{ status: string; owner_name?: string; confidence_score?: number } | null>(null);
 
-  // Fetch recent usage events
+  // Fetch recent usage events + voice profile status
   useEffect(() => {
     if (!token) return;
 
@@ -177,7 +191,47 @@ const PlexiCosAgentsPage: React.FC = () => {
         console.error('[PlexiCoS] Failed to load activity:', err);
       })
       .finally(() => setEventsLoading(false));
+
+    // Fetch voice DNA profile status for PlexiVoice card
+    fetch('/api/voice-dna/profiles/active', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.profile) {
+          setVoiceProfile({
+            status: data.profile.status,
+            owner_name: data.profile.owner_name,
+            confidence_score: data.profile.confidence_score,
+          });
+        }
+      })
+      .catch(() => {
+        // No profile or endpoint error — leave as null
+      });
   }, [token]);
+
+  // Build PlexiVoice agent def with dynamic status
+  const getAgentWithVoiceStatus = (agent: AgentDef): AgentDef => {
+    if (agent.id !== 'plexivoice') return agent;
+
+    if (voiceProfile?.status === 'active') {
+      return {
+        ...agent,
+        actionLabel: 'View Profile',
+        actionQuery: 'Show my Voice DNA profile',
+      };
+    }
+    if (voiceProfile?.status === 'pending_approval') {
+      return {
+        ...agent,
+        actionLabel: 'Review Profile',
+        actionQuery: 'Show my Voice DNA profile for review',
+      };
+    }
+    // No profile — keep default "Create Voice Profile"
+    return agent;
+  };
 
   // Handle agent card action
   const handleAgentAction = (agent: AgentDef) => {
@@ -262,9 +316,31 @@ const PlexiCosAgentsPage: React.FC = () => {
         <div className="mb-10">
           <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Agent Registry</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {AGENTS.map((agent) => (
-              <AgentCard key={agent.id} agent={agent} onAction={handleAgentAction} />
-            ))}
+            {AGENTS.map((agent) => {
+              const displayAgent = getAgentWithVoiceStatus(agent);
+              return (
+                <div key={agent.id} className="relative">
+                  <AgentCard agent={displayAgent} onAction={handleAgentAction} />
+                  {agent.id === 'plexivoice' && (
+                    <div className="absolute top-3 right-3">
+                      {voiceProfile?.status === 'active' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-medium rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                          Voice DNA Active &middot; {Math.round((voiceProfile.confidence_score ?? 0) * 100)}%
+                        </span>
+                      ) : voiceProfile?.status === 'pending_approval' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-medium rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/25">
+                          Profile ready for review
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-medium rounded-full bg-gray-700/50 text-gray-400 border border-gray-600/30">
+                          No voice profile yet
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
