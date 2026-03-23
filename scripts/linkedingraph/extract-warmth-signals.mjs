@@ -293,7 +293,9 @@ const connRows = connectionsData.rows.slice(headerRowIdx + 1);
 filesParsed.push('Connections.csv');
 
 // Build contact index keyed by normalized URL
+// Also build a name-based index for fallback matching (BUG 2: URL slug changes)
 const contacts = new Map();
+const contactsByName = new Map(); // "first last" -> normUrl (for fallback)
 const processCount = Math.min(connRows.length, LIMIT);
 
 for (let i = 0; i < processCount; i++) {
@@ -302,10 +304,14 @@ for (let i = 0; i < processCount; i++) {
   const normUrl = normalizeLinkedInUrl(url);
   if (!normUrl) continue;
 
+  const firstName = (row[connCol['First Name']] || '').trim();
+  const lastName = (row[connCol['Last Name']] || '').trim();
+  const fullName = `${firstName} ${lastName}`.trim();
+
   contacts.set(normUrl, {
-    name: `${(row[connCol['First Name']] || '').trim()} ${(row[connCol['Last Name']] || '').trim()}`.trim(),
-    firstName: (row[connCol['First Name']] || '').trim(),
-    lastName: (row[connCol['Last Name']] || '').trim(),
+    name: fullName,
+    firstName,
+    lastName,
     company: (row[connCol['Company']] || '').trim(),
     position: (row[connCol['Position']] || '').trim(),
     url: url,
@@ -318,6 +324,12 @@ for (let i = 0; i < processCount; i++) {
     invitation_direction: 'unknown', invitation_custom_message: false,
     company_followed: false,
   });
+
+  // Name-based index for fallback matching
+  const nameKey = fullName.toLowerCase();
+  if (nameKey && !contactsByName.has(nameKey)) {
+    contactsByName.set(nameKey, normUrl);
+  }
 }
 
 console.log(`Files found:`);
@@ -343,7 +355,41 @@ if (messagesData) {
   }
 
   // Group messages by partner URL
+  // BUG 1 FIX: Credit each participant in group conversations individually
+  // BUG 2 FIX: Name-based fallback when URL slug has changed
   const partnerMessages = new Map(); // normUrl -> { sent, received, lastDate }
+  let nameFallbackHits = 0;
+
+  function resolvePartner(normUrl, displayName) {
+    // Direct URL match
+    if (normUrl && contacts.has(normUrl)) return normUrl;
+    // Name-based fallback (BUG 2: URL slug changes)
+    if (displayName) {
+      const nameKey = displayName.trim().toLowerCase();
+      const fallbackUrl = contactsByName.get(nameKey);
+      if (fallbackUrl) {
+        nameFallbackHits++;
+        return fallbackUrl;
+      }
+    }
+    return null;
+  }
+
+  function creditMessage(partnerNormUrl, isFromOwner, msgDate) {
+    if (!partnerNormUrl) return;
+    if (!partnerMessages.has(partnerNormUrl)) {
+      partnerMessages.set(partnerNormUrl, { sent: 0, received: 0, lastDate: null });
+    }
+    const pm = partnerMessages.get(partnerNormUrl);
+    if (isFromOwner) {
+      pm.sent++;
+    } else {
+      pm.received++;
+    }
+    if (msgDate && (!pm.lastDate || msgDate > pm.lastDate)) {
+      pm.lastDate = msgDate;
+    }
+  }
 
   for (const row of msgRows) {
     const folder = (row[msgCol['FOLDER']] || '').trim();
@@ -357,44 +403,34 @@ if (messagesData) {
 
     const senderNorm = normalizeLinkedInUrl(senderUrl);
     const recipientUrls = (row[msgCol['RECIPIENT PROFILE URLS']] || '').trim();
+    const senderName = (row[msgCol['FROM']] || '').trim();
+    const recipientNames = (row[msgCol['TO']] || '').trim();
     const dateStr = (row[msgCol['DATE']] || '').trim();
     const msgDate = dateStr ? new Date(dateStr) : null;
 
     const isFromOwner = senderNorm === OWNER_URL_NORM;
 
-    // Determine partner URL
-    let partnerNorm = null;
     if (isFromOwner) {
-      // Owner sent → partner is recipient
-      // RECIPIENT PROFILE URLS can be comma-separated for group convos
-      const recipUrls = recipientUrls.split(',').map(u => normalizeLinkedInUrl(u.trim())).filter(Boolean);
-      for (const ru of recipUrls) {
-        if (ru !== OWNER_URL_NORM) {
-          partnerNorm = ru;
-          break;
-        }
+      // Owner sent → credit ALL recipients (BUG 1: group conversations)
+      const recipUrls = recipientUrls.split(',').map(u => u.trim()).filter(Boolean);
+      const recipNameList = recipientNames.split(',').map(n => n.trim()).filter(Boolean);
+
+      for (let ri = 0; ri < recipUrls.length; ri++) {
+        const ru = normalizeLinkedInUrl(recipUrls[ri]);
+        if (ru === OWNER_URL_NORM) continue;
+        const displayName = recipNameList[ri] || '';
+        const resolved = resolvePartner(ru, displayName);
+        if (resolved) creditMessage(resolved, true, msgDate);
       }
     } else {
-      // Someone else sent → that's the partner
-      partnerNorm = senderNorm;
+      // Someone else sent → credit the sender to owner
+      const resolved = resolvePartner(senderNorm, senderName);
+      if (resolved) creditMessage(resolved, false, msgDate);
     }
+  }
 
-    if (!partnerNorm || !contacts.has(partnerNorm)) continue;
-
-    if (!partnerMessages.has(partnerNorm)) {
-      partnerMessages.set(partnerNorm, { sent: 0, received: 0, lastDate: null });
-    }
-    const pm = partnerMessages.get(partnerNorm);
-
-    if (isFromOwner) {
-      pm.sent++;
-    } else {
-      pm.received++;
-    }
-
-    if (msgDate && (!pm.lastDate || msgDate > pm.lastDate)) {
-      pm.lastDate = msgDate;
-    }
+  if (nameFallbackHits > 0) {
+    console.log(`  (Name-based fallback matched ${nameFallbackHits} messages from changed URL slugs)`);
   }
 
   // Apply message signals to contacts
@@ -569,19 +605,32 @@ if (invitationsData) {
   const invRows = invitationsData.rows.slice(1);
 
   for (const row of invRows) {
+    const directionField = (row[invCol['Direction']] || '').trim().toUpperCase();
     const inviterUrl = normalizeLinkedInUrl(row[invCol['inviterProfileUrl']] || '');
     const inviteeUrl = normalizeLinkedInUrl(row[invCol['inviteeProfileUrl']] || '');
     const message = (row[invCol['Message']] || '').trim();
 
+    // BUG 3 FIX: Use Direction column directly, check BOTH URL columns
     let partnerNorm = null;
     let direction = 'unknown';
 
-    if (inviterUrl === OWNER_URL_NORM && inviteeUrl) {
+    if (directionField === 'OUTGOING') {
+      // Owner sent invitation → partner is invitee
       partnerNorm = inviteeUrl;
       direction = message ? 'outgoing_custom' : 'outgoing';
-    } else if (inviteeUrl === OWNER_URL_NORM && inviterUrl) {
+    } else if (directionField === 'INCOMING') {
+      // Partner sent invitation → partner is inviter
       partnerNorm = inviterUrl;
       direction = 'incoming';
+    } else {
+      // Fallback: infer from URL matching
+      if (inviterUrl === OWNER_URL_NORM && inviteeUrl) {
+        partnerNorm = inviteeUrl;
+        direction = message ? 'outgoing_custom' : 'outgoing';
+      } else if (inviteeUrl === OWNER_URL_NORM && inviterUrl) {
+        partnerNorm = inviterUrl;
+        direction = 'incoming';
+      }
     }
 
     if (!partnerNorm) continue;
