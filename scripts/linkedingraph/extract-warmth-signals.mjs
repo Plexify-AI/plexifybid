@@ -263,15 +263,33 @@ const filesParsed = [];
 const filesMissing = [];
 
 // ── 1. Parse Connections.csv (REQUIRED) ──
+// LinkedIn's raw export has a 2-line disclaimer before the header:
+//   Line 1: "Notes:"
+//   Line 2: "When exporting your connection data..."
+//   Line 3: "First Name,Last Name,URL,Email Address,Company,Position,Connected On"
+// Skip lines until we find the header row containing "First Name".
 const connectionsData = tryReadCSV(EXPORT_DIR, 'Connections.csv');
 if (!connectionsData) {
   console.error('FATAL: Connections.csv not found in export directory. Cannot proceed.');
   process.exit(1);
 }
 
-const connHeaders = connectionsData.rows[0];
+// Find the actual header row (skip disclaimer lines)
+let headerRowIdx = 0;
+for (let r = 0; r < connectionsData.rows.length; r++) {
+  const row = connectionsData.rows[r];
+  if (row.some(cell => cell.trim() === 'First Name')) {
+    headerRowIdx = r;
+    break;
+  }
+}
+if (headerRowIdx > 0) {
+  console.log(`  (Skipped ${headerRowIdx} disclaimer line(s) in Connections.csv)`);
+}
+
+const connHeaders = connectionsData.rows[headerRowIdx];
 const connCol = makeColMap(connHeaders);
-const connRows = connectionsData.rows.slice(1);
+const connRows = connectionsData.rows.slice(headerRowIdx + 1);
 filesParsed.push('Connections.csv');
 
 // Build contact index keyed by normalized URL
