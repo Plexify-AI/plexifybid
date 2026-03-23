@@ -39,6 +39,7 @@ const BASE_URL = baseIdx >= 0 ? args[baseIdx + 1] : 'http://localhost:3000';
 
 const INPUT_FILE = join(DATA_DIR, 'ken_SOLO_review_queue.csv');
 const PROGRESS_FILE = join(DATA_DIR, 'linkedingraph_import_progress.json');
+const WARMTH_FILE = join(DATA_DIR, 'linkedingraph_warmth_signals.json');
 
 // ── CSV parser ──
 function parseCSV(text) {
@@ -106,7 +107,21 @@ async function main() {
   console.log('=== LinkedIn → Opportunities Import ===\n');
   if (dryRun) console.log('*** DRY RUN — no API calls will be made ***\n');
   console.log(`Base URL: ${BASE_URL}`);
-  console.log(`Limit: ${limit === Infinity ? 'none' : limit}\n`);
+  console.log(`Limit: ${limit === Infinity ? 'none' : limit}`);
+
+  // Load warmth signals if available
+  let warmthSignals = null;
+  if (existsSync(WARMTH_FILE)) {
+    try {
+      warmthSignals = JSON.parse(readFileSync(WARMTH_FILE, 'utf-8'));
+      console.log(`Warmth signals loaded: ${Object.keys(warmthSignals.contacts || {}).length} contacts`);
+    } catch {
+      console.log('WARNING: Could not parse warmth signals file');
+    }
+  } else {
+    console.log('No warmth signals file — using basic enrichment_data');
+  }
+  console.log();
 
   // Read review queue
   const raw = readFileSync(INPUT_FILE, 'utf-8');
@@ -195,14 +210,40 @@ async function main() {
       continue;
     }
 
-    const dealHypothesis = `${vertical} prospect, ${priority}, Warm: ${warm}, ${msgCount} messages on LinkedIn. Imported from LinkedInGraph Agent.`;
+    // Look up warmth data if available
+    const warmthData = warmthSignals?.contacts?.[url] || null;
+    const warmthComposite = warmthData?.warmth_composite || 0;
+    const warmthLabel = warmthData?.warmth_label || 'Cold';
+
+    let dealHypothesis;
+    if (warmthData) {
+      // Build top signals summary
+      const topSignals = [];
+      const dims = warmthData.dimensions;
+      if (dims.message_count?.raw > 0) topSignals.push(`${dims.message_count.raw} msgs`);
+      if (dims.endorsements?.raw?.given > 0 || dims.endorsements?.raw?.received > 0) {
+        topSignals.push(dims.endorsements.raw.given > 0 && dims.endorsements.raw.received > 0 ? 'mutual endorsements' : 'endorsements');
+      }
+      if (dims.recommendations?.raw?.given || dims.recommendations?.raw?.received) {
+        topSignals.push(dims.recommendations.raw.given && dims.recommendations.raw.received ? 'mutual recommendations' : 'recommendation');
+      }
+      if (dims.company_follow?.raw) topSignals.push('company followed');
+      const signalStr = topSignals.slice(0, 2).join(', ');
+      dealHypothesis = `${vertical} prospect, ${priority}, Warmth: ${warmthComposite}/100 (${warmthLabel}), ${msgCount} messages. Top signals: ${signalStr || 'connection tenure'}. Imported from LinkedInGraph Agent.`;
+    } else {
+      dealHypothesis = `${vertical} prospect, ${priority}, Warm: ${warm}, ${msgCount} messages on LinkedIn. Imported from LinkedInGraph Agent.`;
+    }
 
     const enrichmentData = {
-      source: 'linkedingraph_agent',
-      import_date: new Date().toISOString().split('T')[0],
+      source: 'linkedingraph',
+      source_version: warmthData ? '1.0.0' : '0.2.0',
+      import_date: new Date().toISOString(),
       linkedin_url: url,
       warm_status: warm,
       message_count: msgCount,
+      warmth_composite: warmthComposite,
+      warmth_label: warmthLabel,
+      warmth_dimensions: warmthData?.dimensions || null,
     };
 
     const body = {
@@ -212,6 +253,7 @@ async function main() {
       contact_title: position || null,
       deal_hypothesis: dealHypothesis,
       enrichment_data: enrichmentData,
+      warmth_score: warmthComposite,
     };
 
     if (dryRun) {

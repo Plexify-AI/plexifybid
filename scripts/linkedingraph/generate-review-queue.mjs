@@ -3,15 +3,20 @@
  * Reads ken_SOLO_tier1_CLASSIFIED.csv, filters Warm+Tagged contacts,
  * assigns P0-P3 priority, writes ken_SOLO_review_queue.csv.
  *
+ * If data/linkedingraph_warmth_signals.json exists, uses composite warmth
+ * scores (0-100) for P0-P3 thresholds. Otherwise falls back to
+ * message-count-only logic (Recipe v0.2.0 behavior).
+ *
  * Usage: node scripts/linkedingraph/generate-review-queue.mjs
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', '..', 'data');
+const WARMTH_FILE = join(DATA_DIR, 'linkedingraph_warmth_signals.json');
 
 // ── CSV parser ──
 function parseCSV(text) {
@@ -78,6 +83,23 @@ function assignPriority(warm, msgCount) {
   return 'P3';
 }
 
+function assignPriorityComposite(composite) {
+  if (composite >= 76) return 'P0';
+  if (composite >= 51) return 'P1';
+  if (composite >= 26) return 'P2';
+  return 'P3';
+}
+
+function normalizeLinkedInUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  let n = url.trim();
+  if (!n) return null;
+  n = n.replace(/^https?:\/\//, '');
+  n = n.replace(/^www\./, '');
+  n = n.replace(/\/$/, '');
+  return n.toLowerCase();
+}
+
 function escapeCSV(val) {
   const s = String(val ?? '');
   if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
@@ -90,6 +112,23 @@ function escapeCSV(val) {
 const inputPath = join(DATA_DIR, 'ken_SOLO_tier1_CLASSIFIED.csv');
 const outputPath = join(DATA_DIR, 'ken_SOLO_review_queue.csv');
 
+// Load warmth signals if available
+let warmthSignals = null;
+let useComposite = false;
+if (existsSync(WARMTH_FILE)) {
+  try {
+    warmthSignals = JSON.parse(readFileSync(WARMTH_FILE, 'utf-8'));
+    useComposite = true;
+    console.log(`Warmth signals loaded: ${Object.keys(warmthSignals.contacts || {}).length} contacts`);
+    console.log('Using composite warmth scoring (P0=76+, P1=51+, P2=26+, P3=1+)\n');
+  } catch (err) {
+    console.log(`WARNING: Could not parse warmth signals file: ${err.message}`);
+    console.log('Falling back to message-count-only scoring\n');
+  }
+} else {
+  console.log('No warmth signals file found — using message-count-only scoring (v0.2.0)\n');
+}
+
 const raw = readFileSync(inputPath, 'utf-8');
 const parsed = parseCSV(raw);
 const headers = parsed[0];
@@ -100,43 +139,63 @@ for (let i = 0; i < headers.length; i++) {
   col[headers[i]] = i;
 }
 
-// Filter: (Warm=Y or Warm=Maybe) AND Vertical not empty
-const candidates = dataRows.filter(row => {
-  const warm = (row[col['Warm']] || '').trim();
-  const vertical = (row[col['Vertical']] || '').trim();
-  return (warm === 'Y' || warm === 'Maybe') && vertical !== '';
-});
+// Filter and build output rows
+const outputRows = [];
 
-// Build output rows with priority
-const outputRows = candidates.map(row => {
+for (const row of dataRows) {
+  const vertical = (row[col['Vertical']] || '').trim();
+  if (vertical === '') continue; // Must have a vertical
+
+  const url = (row[col['URL']] || '').trim();
   const warm = (row[col['Warm']] || '').trim();
   const msgCount = parseMessageCount(row[col['Notes']]);
-  const priority = assignPriority(warm, msgCount);
+  const normUrl = normalizeLinkedInUrl(url);
 
-  return {
+  let priority;
+  let warmthScore = 0;
+
+  if (useComposite && normUrl && warmthSignals.contacts[url]) {
+    // Composite warmth path
+    const wData = warmthSignals.contacts[url];
+    warmthScore = wData.warmth_composite;
+    priority = assignPriorityComposite(warmthScore);
+
+    // Must have some signal to enter queue
+    if (warmthScore === 0) continue;
+  } else {
+    // Fallback: original message-count-only logic
+    if (warm !== 'Y' && warm !== 'Maybe') continue;
+    priority = assignPriority(warm, msgCount);
+    warmthScore = warm === 'Y' ? 60 : 30; // Approximate for backward compat
+  }
+
+  outputRows.push({
     priority,
     firstName: (row[col['First Name']] || '').trim(),
     lastName: (row[col['Last Name']] || '').trim(),
     company: (row[col['Company']] || '').trim(),
     position: (row[col['Position']] || '').trim(),
-    vertical: (row[col['Vertical']] || '').trim(),
+    vertical,
     warm,
+    warmthScore,
     msgCount,
-    url: (row[col['URL']] || '').trim(),
+    url,
     kenOverride: '',
-  };
-});
+  });
+}
 
-// Sort: Priority ASC (P0 first), then Message Count DESC
+// Sort: Priority ASC (P0 first), then Warmth Score DESC, then Message Count DESC
 const priorityOrder = { P0: 0, P1: 1, P2: 2, P3: 3 };
 outputRows.sort((a, b) => {
   const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
   if (pDiff !== 0) return pDiff;
+  const wDiff = b.warmthScore - a.warmthScore;
+  if (wDiff !== 0) return wDiff;
   return b.msgCount - a.msgCount;
 });
 
-// Write CSV
-const outHeaders = ['Priority', 'First Name', 'Last Name', 'Company', 'Position', 'Vertical', 'Warm', 'Message Count', 'URL', 'Ken_Override'];
+// Write CSV (added Warmth Score column)
+const outHeaders = ['Priority', 'First Name', 'Last Name', 'Company', 'Position', 'Vertical', 'Warm', 'Warmth Score', 'Message Count', 'URL', 'Ken_Override'];
 const csvLines = [outHeaders.map(escapeCSV).join(',')];
 for (const r of outputRows) {
   csvLines.push([
@@ -147,6 +206,7 @@ for (const r of outputRows) {
     escapeCSV(r.position),
     escapeCSV(r.vertical),
     r.warm,
+    r.warmthScore,
     r.msgCount,
     r.url,
     '',
@@ -162,13 +222,21 @@ for (const r of outputRows) {
 }
 
 console.log('=== Review Queue Generated ===\n');
+console.log(`Scoring mode: ${useComposite ? 'Composite Warmth (7 dimensions)' : 'Message Count Only (v0.2.0)'}`);
 console.log(`Total contacts in queue: ${outputRows.length}`);
 console.log();
 console.log('Priority breakdown:');
-console.log(`  P0 (Immediate — Warm + ≥10 msgs):  ${tierCounts.P0}`);
-console.log(`  P1 (High — Warm + <10 msgs):        ${tierCounts.P1}`);
-console.log(`  P2 (Review — Maybe + ≥5 msgs):      ${tierCounts.P2}`);
-console.log(`  P3 (Backlog — Maybe + <5 msgs):      ${tierCounts.P3}`);
+if (useComposite) {
+  console.log(`  P0 (Immediate — warmth 76-100): ${tierCounts.P0}`);
+  console.log(`  P1 (High — warmth 51-75):       ${tierCounts.P1}`);
+  console.log(`  P2 (Review — warmth 26-50):      ${tierCounts.P2}`);
+  console.log(`  P3 (Backlog — warmth 1-25):      ${tierCounts.P3}`);
+} else {
+  console.log(`  P0 (Immediate — Warm + ≥10 msgs):  ${tierCounts.P0}`);
+  console.log(`  P1 (High — Warm + <10 msgs):        ${tierCounts.P1}`);
+  console.log(`  P2 (Review — Maybe + ≥5 msgs):      ${tierCounts.P2}`);
+  console.log(`  P3 (Backlog — Maybe + <5 msgs):      ${tierCounts.P3}`);
+}
 console.log();
 console.log(`Output: ${outputPath}`);
 console.log();

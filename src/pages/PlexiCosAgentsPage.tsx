@@ -224,16 +224,19 @@ const PlexiCosAgentsPage: React.FC = () => {
         // No profile or endpoint error — leave as null
       });
 
-    // Fetch LinkedIn Graph import stats
-    fetch('/api/opportunities?source=linkedingraph', {
+    // Fetch LinkedIn Graph import stats (filter client-side by enrichment_data.source)
+    fetch('/api/opportunities?limit=5000', {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
       .then((data) => {
-        const opps = data.opportunities || [];
-        if (opps.length > 0) {
-          const totalWarmth = opps.reduce((sum: number, o: any) => sum + (o.enrichment_data?.warmth_composite || o.warmth_score || 0), 0);
-          setLinkedinStats({ count: opps.length, avgWarmth: Math.round(totalWarmth / opps.length) });
+        const allOpps = data.opportunities || [];
+        const linkedinOpps = allOpps.filter((o: any) =>
+          o.enrichment_data?.source === 'linkedingraph' || o.enrichment_data?.source === 'linkedingraph_agent'
+        );
+        if (linkedinOpps.length > 0) {
+          const totalWarmth = linkedinOpps.reduce((sum: number, o: any) => sum + (o.enrichment_data?.warmth_composite || o.warmth_score || 0), 0);
+          setLinkedinStats({ count: linkedinOpps.length, avgWarmth: Math.round(totalWarmth / linkedinOpps.length) });
         }
       })
       .catch(() => {

@@ -1,10 +1,13 @@
 /**
- * Pipeline runner — executes Steps 0a → 0b → 0c → 1 → 2 sequentially.
- * Usage: node scripts/linkedingraph/run-pipeline.mjs [--skip-llm]
+ * Pipeline runner — executes Steps 0a → 0b → 0c → 1 → 2 → 3 sequentially.
+ * Usage: node scripts/linkedingraph/run-pipeline.mjs [--skip-llm] [--export-dir <path>] [--owner-url <url>]
  *
  * Options:
- *   --skip-llm    Skip the LLM classification step (use existing results)
- *   --from <step> Start from a specific step (0a, 0b, 0c, 1, 2)
+ *   --skip-llm         Skip the LLM classification step (use existing results)
+ *   --skip-warmth      Skip warmth extraction step (use existing signals)
+ *   --export-dir <path> LinkedIn Data Export directory (for warmth extraction)
+ *   --owner-url <url>   Owner LinkedIn URL (for warmth extraction)
+ *   --from <step>       Start from a specific step (0a, 0b, 0c, 1, 2, 3)
  */
 
 import { execFileSync } from 'child_process';
@@ -19,11 +22,17 @@ const steps = [
   { id: '0b', name: 'LLM Classification', script: 'classify-companies-llm.mjs' },
   { id: '0c', name: 'Merge Classifications', script: 'merge-classifications.mjs' },
   { id: '1',  name: 'Classification Report', script: 'classification-report.mjs' },
-  { id: '2',  name: 'Review Queue', script: 'generate-review-queue.mjs' },
+  { id: '2',  name: 'Warmth Extraction', script: 'extract-warmth-signals.mjs', needsArgs: true },
+  { id: '3',  name: 'Review Queue', script: 'generate-review-queue.mjs' },
 ];
 
 const args = process.argv.slice(2);
 const skipLLM = args.includes('--skip-llm');
+const skipWarmth = args.includes('--skip-warmth');
+const exportDirIdx = args.indexOf('--export-dir');
+const ownerUrlIdx = args.indexOf('--owner-url');
+const exportDir = exportDirIdx >= 0 ? args[exportDirIdx + 1] : null;
+const ownerUrl = ownerUrlIdx >= 0 ? args[ownerUrlIdx + 1] : null;
 const fromIdx = args.indexOf('--from');
 const fromStep = fromIdx >= 0 ? args[fromIdx + 1] : null;
 
@@ -54,11 +63,34 @@ for (let i = startIdx; i < steps.length; i++) {
     }
   }
 
+  if (step.id === '2') {
+    // Warmth extraction step — needs --export-dir and --owner-url
+    if (skipWarmth) {
+      const warmthFile = join(__dirname, '..', '..', 'data', 'linkedingraph_warmth_signals.json');
+      if (existsSync(warmthFile)) {
+        console.log(`⊘ Step ${step.id}: ${step.name} — SKIPPED (--skip-warmth, signals file exists)\n`);
+        continue;
+      } else {
+        console.error(`ERROR: --skip-warmth specified but warmth signals file does not exist`);
+        process.exit(1);
+      }
+    }
+    if (!exportDir || !ownerUrl) {
+      console.log(`⊘ Step ${step.id}: ${step.name} — SKIPPED (no --export-dir / --owner-url provided)\n`);
+      continue;
+    }
+  }
+
   console.log(`▶ Step ${step.id}: ${step.name}`);
   console.log('─'.repeat(50));
 
   try {
-    execFileSync('node', [join(__dirname, step.script)], {
+    const scriptArgs = [join(__dirname, step.script)];
+    // Pass through warmth extraction args
+    if (step.needsArgs && exportDir && ownerUrl) {
+      scriptArgs.push('--export-dir', exportDir, '--owner-url', ownerUrl);
+    }
+    execFileSync('node', scriptArgs, {
       stdio: 'inherit',
       cwd: join(__dirname, '..', '..'),
     });
