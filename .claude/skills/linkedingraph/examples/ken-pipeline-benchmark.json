@@ -1,0 +1,41 @@
+{
+  "pipeline_version": "0.2.0",
+  "run_date": "2026-03-16",
+  "input": {
+    "total_connections": 11281,
+    "tier_1_contacts": 3214,
+    "message_conversations": 7292,
+    "total_messages": 19260
+  },
+  "classification": {
+    "by_keywords": 342,
+    "by_heuristics": 327,
+    "by_position": 246,
+    "by_llm": 533,
+    "total_classified": 1448,
+    "coverage_pct": 45.1,
+    "untagged": 1766
+  },
+  "warmth": {
+    "gold_list_count": 231,
+    "p0_immediate": 34,
+    "p1_high": 197,
+    "p2_review": 6,
+    "p3_backlog": 617,
+    "total_in_queue": 854
+  },
+  "import": {
+    "opportunities_created": 222,
+    "duplicates_skipped": 9,
+    "llm_cost_usd": 0.50
+  },
+  "vertical_distribution": {
+    "AEC Tech": { "count": 416, "pct": 12.9 },
+    "GC": { "count": 386, "pct": 12.0 },
+    "MEP/Engineering": { "count": 261, "pct": 8.1 },
+    "Developer": { "count": 161, "pct": 5.0 },
+    "Architecture/Design": { "count": 118, "pct": 3.7 },
+    "BID/EcoDev": { "count": 106, "pct": 3.3 },
+    "Unknown": { "count": 1766, "pct": 54.9 }
+  }
+}

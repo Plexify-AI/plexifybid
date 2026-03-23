@@ -1,0 +1,118 @@
+{
+  "verticals": {
+    "GC": {
+      "description": "General Contractors — primary BD targets for PlexifyAEC",
+      "company_keywords": [
+        "construction", "builders", "contracting", "general contractor",
+        "build", "turner", "skanska", "aecom", "lendlease", "hensel phelps",
+        "gilbane", "clark construction", "whiting-turner", "mccarthy",
+        "mortenson", "walsh", "holder", "brasfield", "gorrie", "jll",
+        "core shell", "concrete", "demolition", "excavation", "paving",
+        "roofing", "structural", "masonry", "drywall", "carpentry",
+        "sitework", "earthwork", "grading", "foundation"
+      ],
+      "position_keywords": [
+        "superintendent", "estimator", "project manager", "project executive",
+        "preconstruction", "field engineer", "safety manager", "quality control",
+        "site manager", "foreman", "general foreman", "construction manager",
+        "project engineer", "assistant superintendent", "scheduler"
+      ]
+    },
+    "AEC Tech": {
+      "description": "AEC Technology — software, hardware, and services for construction",
+      "company_keywords": [
+        "procore", "autodesk", "bluebeam", "plangrid", "fieldwire",
+        "buildertrend", "corecon", "sage", "viewpoint", "textura",
+        "e-builder", "aconex", "newforma", "bim 360", "revit",
+        "trimble", "leica", "topcon", "hexagon", "multivista",
+        "openspace", "dronedeploy", "structionsite", "holobuilder",
+        "matterport", "cupix", "reconstruct", "avvir", "versatile",
+        "buildots", "contilio", "smartvid", "indus.ai", "eyrus",
+        "pillar", "rhumbix", "busybusy", "hcss", "b2w",
+        "construction technology", "contech", "proptech", "bim",
+        "reality capture", "construction software", "jobsite",
+        "lidar", "photogrammetry", "digital twin", "construction ai"
+      ],
+      "position_keywords": [
+        "solutions engineer", "account executive", "customer success",
+        "product manager", "sales engineer", "technical consultant",
+        "implementation", "pre-sales", "business development"
+      ]
+    },
+    "Developer": {
+      "description": "Real Estate Developers — project owners and capital allocators",
+      "company_keywords": [
+        "development", "developers", "real estate", "properties", "realty",
+        "capital", "investments", "holdings", "ventures", "partners",
+        "equity", "fund", "asset management", "brookfield", "hines",
+        "tishman", "silverstein", "related", "extell", "durst",
+        "vornado", "sl green", "boston properties", "kilroy",
+        "prologis", "cbre", "cushman", "jll investments",
+        "opportunity zone", "oz fund", "affordable housing",
+        "mixed use", "multifamily", "commercial real estate"
+      ],
+      "position_keywords": [
+        "developer", "development manager", "acquisitions",
+        "asset manager", "portfolio manager", "investment analyst",
+        "real estate analyst", "underwriter"
+      ]
+    },
+    "MEP/Engineering": {
+      "description": "MEP and Engineering firms — mechanical, electrical, plumbing, structural",
+      "company_keywords": [
+        "engineering", "engineers", "mechanical", "electrical", "plumbing",
+        "hvac", "fire protection", "structural", "civil", "geotechnical",
+        "environmental", "wsp", "arcadis", "jacobs", "stantec",
+        "hdr", "burns", "thornton tomasetti", "degenkolb",
+        "arup", "buro happold", "schlaich", "syska hennessy",
+        "cosentini", "jaros baum", "langan", "haley aldrich",
+        "mep", "commissioning", "energy", "sustainability",
+        "leed", "passive house", "building science"
+      ],
+      "position_keywords": [
+        "engineer", "engineering manager", "principal engineer",
+        "mechanical engineer", "electrical engineer", "plumbing engineer",
+        "structural engineer", "civil engineer", "project engineer",
+        "design engineer", "commissioning agent"
+      ]
+    },
+    "Architecture/Design": {
+      "description": "Architecture, interior design, and landscape architecture firms",
+      "company_keywords": [
+        "architecture", "architects", "design", "planning",
+        "interior", "landscape", "urban", "som", "gensler",
+        "perkins", "hok", "nbbj", "kpf", "foster",
+        "bjarke", "big", "diller scofidio", "grimshaw",
+        "snohetta", "mvrdv", "oma", "zaha hadid",
+        "woods bagot", "populous", "hks", "stantec architecture",
+        "studio", "atelier", "workshop"
+      ],
+      "position_keywords": [
+        "architect", "designer", "design director", "principal architect",
+        "project architect", "design manager", "interior designer",
+        "landscape architect", "urban planner", "creative director"
+      ]
+    },
+    "BID/EcoDev": {
+      "description": "Business Improvement Districts and Economic Development organizations",
+      "company_keywords": [
+        "bid", "business improvement district", "improvement district",
+        "economic development", "edc", "chamber of commerce",
+        "downtown", "alliance", "partnership", "main street",
+        "community development", "redevelopment", "planning commission",
+        "urban renewal", "enterprise zone", "empowerment zone",
+        "opportunity zone", "land bank", "housing authority",
+        "port authority", "transit authority", "municipality",
+        "city of", "county of", "state of", "department of"
+      ],
+      "position_keywords": [
+        "executive director", "district manager", "economic development",
+        "community development", "planner", "policy analyst",
+        "government affairs", "public affairs", "civic engagement"
+      ]
+    }
+  },
+  "multi_vertical_delimiter": " | ",
+  "unknown_label": "Unknown",
+  "company_suffix_strip": ["Inc.", "Inc", "LLC", "Corp.", "Corp", "Ltd.", "Ltd", "Co.", "Co", "Group", "Holdings", "International", "Global", "Worldwide", "NA", "US", "USA"]
+}

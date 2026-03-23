@@ -72,6 +72,19 @@ const AGENTS: AgentDef[] = [
     actionQuery: 'I want to create my Voice DNA profile',
   },
   {
+    id: 'linkedingraph',
+    name: 'LinkedIn Agent',
+    role: 'Network Intelligence',
+    description:
+      'Import and classify your LinkedIn network into warmth-scored BD opportunities. Extracts signals from messages, endorsements, recommendations, and invitations to prioritize outreach.',
+    icon: Users,
+    status: 'active',
+    capabilities: ['LinkedIn Import', 'Vertical Classification', 'Warmth Scoring', 'Priority Queue', 'Opportunity Import'],
+    model: 'Claude Haiku 4.5',
+    actionLabel: 'Import LinkedIn',
+    actionQuery: 'I want to import my LinkedIn connections',
+  },
+  {
     id: 'notebookbd',
     name: 'NotebookBD',
     role: 'Document Intelligence',
@@ -175,6 +188,7 @@ const PlexiCosAgentsPage: React.FC = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [voiceProfile, setVoiceProfile] = useState<{ status: string; owner_name?: string; confidence_score?: number } | null>(null);
+  const [linkedinStats, setLinkedinStats] = useState<{ count: number; avgWarmth: number } | null>(null);
 
   // Fetch recent usage events + voice profile status
   useEffect(() => {
@@ -209,27 +223,41 @@ const PlexiCosAgentsPage: React.FC = () => {
       .catch(() => {
         // No profile or endpoint error — leave as null
       });
+
+    // Fetch LinkedIn Graph import stats
+    fetch('/api/opportunities?source=linkedingraph', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const opps = data.opportunities || [];
+        if (opps.length > 0) {
+          const totalWarmth = opps.reduce((sum: number, o: any) => sum + (o.enrichment_data?.warmth_composite || o.warmth_score || 0), 0);
+          setLinkedinStats({ count: opps.length, avgWarmth: Math.round(totalWarmth / opps.length) });
+        }
+      })
+      .catch(() => {
+        // No data or endpoint error — leave as null
+      });
   }, [token]);
 
-  // Build PlexiVoice agent def with dynamic status
-  const getAgentWithVoiceStatus = (agent: AgentDef): AgentDef => {
-    if (agent.id !== 'plexivoice') return agent;
-
-    if (voiceProfile?.status === 'active') {
-      return {
-        ...agent,
-        actionLabel: 'View Profile',
-        actionQuery: 'Show my Voice DNA profile',
-      };
+  // Build agent defs with dynamic status
+  const getAgentWithDynamicStatus = (agent: AgentDef): AgentDef => {
+    if (agent.id === 'plexivoice') {
+      if (voiceProfile?.status === 'active') {
+        return { ...agent, actionLabel: 'View Profile', actionQuery: 'Show my Voice DNA profile' };
+      }
+      if (voiceProfile?.status === 'pending_approval') {
+        return { ...agent, actionLabel: 'Review Profile', actionQuery: 'Show my Voice DNA profile for review' };
+      }
+      return agent;
     }
-    if (voiceProfile?.status === 'pending_approval') {
-      return {
-        ...agent,
-        actionLabel: 'Review Profile',
-        actionQuery: 'Show my Voice DNA profile for review',
-      };
+    if (agent.id === 'linkedingraph') {
+      if (linkedinStats) {
+        return { ...agent, actionLabel: 'View Imports', actionQuery: 'Show my LinkedIn import results' };
+      }
+      return agent;
     }
-    // No profile — keep default "Create Voice Profile"
     return agent;
   };
 
@@ -317,7 +345,7 @@ const PlexiCosAgentsPage: React.FC = () => {
           <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Agent Registry</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {AGENTS.map((agent) => {
-              const displayAgent = getAgentWithVoiceStatus(agent);
+              const displayAgent = getAgentWithDynamicStatus(agent);
               return (
                 <div key={agent.id} className="relative">
                   <AgentCard agent={displayAgent} onAction={handleAgentAction} />
@@ -334,6 +362,19 @@ const PlexiCosAgentsPage: React.FC = () => {
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-medium rounded-full bg-gray-700/50 text-gray-400 border border-gray-600/30">
                           No voice profile yet
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {agent.id === 'linkedingraph' && (
+                    <div className="absolute top-3 right-3 max-w-[140px]">
+                      {linkedinStats ? (
+                        <span className="flex items-center gap-1 px-2 py-1 text-[9px] font-medium leading-tight rounded-lg bg-green-500/15 text-green-300 border border-green-500/25 text-center">
+                          {linkedinStats.count} imported<br />Avg warmth: {linkedinStats.avgWarmth}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 px-2 py-1 text-[9px] font-medium leading-tight rounded-lg bg-gray-700/50 text-gray-400 border border-gray-600/30 text-center">
+                          No LinkedIn data yet
                         </span>
                       )}
                     </div>
