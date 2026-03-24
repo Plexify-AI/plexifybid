@@ -116,9 +116,13 @@ export default function LinkedInImportPage() {
 
             {/* Section 4: Results */}
             <div>
-              <SectionHeader number={4} title="Results" active={false} complete={isComplete} />
+              <SectionHeader number={4} title="Results" active={isComplete} complete={false} />
               <div className="mt-3">
-                <ResultsSection />
+                <ResultsSection
+                  isComplete={isComplete}
+                  jobStatus={jobStatus}
+                  onReset={reset}
+                />
               </div>
             </div>
           </div>

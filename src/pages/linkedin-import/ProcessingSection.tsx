@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Lock, XCircle } from 'lucide-react';
+import { Lock, XCircle, CheckCircle } from 'lucide-react';
 import type { ImportJobStatus } from './LinkedInImport.types';
 import { ImportStepIndicator } from './ImportStepIndicator';
 
@@ -30,9 +30,24 @@ export function ProcessingSection({ isActive, jobStatus, onCancel }: ProcessingS
     );
   }
 
-  const { current_step, total_steps, step_name, steps, status } = jobStatus;
+  const { current_step, total_steps, step_name, steps, status, contact_count, started_at, completed_at } = jobStatus;
   const isProcessing = status === 'processing';
   const progressPct = total_steps > 0 ? Math.round(((current_step) / total_steps) * 100) : 0;
+
+  // Collapsed summary when complete
+  if (status === 'complete') {
+    const durationStr = formatProcessingDuration(started_at, completed_at);
+    return (
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-900/10 p-4">
+        <div className="flex items-center gap-3">
+          <CheckCircle className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+          <span className="text-sm text-emerald-300">
+            {(contact_count || 0).toLocaleString()} contacts processed{durationStr ? ` in ${durationStr}` : ''}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-gray-700/30 bg-gray-800/30 p-6 space-y-4">
@@ -40,8 +55,7 @@ export function ProcessingSection({ isActive, jobStatus, onCancel }: ProcessingS
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-200">
-            {status === 'complete' ? 'Import Complete' :
-             status === 'error' ? 'Import Failed' :
+            {status === 'error' ? 'Import Failed' :
              status === 'cancelled' ? 'Import Cancelled' :
              `Step ${current_step}/${total_steps}: ${step_name || 'Starting...'}`}
           </span>
@@ -52,11 +66,10 @@ export function ProcessingSection({ isActive, jobStatus, onCancel }: ProcessingS
         <div className="h-2 rounded-full bg-gray-700/50 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ease-out ${
-              status === 'complete' ? 'bg-emerald-500' :
               status === 'error' || status === 'cancelled' ? 'bg-red-500' :
               'bg-teal-500'
             }`}
-            style={{ width: `${status === 'complete' ? 100 : progressPct}%` }}
+            style={{ width: `${progressPct}%` }}
           />
         </div>
       </div>
@@ -117,4 +130,14 @@ export function ProcessingSection({ isActive, jobStatus, onCancel }: ProcessingS
       )}
     </div>
   );
+}
+
+function formatProcessingDuration(startedAt: string | null, completedAt: string | null): string {
+  if (!startedAt || !completedAt) return '';
+  const ms = new Date(completedAt).getTime() - new Date(startedAt).getTime();
+  const totalSeconds = Math.floor(ms / 1000);
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
 }

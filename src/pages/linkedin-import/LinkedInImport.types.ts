@@ -31,6 +31,7 @@ export interface ImportStep {
 }
 
 export interface WarmthDistribution {
+  hot: number;
   strong: number;
   warm: number;
   cold: number;
@@ -52,6 +53,7 @@ export interface ImportResults {
   warmth_distribution: WarmthDistribution;
   top_contacts: TopContact[];
   priority_breakdown: Record<string, number>;
+  vertical_distribution?: Record<string, number>;
 }
 
 export interface ImportJob {

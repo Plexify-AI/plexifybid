@@ -13,7 +13,7 @@
 import { spawn } from 'child_process';
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { copyFileSync, mkdirSync, existsSync, readFileSync, readdirSync, writeFileSync } from 'fs';
+import { copyFileSync, mkdirSync, existsSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'fs';
 import { getSupabase } from '../lib/supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -147,12 +147,19 @@ export async function runLinkedInPipeline(jobId, tenantId, options = {}) {
       current_step: 7,
     });
 
+    // Clean up temp files on success
+    cleanupTempFiles(jobId, tempDir);
+
     console.log(`[pipeline:${jobId}] Complete.`);
   } catch (err) {
     if (err.message === 'Pipeline cancelled') {
       await updateJob({ status: 'cancelled', error_message: 'Pipeline cancelled by user' });
+      // Clean up temp files on cancel
+      cleanupTempFiles(jobId, tempDir);
       console.log(`[pipeline:${jobId}] Cancelled.`);
     } else {
+      // Keep temp files on error for debugging
+      // TODO: Add scheduled 24-hour cleanup for error-state temp files
       await updateJob({ status: 'error', error_message: err.message });
       console.error(`[pipeline:${jobId}] Error:`, err.message);
     }
@@ -178,6 +185,24 @@ export function cancelPipeline(jobId) {
     }
   }
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Temp file cleanup
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove temp directory used during pipeline execution.
+ * Non-fatal — never crashes the pipeline for cleanup failure.
+ */
+function cleanupTempFiles(jobId, tempDir) {
+  if (!tempDir) return;
+  try {
+    rmSync(tempDir, { recursive: true, force: true });
+    console.log(`[pipeline:${jobId}] Cleaned up temp files: ${tempDir}`);
+  } catch (err) {
+    console.warn(`[pipeline:${jobId}] Temp cleanup failed: ${err.message}`);
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -27,6 +27,7 @@ export function UploadSection({
 }: UploadSectionProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileTypeError, setFileTypeError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -50,8 +51,10 @@ export function UploadSection({
     if (files.length > 0) {
       const file = files[0];
       if (!file.name.toLowerCase().endsWith('.zip')) {
-        return; // Silently reject non-ZIP (error shown inline)
+        setFileTypeError('Only .zip files from LinkedIn Data Export are accepted.');
+        return;
       }
+      setFileTypeError(null);
       setSelectedFile(file);
       onFileSelected(file);
     }
@@ -61,8 +64,10 @@ export function UploadSection({
     const file = e.target.files?.[0];
     if (file) {
       if (!file.name.toLowerCase().endsWith('.zip')) {
+        setFileTypeError('Only .zip files from LinkedIn Data Export are accepted.');
         return;
       }
+      setFileTypeError(null);
       setSelectedFile(file);
       onFileSelected(file);
     }
@@ -102,6 +107,12 @@ export function UploadSection({
           onChange={handleFileChange}
           className="hidden"
         />
+        {fileTypeError && (
+          <div className="mt-3 rounded-lg bg-red-900/20 border border-red-500/20 px-4 py-2.5 flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+            <span className="text-sm text-red-300">{fileTypeError}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -138,17 +149,27 @@ export function UploadSection({
 
   // Error
   if (state === 'error') {
+    const isNetworkError = error?.toLowerCase().includes('network') || error?.toLowerCase().includes('failed to fetch');
+    const isMissingCsv = error?.toLowerCase().includes('connections.csv');
     return (
       <div className="rounded-xl border border-red-500/30 bg-red-900/20 p-8">
         <div className="flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm text-red-300">{error}</p>
+            {isNetworkError && (
+              <p className="text-xs text-red-400/70 mt-1">Check your internet connection and try again.</p>
+            )}
+            {isMissingCsv && (
+              <p className="text-xs text-red-400/70 mt-1">
+                This file is required. Make sure you exported your data from LinkedIn Settings &gt; Get a copy of your data.
+              </p>
+            )}
             <button
               onClick={onReset}
-              className="mt-4 text-xs text-purple-400 hover:text-purple-300 underline"
+              className="mt-4 px-4 py-1.5 text-sm bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition-colors"
             >
-              Try again
+              {isNetworkError ? 'Retry Upload' : 'Try Again'}
             </button>
           </div>
         </div>
