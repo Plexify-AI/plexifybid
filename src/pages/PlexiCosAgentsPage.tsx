@@ -81,7 +81,8 @@ const AGENTS: AgentDef[] = [
     status: 'active',
     capabilities: ['LinkedIn Import', 'Vertical Classification', 'Warmth Scoring', 'Priority Queue', 'Opportunity Import'],
     model: 'Claude Haiku 4.5',
-    actionLabel: 'Import LinkedIn',
+    actionLabel: 'Import Network',
+    actionPath: '/linkedin-import',
     actionQuery: 'I want to import my LinkedIn connections',
   },
   {

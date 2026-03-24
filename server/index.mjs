@@ -189,6 +189,18 @@ app.post('/api/powerflow/complete', async (req, res) => {
   await handleCompleteStage(req, res, req.body);
 });
 
+// LinkedIn Import
+import { handleUploadLinkedInExport } from './routes/linkedin-import.js';
+
+const linkedinUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB for LinkedIn export ZIPs
+});
+
+app.post('/api/linkedin-import/upload', linkedinUpload.single('file'), async (req, res) => {
+  await handleUploadLinkedInExport(req, res);
+});
+
 // Voice DNA
 import {
   handleCreateProfile as handleVoiceDnaCreate,
