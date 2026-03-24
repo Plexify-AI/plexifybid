@@ -4,7 +4,7 @@
  * Uses XMLHttpRequest for upload progress tracking (fetch doesn't support upload progress).
  */
 
-import type { UploadManifest } from './LinkedInImport.types';
+import type { UploadManifest, ImportJobStatus } from './LinkedInImport.types';
 
 export function uploadLinkedInExport(
   file: File,
@@ -47,4 +47,69 @@ export function uploadLinkedInExport(
     xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.send(formData);
   });
+}
+
+/**
+ * Start the import pipeline for a pending job.
+ */
+export async function startPipeline(
+  jobId: string,
+  token: string,
+): Promise<{ jobId: string; status: string; message: string }> {
+  const res = await fetch('/api/linkedin-import/start', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ jobId }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || `Start failed (${res.status})`);
+  }
+  return data;
+}
+
+/**
+ * Poll pipeline status for a job.
+ */
+export async function pollStatus(
+  jobId: string,
+  token: string,
+): Promise<ImportJobStatus> {
+  const res = await fetch(`/api/linkedin-import/status/${jobId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || `Status check failed (${res.status})`);
+  }
+  return data as ImportJobStatus;
+}
+
+/**
+ * Cancel a running pipeline.
+ */
+export async function cancelPipeline(
+  jobId: string,
+  token: string,
+): Promise<{ jobId: string; status: string; message: string }> {
+  const res = await fetch(`/api/linkedin-import/cancel/${jobId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || `Cancel failed (${res.status})`);
+  }
+  return data;
 }

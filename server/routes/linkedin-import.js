@@ -1,7 +1,10 @@
 /**
  * PlexifySOLO — LinkedIn Import routes
  *
- * POST /api/linkedin-import/upload — Upload LinkedIn Data Export ZIP, validate, return manifest
+ * POST /api/linkedin-import/upload  — Upload LinkedIn Data Export ZIP, validate, return manifest
+ * POST /api/linkedin-import/start   — Start pipeline as background job
+ * GET  /api/linkedin-import/status/:jobId — Poll pipeline progress
+ * POST /api/linkedin-import/cancel/:jobId — Cancel running pipeline
  *
  * Auth: sandboxAuth middleware sets req.tenant before these handlers run.
  */
@@ -11,6 +14,7 @@ import { getSupabase } from '../lib/supabase.js';
 import { mkdirSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
+import { runLinkedInPipeline, cancelPipeline } from '../services/linkedin-pipeline.mjs';
 
 // Files we look for in a LinkedIn Data Export
 const REQUIRED_FILES = ['Connections.csv'];
@@ -289,4 +293,210 @@ export async function handleUploadLinkedInExport(req, res) {
       error: 'Failed to process ZIP file. Make sure it is a valid LinkedIn Data Export.',
     });
   }
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline step names (must match server/services/linkedin-pipeline.mjs)
+// ---------------------------------------------------------------------------
+
+const STEP_NAMES = [
+  'Extract & Validate',
+  'Vertical Tagging',
+  'LLM Classification',
+  'Merge Classifications',
+  'Warmth Extraction',
+  'Priority Scoring',
+  'Opportunity Import',
+];
+
+// ---------------------------------------------------------------------------
+// Start pipeline
+// ---------------------------------------------------------------------------
+
+export async function handleStartPipeline(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) return sendJSON(res, 401, { error: 'Not authenticated' });
+
+  // Parse body — works with both Express (req.body) and raw Node (buffered body)
+  let body = req.body;
+  if (!body || typeof body !== 'object') {
+    try { body = JSON.parse(req._body || '{}'); } catch { body = {}; }
+  }
+
+  const { jobId } = body;
+  if (!jobId) return sendJSON(res, 400, { error: 'jobId is required' });
+
+  const supabase = getSupabase();
+
+  // Verify job exists and belongs to this tenant
+  const { data: job, error: fetchErr } = await supabase
+    .from('linkedin_import_jobs')
+    .select('*')
+    .eq('id', jobId)
+    .eq('tenant_id', tenant.id)
+    .single();
+
+  if (fetchErr || !job) {
+    return sendJSON(res, 404, { error: 'Import job not found' });
+  }
+
+  if (job.status !== 'pending') {
+    return sendJSON(res, 400, { error: `Job is already ${job.status}. Cannot start.` });
+  }
+
+  // Concurrent import guard — only 1 processing job per tenant
+  const { data: existing } = await supabase
+    .from('linkedin_import_jobs')
+    .select('id')
+    .eq('tenant_id', tenant.id)
+    .eq('status', 'processing')
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return sendJSON(res, 409, {
+      error: 'Another import is already processing. Please wait for it to complete or cancel it.',
+      active_job_id: existing[0].id,
+    });
+  }
+
+  // Update job to processing
+  await supabase
+    .from('linkedin_import_jobs')
+    .update({
+      status: 'processing',
+      started_at: new Date().toISOString(),
+      current_step: 0,
+      step_name: 'Starting...',
+    })
+    .eq('id', jobId);
+
+  // Extract temp_dir from column_mapping (stored by upload handler)
+  const tempDir = job.column_mapping?.temp_dir;
+  if (!tempDir) {
+    await supabase
+      .from('linkedin_import_jobs')
+      .update({ status: 'error', error_message: 'Missing temp directory. Please re-upload.' })
+      .eq('id', jobId);
+    return sendJSON(res, 500, { error: 'Missing temp directory. Please re-upload.' });
+  }
+
+  // Fire and forget — do NOT await
+  runLinkedInPipeline(jobId, tenant.id, {
+    tempDir,
+    sandboxToken: tenant.sandbox_token,
+  }).catch(err => {
+    console.error(`[linkedin-import] Pipeline crashed for job ${jobId}:`, err);
+  });
+
+  return sendJSON(res, 200, { jobId, status: 'processing', message: 'Pipeline started' });
+}
+
+// ---------------------------------------------------------------------------
+// Get pipeline status
+// ---------------------------------------------------------------------------
+
+export async function handleGetStatus(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) return sendJSON(res, 401, { error: 'Not authenticated' });
+
+  const jobId = req.params?.jobId || req.url?.split('/').pop();
+  if (!jobId) return sendJSON(res, 400, { error: 'jobId is required' });
+
+  const supabase = getSupabase();
+  const { data: job, error } = await supabase
+    .from('linkedin_import_jobs')
+    .select('*')
+    .eq('id', jobId)
+    .eq('tenant_id', tenant.id)
+    .single();
+
+  if (error || !job) {
+    return sendJSON(res, 404, { error: 'Import job not found' });
+  }
+
+  // Build step details array
+  const steps = STEP_NAMES.map((name, i) => {
+    const stepNum = i + 1;
+    let status = 'pending';
+    if (job.current_step > stepNum) {
+      status = 'complete';
+    } else if (job.current_step === stepNum) {
+      status = job.status === 'error' ? 'error' : 'processing';
+    }
+    // If the whole job is complete, mark all steps complete
+    if (job.status === 'complete') status = 'complete';
+
+    return {
+      step: stepNum,
+      name,
+      status,
+      batch: stepNum === job.current_step ? (job.current_batch || 0) : undefined,
+      total_batches: stepNum === job.current_step ? (job.total_batches || 0) : undefined,
+    };
+  });
+
+  return sendJSON(res, 200, {
+    jobId: job.id,
+    status: job.status,
+    current_step: job.current_step || 0,
+    total_steps: 7,
+    step_name: job.step_name,
+    current_batch: job.current_batch || 0,
+    total_batches: job.total_batches || 0,
+    contact_count: job.contact_count,
+    steps,
+    results: job.results,
+    error_message: job.error_message,
+    started_at: job.started_at,
+    completed_at: job.completed_at,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Cancel pipeline
+// ---------------------------------------------------------------------------
+
+export async function handleCancelPipeline(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) return sendJSON(res, 401, { error: 'Not authenticated' });
+
+  const jobId = req.params?.jobId || req.url?.split('/').pop();
+  if (!jobId) return sendJSON(res, 400, { error: 'jobId is required' });
+
+  const supabase = getSupabase();
+
+  // Verify job belongs to tenant
+  const { data: job, error } = await supabase
+    .from('linkedin_import_jobs')
+    .select('id, status')
+    .eq('id', jobId)
+    .eq('tenant_id', tenant.id)
+    .single();
+
+  if (error || !job) {
+    return sendJSON(res, 404, { error: 'Import job not found' });
+  }
+
+  if (job.status !== 'processing') {
+    return sendJSON(res, 400, { error: `Job is ${job.status}, not processing. Cannot cancel.` });
+  }
+
+  // Signal the in-memory pipeline to abort
+  const cancelled = cancelPipeline(jobId);
+
+  // Update DB regardless (in case the process already finished)
+  await supabase
+    .from('linkedin_import_jobs')
+    .update({
+      status: 'cancelled',
+      error_message: 'Cancelled by user',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', jobId);
+
+  return sendJSON(res, 200, {
+    jobId,
+    status: 'cancelled',
+    message: cancelled ? 'Pipeline cancelled' : 'Job marked as cancelled (process may have already finished)',
+  });
 }

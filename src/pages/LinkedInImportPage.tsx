@@ -2,7 +2,7 @@
  * LinkedIn Network Import Page
  *
  * Phase A: Upload + Validation
- * Phase B: Processing pipeline (future)
+ * Phase B: Processing pipeline with progress polling
  * Phase C: Results + review queue (future)
  */
 
@@ -23,11 +23,17 @@ export default function LinkedInImportPage() {
     uploadProgress,
     manifest,
     error,
+    jobStatus,
     startUpload,
+    startPipeline,
+    cancelImport,
     reset,
   } = useLinkedInImport(token || '');
 
   const isUploadDone = state === 'mapping' || state === 'processing' || state === 'complete';
+  const isPipelineStarted = state === 'processing' || state === 'complete';
+  const isProcessingActive = state === 'processing';
+  const isComplete = state === 'complete';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-6">
@@ -75,26 +81,42 @@ export default function LinkedInImportPage() {
 
             {/* Section 2: Column Mapping */}
             <div>
-              <SectionHeader number={2} title="Column Mapping" active={false} complete={manifest?.auto_mapped === true} />
+              <SectionHeader
+                number={2}
+                title="Column Mapping"
+                active={state === 'mapping'}
+                complete={isPipelineStarted && manifest?.auto_mapped === true}
+              />
               <div className="mt-3">
                 <ColumnMappingSection
                   autoMapped={manifest?.auto_mapped ?? null}
                   isActive={isUploadDone}
+                  isPipelineStarted={isPipelineStarted}
+                  onStartPipeline={startPipeline}
                 />
               </div>
             </div>
 
             {/* Section 3: Processing */}
             <div>
-              <SectionHeader number={3} title="Processing" active={false} complete={false} />
+              <SectionHeader
+                number={3}
+                title="Processing"
+                active={isProcessingActive}
+                complete={isComplete}
+              />
               <div className="mt-3">
-                <ProcessingSection />
+                <ProcessingSection
+                  isActive={isPipelineStarted}
+                  jobStatus={jobStatus}
+                  onCancel={cancelImport}
+                />
               </div>
             </div>
 
             {/* Section 4: Results */}
             <div>
-              <SectionHeader number={4} title="Results" active={false} complete={false} />
+              <SectionHeader number={4} title="Results" active={false} complete={isComplete} />
               <div className="mt-3">
                 <ResultsSection />
               </div>

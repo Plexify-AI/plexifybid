@@ -78,10 +78,37 @@ export interface ImportJob {
 
 export type ImportState = 'idle' | 'uploading' | 'validating' | 'mapping' | 'processing' | 'complete' | 'error';
 
+export interface StepInfo {
+  step: number;
+  name: string;
+  status: 'pending' | 'processing' | 'complete' | 'error';
+  duration_seconds?: number;
+  batch?: number;
+  total_batches?: number;
+  error_message?: string;
+}
+
+export interface ImportJobStatus {
+  jobId: string;
+  status: 'pending' | 'processing' | 'complete' | 'error' | 'cancelled';
+  current_step: number;
+  total_steps: number;
+  step_name: string | null;
+  current_batch: number;
+  total_batches: number;
+  contact_count: number | null;
+  steps: StepInfo[];
+  results: ImportResults | null;
+  error_message: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+}
+
 export interface ImportContext {
   state: ImportState;
   jobId: string | null;
   uploadProgress: number;
   manifest: UploadManifest | null;
   error: string | null;
+  jobStatus: ImportJobStatus | null;
 }

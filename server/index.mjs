@@ -190,7 +190,8 @@ app.post('/api/powerflow/complete', async (req, res) => {
 });
 
 // LinkedIn Import
-import { handleUploadLinkedInExport } from './routes/linkedin-import.js';
+import { handleUploadLinkedInExport, handleStartPipeline, handleGetStatus, handleCancelPipeline } from './routes/linkedin-import.js';
+import { cleanupZombieJobs } from './services/linkedin-pipeline.mjs';
 
 const linkedinUpload = multer({
   storage: multer.memoryStorage(),
@@ -199,6 +200,18 @@ const linkedinUpload = multer({
 
 app.post('/api/linkedin-import/upload', linkedinUpload.single('file'), async (req, res) => {
   await handleUploadLinkedInExport(req, res);
+});
+
+app.post('/api/linkedin-import/start', async (req, res) => {
+  await handleStartPipeline(req, res);
+});
+
+app.get('/api/linkedin-import/status/:jobId', async (req, res) => {
+  await handleGetStatus(req, res);
+});
+
+app.post('/api/linkedin-import/cancel/:jobId', async (req, res) => {
+  await handleCancelPipeline(req, res);
 });
 
 // Voice DNA
@@ -319,4 +332,9 @@ app.listen(PORT, () => {
   console.log(`PlexifySOLO server running on port ${PORT}`);
   console.log(`  Health: http://localhost:${PORT}/api/health`);
   console.log(`  App:    http://localhost:${PORT}`);
+
+  // Mark any zombie 'processing' LinkedIn import jobs as errored (e.g., after Railway redeploy)
+  cleanupZombieJobs().catch(err => {
+    console.error('Failed to cleanup zombie LinkedIn import jobs:', err.message);
+  });
 });
