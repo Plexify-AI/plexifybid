@@ -37,6 +37,9 @@ npm-debug.log*
 coverage/
 .nyc_output/
 
+# LinkedIn Data Export (PII — never commit)
+data/linkedin_export/
+
 # Misc
 .cache/
 temp/
