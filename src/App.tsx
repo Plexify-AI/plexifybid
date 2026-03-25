@@ -43,6 +43,7 @@ import DealRoomPage from './features/deal-room/DealRoomPage';
 import MomentumPage from './features/momentum/MomentumPage';
 import HomePage from './features/home/HomePage';
 import LinkedInImportPage from './pages/LinkedInImportPage';
+import EmailSettingsPage from './pages/EmailSettingsPage';
 
 // Agent Management route wrappers
 function SessionListWrapper() {
@@ -402,6 +403,7 @@ const AppBody: React.FC = () => {
                   />
                   <Route path="/integrations" element={<IntegrationsPage />} />
                   <Route path="/linkedin-import" element={<LinkedInImportPage />} />
+                  <Route path="/settings/email" element={<EmailSettingsPage />} />
                   {/* Catch-all for authenticated users */}
                   <Route path="*" element={<Navigate to="/home" replace />} />
                 </>

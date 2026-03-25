@@ -81,6 +81,18 @@ app.post('/api/auth/validate', async (req, res) => {
   await handleValidate(req, res, req.body);
 });
 
+// Email OAuth callback (public — Microsoft redirects here without sandbox token)
+import {
+  handleMicrosoftCallback,
+  handleMicrosoftConnect,
+  handleEmailDisconnect,
+  handleEmailStatus,
+} from './routes/email-auth.js';
+
+app.get('/api/auth/email/microsoft/callback', async (req, res) => {
+  await handleMicrosoftCallback(req, res);
+});
+
 // ---------------------------------------------------------------------------
 // Sandbox auth gate — all /api/ routes below require valid token
 // ---------------------------------------------------------------------------
@@ -91,6 +103,49 @@ app.use(sandboxAuth());
 // ---------------------------------------------------------------------------
 // Protected API routes
 // ---------------------------------------------------------------------------
+
+// Email OAuth (protected — require sandbox token)
+app.get('/api/auth/email/microsoft/connect', async (req, res) => {
+  await handleMicrosoftConnect(req, res);
+});
+
+app.post('/api/auth/email/disconnect', async (req, res) => {
+  await handleEmailDisconnect(req, res);
+});
+
+app.get('/api/auth/email/status', async (req, res) => {
+  await handleEmailStatus(req, res);
+});
+
+// Email confirm-send (two-step approval pattern)
+import { confirmSend } from './services/email/tool-executor.mjs';
+
+app.post('/api/email/confirm-send', async (req, res) => {
+  const tenant = req.tenant;
+  if (!tenant) {
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Not authenticated' }));
+  }
+
+  const { draft_id } = req.body;
+  if (!draft_id) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Missing draft_id' }));
+  }
+
+  try {
+    const result = await confirmSend(draft_id, tenant.id);
+    res.statusCode = result.success ? 200 : 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify(result));
+  } catch (err) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: err.message }));
+  }
+});
 
 // System Status
 import { handleSystemStatus } from './routes/system-status.js';

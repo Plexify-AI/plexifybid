@@ -37,10 +37,11 @@ export function authMiddleware() {
   return async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const url = req.url || '';
 
-    if (!url.startsWith('/api/auth')) return next();
+    // Only handle /api/auth/validate — other /api/auth/* routes (e.g. email OAuth) are handled elsewhere
+    if (!url.startsWith('/api/auth/validate')) return next();
 
     // POST /api/auth/validate
-    if (url.startsWith('/api/auth/validate') && req.method === 'POST') {
+    if (req.method === 'POST') {
       try {
         const body = await readBody(req);
         const handler = await getHandler();
