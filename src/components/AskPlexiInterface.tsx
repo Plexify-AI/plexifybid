@@ -7,6 +7,7 @@ import ProspectCardList from './ProspectCardList';
 import OutreachPreview, { parseEmail } from './OutreachPreview';
 import PipelineAnalysis from './PipelineAnalysis';
 import { POWERFLOW_LEFT_PROMPTS } from '../constants/powerflowLeftPyramidPrompts';
+import EmailPreviewModal from './email/EmailPreviewModal';
 
 // Structured tool result from the API
 interface ToolResult {
@@ -49,6 +50,7 @@ const AskPlexiInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentQuery, setCurrentQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailDraft, setEmailDraft] = useState<any>(null);
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
@@ -262,6 +264,17 @@ const AskPlexiInterface: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Check for email draft pending approval
+      const pendingDraft = toolResults.find(
+        (tr) => tr.result?.status === 'pending_approval' && tr.result?.draft_id
+      );
+      if (pendingDraft) {
+        setEmailDraft({
+          draft_id: pendingDraft.result.draft_id,
+          ...pendingDraft.result.draft,
+        });
+      }
     } catch (err: any) {
       console.error('[AskPlexi] Error:', err);
       const errorMessage: Message = {
@@ -634,6 +647,30 @@ const AskPlexiInterface: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Email preview modal — shown when Claude drafts an email */}
+      {emailDraft && (
+        <EmailPreviewModal
+          draft={emailDraft}
+          isReply={emailDraft.message_id != null}
+          onClose={() => setEmailDraft(null)}
+          onSent={() => {
+            setEmailDraft(null);
+            // Add a confirmation message
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now().toString(),
+                content: emailDraft.message_id
+                  ? 'Reply sent successfully.'
+                  : 'Email sent successfully.',
+                isUser: false,
+                timestamp: new Date(),
+              },
+            ]);
+          }}
+        />
+      )}
     </div>
   );
 };

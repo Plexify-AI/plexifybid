@@ -24,6 +24,9 @@ import {
 import { markPowerflowStage } from './powerflow.js';
 import { POWERFLOW_SYSTEM_PROMPTS } from '../constants/powerflowPrompts.js';
 import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { hasActiveEmailConnection } from '../services/email/index.mjs';
+import { emailToolDefinitions } from '../services/email/tool-definitions.mjs';
+import { executeEmailTool } from '../services/email/tool-executor.mjs';
 
 // ---------------------------------------------------------------------------
 // System prompt — AEC BD specialist (Layer 3 — base behavior)
@@ -200,14 +203,33 @@ export async function handleChat(req, res, body) {
     const systemPrompt = await buildSystemPrompt(tenant, powerflow_level);
     console.log(`[ask-plexi] System prompt: ${systemPrompt.length} chars, powerflow_level: ${powerflow_level || 'none'}`);
 
+    // Check if tenant has email connected — conditionally add email tools
+    let allTools = toolDefinitions;
+    let allExecutors = toolExecutors;
+    try {
+      const emailConnected = await hasActiveEmailConnection(tenantId);
+      if (emailConnected) {
+        allTools = [...toolDefinitions, ...emailToolDefinitions];
+        // Build email tool executors map
+        const emailExecutors = {};
+        for (const tool of emailToolDefinitions) {
+          emailExecutors[tool.name] = (input) => executeEmailTool(tool.name, input, tenantId);
+        }
+        allExecutors = { ...toolExecutors, ...emailExecutors };
+      }
+    } catch (err) {
+      console.error('[ask-plexi] Failed to check email connection:', err.message);
+      // Non-fatal — proceed without email tools
+    }
+
     // Call Claude with tool support
     let result;
     try {
       result = await sendMessage({
         messages,
-        tools: toolDefinitions,
+        tools: allTools,
         systemPrompt,
-        toolExecutors,
+        toolExecutors: allExecutors,
         tenantId,
       });
     } catch (claudeErr) {

@@ -21,6 +21,7 @@ import { activityFeedMiddleware } from './src/server/activityFeedApi';
 import { outreachSequenceMiddleware } from './src/server/outreachSequenceApi';
 import { voiceDnaMiddleware } from './src/server/voiceDnaApi';
 import { linkedinImportMiddleware } from './src/server/linkedinImportApi';
+import { emailAuthMiddleware } from './src/server/emailAuthApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -42,7 +43,10 @@ export default defineConfig(({ mode }) => {
         // Auth validate (public — no auth needed)
         server.middlewares.use(authMiddleware());
         // Sandbox auth gate (must come before protected API routes)
+        // Note: /api/auth/email/microsoft/callback is in PUBLIC_PATHS (skips auth)
         server.middlewares.use(sandboxAuthDevMiddleware());
+        // Email OAuth routes (callback is public, connect/disconnect/status need auth)
+        server.middlewares.use(emailAuthMiddleware());
         // Protected API routes
         server.middlewares.use(notebookBDAgentsMiddleware());
         server.middlewares.use(notebookBDTtsMiddleware());
