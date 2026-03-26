@@ -21,21 +21,21 @@ const EmailSettingsPage: React.FC = () => {
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState<string | null>(null);
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
 
   // Check for OAuth callback results in URL
   useEffect(() => {
     const connected = searchParams.get('connected');
     const error = searchParams.get('error');
+    const provider = searchParams.get('provider');
 
     if (connected === 'true') {
-      setFlashMessage('Email connected successfully.');
+      setFlashMessage(`${provider === 'gmail' ? 'Gmail' : 'Email'} connected successfully.`);
     } else if (error) {
       setFlashMessage(`Connection failed: ${decodeURIComponent(error)}`);
     }
 
-    // Clear flash after 5s
     if (connected || error) {
       const timer = setTimeout(() => setFlashMessage(null), 5000);
       return () => clearTimeout(timer);
@@ -63,9 +63,12 @@ const EmailSettingsPage: React.FC = () => {
     }
   };
 
-  const handleConnect = () => {
-    // Redirect to Microsoft OAuth — pass token in query for server to recover
+  const handleConnectOutlook = () => {
     window.location.href = `/api/auth/email/microsoft/connect?token=${encodeURIComponent(token || '')}`;
+  };
+
+  const handleConnectGmail = () => {
+    window.location.href = `/api/auth/email/gmail/connect?token=${encodeURIComponent(token || '')}`;
   };
 
   const handleDisconnect = async () => {
@@ -80,7 +83,7 @@ const EmailSettingsPage: React.FC = () => {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStatus({ connected: false, provider: null, email: null, displayName: null, status: 'disconnected', lastError: null, lastUsedAt: null, accountId: null });
-      setShowDisconnectConfirm(false);
+      setShowDisconnectConfirm(null);
       setFlashMessage('Email disconnected.');
       setTimeout(() => setFlashMessage(null), 3000);
     } catch (err: any) {
@@ -120,6 +123,93 @@ const EmailSettingsPage: React.FC = () => {
           </span>
         );
     }
+  };
+
+  // Determine per-provider state from single status object
+  const isOutlookConnected = status?.connected && status?.provider === 'microsoft';
+  const isGmailConnected = status?.connected && status?.provider === 'gmail';
+  const outlookStatus = isOutlookConnected ? status.status : (status?.provider === 'microsoft' ? status.status : 'disconnected');
+  const gmailStatus = isGmailConnected ? status.status : (status?.provider === 'gmail' ? status.status : 'disconnected');
+
+  /** Render a provider card's connected/error/disconnected state */
+  const renderProviderState = (
+    provider: string,
+    isConnected: boolean,
+    providerStatus: string,
+    connectFn: () => void,
+    reconnectLabel: string,
+    connectLabel: string,
+    btnColor: string,
+    btnHover: string,
+  ) => {
+    if (isConnected) {
+      return (
+        <div className="mt-4 pt-4 border-t border-gray-700/40">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white">{status?.displayName || status?.email}</p>
+              {status?.displayName && (
+                <p className="text-xs text-gray-400">{status?.email}</p>
+              )}
+              {status?.lastUsedAt && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Last used: {new Date(status.lastUsedAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => setShowDisconnectConfirm(provider)}
+              className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+            >
+              Disconnect
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (providerStatus === 'needs_reauth') {
+      return (
+        <div className="mt-4 pt-4 border-t border-gray-700/40">
+          <p className="text-sm text-yellow-400 mb-3">
+            Your session has expired. Please reconnect to continue using email features.
+          </p>
+          {status?.lastError && status?.provider === provider && (
+            <p className="text-xs text-gray-500 mb-3">{status.lastError}</p>
+          )}
+          <button onClick={connectFn} className={`px-4 py-2 text-sm font-medium text-white ${btnColor} ${btnHover} rounded-lg transition-colors`}>
+            {reconnectLabel}
+          </button>
+        </div>
+      );
+    }
+
+    if (providerStatus === 'error') {
+      return (
+        <div className="mt-4 pt-4 border-t border-gray-700/40">
+          <p className="text-sm text-red-400 mb-2">Something went wrong with your email connection.</p>
+          {status?.lastError && status?.provider === provider && (
+            <p className="text-xs text-gray-500 mb-3">{status.lastError}</p>
+          )}
+          <button onClick={connectFn} className={`px-4 py-2 text-sm font-medium text-white ${btnColor} ${btnHover} rounded-lg transition-colors`}>
+            {reconnectLabel}
+          </button>
+        </div>
+      );
+    }
+
+    // Disconnected
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-700/40">
+        <button
+          onClick={connectFn}
+          className={`px-4 py-2 text-sm font-medium text-white ${btnColor} ${btnHover} rounded-lg transition-colors flex items-center gap-2`}
+        >
+          <ExternalLink size={14} />
+          {connectLabel}
+        </button>
+      </div>
+    );
   };
 
   if (loading) {
@@ -183,89 +273,17 @@ const EmailSettingsPage: React.FC = () => {
                 </p>
               </div>
             </div>
-            {status?.status === 'active' && renderStatusBadge('active')}
-            {status?.status === 'needs_reauth' && renderStatusBadge('needs_reauth')}
-            {status?.status === 'error' && renderStatusBadge('error')}
-            {(!status || status.status === 'disconnected') && renderStatusBadge('disconnected')}
+            {renderStatusBadge(outlookStatus)}
           </div>
-
-          {/* Connected state */}
-          {status?.connected && (
-            <div className="mt-4 pt-4 border-t border-gray-700/40">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white">{status.displayName || status.email}</p>
-                  {status.displayName && (
-                    <p className="text-xs text-gray-400">{status.email}</p>
-                  )}
-                  {status.lastUsedAt && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Last used: {new Date(status.lastUsedAt).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={() => setShowDisconnectConfirm(true)}
-                  className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  Disconnect
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Needs reauth state */}
-          {status?.status === 'needs_reauth' && (
-            <div className="mt-4 pt-4 border-t border-gray-700/40">
-              <p className="text-sm text-yellow-400 mb-3">
-                Your session has expired. Please reconnect to continue using email features.
-              </p>
-              {status.lastError && (
-                <p className="text-xs text-gray-500 mb-3">{status.lastError}</p>
-              )}
-              <button
-                onClick={handleConnect}
-                className="px-4 py-2 text-sm font-medium text-white bg-[#0078d4] hover:bg-[#106ebe] rounded-lg transition-colors"
-              >
-                Reconnect Outlook
-              </button>
-            </div>
-          )}
-
-          {/* Error state */}
-          {status?.status === 'error' && (
-            <div className="mt-4 pt-4 border-t border-gray-700/40">
-              <p className="text-sm text-red-400 mb-2">
-                Something went wrong with your email connection.
-              </p>
-              {status.lastError && (
-                <p className="text-xs text-gray-500 mb-3">{status.lastError}</p>
-              )}
-              <button
-                onClick={handleConnect}
-                className="px-4 py-2 text-sm font-medium text-white bg-[#0078d4] hover:bg-[#106ebe] rounded-lg transition-colors"
-              >
-                Reconnect Outlook
-              </button>
-            </div>
-          )}
-
-          {/* Disconnected state */}
-          {(!status || status.status === 'disconnected') && (
-            <div className="mt-4 pt-4 border-t border-gray-700/40">
-              <button
-                onClick={handleConnect}
-                className="px-4 py-2 text-sm font-medium text-white bg-[#0078d4] hover:bg-[#106ebe] rounded-lg transition-colors flex items-center gap-2"
-              >
-                <ExternalLink size={14} />
-                Connect Outlook
-              </button>
-            </div>
+          {renderProviderState(
+            'microsoft', isOutlookConnected, outlookStatus,
+            handleConnectOutlook, 'Reconnect Outlook', 'Connect Outlook',
+            'bg-[#0078d4]', 'hover:bg-[#106ebe]'
           )}
         </div>
 
-        {/* Gmail — Coming Soon */}
-        <div className="rounded-xl bg-gray-800/40 border border-gray-700/40 p-6 opacity-60">
+        {/* Google Gmail */}
+        <div className="rounded-xl bg-gray-800/40 border border-gray-700/40 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center">
@@ -279,10 +297,13 @@ const EmailSettingsPage: React.FC = () => {
                 <p className="text-sm text-gray-400">Connect your Gmail or Google Workspace account</p>
               </div>
             </div>
-            <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-600/30 text-gray-400 border border-gray-600/30">
-              Coming Soon
-            </span>
+            {renderStatusBadge(gmailStatus)}
           </div>
+          {renderProviderState(
+            'gmail', isGmailConnected, gmailStatus,
+            handleConnectGmail, 'Reconnect Gmail', 'Connect Gmail',
+            'bg-[#EA4335]', 'hover:bg-[#d33426]'
+          )}
         </div>
       </div>
 
@@ -319,7 +340,7 @@ const EmailSettingsPage: React.FC = () => {
             </p>
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => setShowDisconnectConfirm(false)}
+                onClick={() => setShowDisconnectConfirm(null)}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
                 Cancel

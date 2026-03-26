@@ -11,6 +11,7 @@
  */
 
 import { ConfidentialClientApplication } from '@azure/msal-node';
+import { google } from 'googleapis';
 import { getSupabase } from '../../lib/supabase.js';
 import { encrypt, decrypt } from './encryption.mjs';
 import { getAccountById, updateTokens, markNeedsReauth } from './index.mjs';
@@ -177,7 +178,7 @@ export async function ensureFreshToken(accountId) {
 }
 
 /**
- * Execute the MSAL token refresh.
+ * Execute token refresh — dispatches to Microsoft or Google based on provider.
  *
  * @param {Object} account - email_accounts row
  * @returns {Promise<{ accessToken: string, account: Object }>}
@@ -198,6 +199,16 @@ async function performRefresh(account) {
     throw new Error('[token-refresh] No refresh token available — re-authentication required');
   }
 
+  if (account.provider === 'gmail') {
+    return performGoogleRefresh(account, refreshToken);
+  }
+  return performMicrosoftRefresh(account, refreshToken);
+}
+
+/**
+ * Microsoft token refresh via MSAL.
+ */
+async function performMicrosoftRefresh(account, refreshToken) {
   try {
     const msalApp = getMsalApp();
 
@@ -210,7 +221,6 @@ async function performRefresh(account) {
       throw new Error('No access token in refresh response');
     }
 
-    // Encrypt new tokens
     const accessTokenEncrypted = encrypt(tokenResponse.accessToken);
 
     // CRITICAL: Always store the new refresh token (90-day sliding window)
@@ -221,7 +231,6 @@ async function performRefresh(account) {
       ? new Date(tokenResponse.expiresOn)
       : new Date(Date.now() + 3600 * 1000);
 
-    // Update database
     await updateTokens(account.id, accessTokenEncrypted, refreshTokenEncrypted, tokenExpiresAt);
 
     logEmailAudit({
@@ -232,7 +241,7 @@ async function performRefresh(account) {
       success: true,
     });
 
-    console.log(`[token-refresh] Successfully refreshed token for account ${account.id}`);
+    console.log(`[token-refresh] Successfully refreshed Microsoft token for account ${account.id}`);
 
     return {
       accessToken: tokenResponse.accessToken,
@@ -273,6 +282,92 @@ async function performRefresh(account) {
     });
 
     throw new Error(`[token-refresh] Failed to refresh token: ${err.message}`);
+  }
+}
+
+/**
+ * Google token refresh via googleapis OAuth2Client.
+ *
+ * Key difference: Google does NOT always return a new refresh token.
+ * Only store it if one is returned.
+ */
+async function performGoogleRefresh(account, refreshToken) {
+  try {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      throw new Error('GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set');
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+
+    const { credentials } = await oauth2Client.refreshAccessToken();
+
+    if (!credentials.access_token) {
+      throw new Error('No access token in Google refresh response');
+    }
+
+    const accessTokenEncrypted = encrypt(credentials.access_token);
+
+    // Google does NOT always return a new refresh token — only store if present
+    const newRefreshToken = credentials.refresh_token || refreshToken;
+    const refreshTokenEncrypted = encrypt(newRefreshToken);
+
+    const tokenExpiresAt = credentials.expiry_date
+      ? new Date(credentials.expiry_date)
+      : new Date(Date.now() + 3600 * 1000);
+
+    await updateTokens(account.id, accessTokenEncrypted, refreshTokenEncrypted, tokenExpiresAt);
+
+    logEmailAudit({
+      tenantId: account.tenant_id,
+      userId: account.user_id,
+      emailAccountId: account.id,
+      actionType: 'refresh_token',
+      success: true,
+    });
+
+    console.log(`[token-refresh] Successfully refreshed Google token for account ${account.id}`);
+
+    return {
+      accessToken: credentials.access_token,
+      account: { ...account, token_expires_at: tokenExpiresAt.toISOString() },
+    };
+  } catch (err) {
+    const isInvalidGrant =
+      err.message?.includes('invalid_grant') ||
+      err.message?.includes('Token has been expired or revoked');
+
+    if (isInvalidGrant) {
+      console.error(`[token-refresh] Google refresh token invalid for account ${account.id} — marking needs_reauth`);
+      await markNeedsReauth(account.id, `Google refresh token expired or revoked: ${err.message}`);
+
+      logEmailAudit({
+        tenantId: account.tenant_id,
+        userId: account.user_id,
+        emailAccountId: account.id,
+        actionType: 'reauth',
+        success: false,
+        errorMessage: err.message,
+      });
+
+      throw new Error(
+        '[token-refresh] Google refresh token has expired or been revoked. Please reconnect your Gmail from Settings.'
+      );
+    }
+
+    logEmailAudit({
+      tenantId: account.tenant_id,
+      userId: account.user_id,
+      emailAccountId: account.id,
+      actionType: 'refresh_token',
+      success: false,
+      errorMessage: err.message,
+    });
+
+    throw new Error(`[token-refresh] Failed to refresh Google token: ${err.message}`);
   }
 }
 

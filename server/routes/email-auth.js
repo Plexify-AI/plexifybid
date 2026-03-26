@@ -9,6 +9,7 @@
  */
 
 import { ConfidentialClientApplication } from '@azure/msal-node';
+import { google } from 'googleapis';
 import { encrypt } from '../services/email/encryption.mjs';
 import { upsertEmailAccount, getConnectionStatus, disconnectAccount } from '../services/email/index.mjs';
 import { logEmailAudit } from '../services/email/audit.mjs';
@@ -45,15 +46,22 @@ function getMsalApp() {
   return _msalApp;
 }
 
-function getRedirectUri() {
-  // In local dev, use the dev redirect URI so the OAuth callback routes to localhost
+function getRedirectUri(provider = 'microsoft') {
+  if (provider === 'gmail') {
+    if (process.env.NODE_ENV !== 'production' && process.env.GOOGLE_REDIRECT_URI_DEV) {
+      return process.env.GOOGLE_REDIRECT_URI_DEV;
+    }
+    const uri = process.env.GOOGLE_REDIRECT_URI;
+    if (!uri) throw new Error('[email-auth] GOOGLE_REDIRECT_URI must be set');
+    return uri;
+  }
+
+  // Microsoft (default)
   if (process.env.NODE_ENV !== 'production' && process.env.MICROSOFT_REDIRECT_URI_DEV) {
     return process.env.MICROSOFT_REDIRECT_URI_DEV;
   }
   const uri = process.env.MICROSOFT_REDIRECT_URI;
-  if (!uri) {
-    throw new Error('[email-auth] MICROSOFT_REDIRECT_URI must be set');
-  }
+  if (!uri) throw new Error('[email-auth] MICROSOFT_REDIRECT_URI must be set');
   return uri;
 }
 
@@ -337,6 +345,171 @@ function redirectToSettings(res, queryString, sandboxToken) {
   res.setHeader('Location', `/settings/email?${queryString}`);
   return res.end();
 }
+
+// ===========================================================================
+// GOOGLE OAUTH
+// ===========================================================================
+
+const GOOGLE_SCOPES = [
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+];
+
+let _googleOAuth2 = null;
+
+function getGoogleOAuth2() {
+  if (_googleOAuth2) return _googleOAuth2;
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    throw new Error('[email-auth] GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set');
+  }
+
+  _googleOAuth2 = new google.auth.OAuth2(clientId, clientSecret, getRedirectUri('gmail'));
+  return _googleOAuth2;
+}
+
+/**
+ * GET /api/auth/email/gmail/connect
+ *
+ * Generates Google OAuth URL and redirects user to Google consent screen.
+ */
+export async function handleGmailConnect(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) {
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Not authenticated' }));
+  }
+
+  try {
+    const sandboxToken = extractSandboxToken(req);
+    if (!sandboxToken) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Could not determine sandbox token' }));
+    }
+
+    const stateId = createOAuthState(tenant.id, sandboxToken);
+    const oauth2Client = getGoogleOAuth2();
+
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'consent',
+      scope: GOOGLE_SCOPES,
+      state: stateId,
+    });
+
+    res.statusCode = 302;
+    res.setHeader('Location', authUrl);
+    return res.end();
+  } catch (err) {
+    console.error('[email-auth] Gmail connect failed:', err.message);
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: `Failed to initiate Gmail OAuth: ${err.message}` }));
+  }
+}
+
+/**
+ * GET /api/auth/email/gmail/callback
+ *
+ * Google redirects here after user consents.
+ * No sandbox token — recover tenant from the state parameter.
+ */
+export async function handleGmailCallback(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const code = url.searchParams.get('code') || req.query?.code;
+  const stateId = url.searchParams.get('state') || req.query?.state;
+  const errorParam = url.searchParams.get('error') || req.query?.error;
+
+  if (errorParam) {
+    console.error(`[email-auth] Google OAuth error: ${errorParam}`);
+    return redirectToSettings(res, `error=${encodeURIComponent(errorParam)}`);
+  }
+
+  if (!code || !stateId) {
+    return redirectToSettings(res, 'error=missing_code_or_state');
+  }
+
+  const state = consumeOAuthState(stateId);
+  if (!state) {
+    return redirectToSettings(res, 'error=invalid_or_expired_state');
+  }
+
+  const { valid, tenant } = await validateToken(state.sandboxToken);
+  if (!valid) {
+    return redirectToSettings(res, 'error=invalid_sandbox_token', state.sandboxToken);
+  }
+
+  try {
+    const oauth2Client = getGoogleOAuth2();
+    const { tokens } = await oauth2Client.getToken(code);
+
+    if (!tokens.access_token) {
+      throw new Error('No access token in Google response');
+    }
+
+    // Get user profile
+    oauth2Client.setCredentials(tokens);
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    const { data: profile } = await oauth2.userinfo.get();
+
+    const emailAddress = profile.email || '';
+    const displayName = profile.name || '';
+
+    if (!emailAddress) {
+      throw new Error('Could not determine email address from Google profile');
+    }
+
+    // Encrypt tokens
+    const accessTokenEncrypted = encrypt(tokens.access_token);
+    const refreshToken = tokens.refresh_token || '';
+    if (!refreshToken) {
+      console.warn('[email-auth] No refresh token from Google — token refresh will fail');
+    }
+    const refreshTokenEncrypted = encrypt(refreshToken || 'none');
+
+    // Calculate expiry
+    const tokenExpiresAt = tokens.expiry_date
+      ? new Date(tokens.expiry_date)
+      : new Date(Date.now() + 3600 * 1000);
+
+    // Store in database
+    const account = await upsertEmailAccount({
+      tenantId: tenant.id,
+      userId: tenant.id,
+      provider: 'gmail',
+      emailAddress,
+      displayName,
+      accessTokenEncrypted,
+      refreshTokenEncrypted,
+      tokenExpiresAt,
+      scopes: GOOGLE_SCOPES,
+    });
+
+    logEmailAudit({
+      tenantId: tenant.id,
+      userId: tenant.id,
+      emailAccountId: account.id,
+      actionType: 'connect',
+      metadata: { provider: 'gmail', email: emailAddress },
+    });
+
+    console.log(`[email-auth] Connected Gmail account: ${emailAddress} for tenant ${tenant.slug}`);
+
+    return redirectToSettings(res, 'connected=true&provider=gmail', state.sandboxToken);
+  } catch (err) {
+    console.error('[email-auth] Gmail callback failed:', err.message);
+    return redirectToSettings(res, `error=${encodeURIComponent(err.message)}`, state.sandboxToken);
+  }
+}
+
+// ---------------------------------------------------------------------------
 
 function extractSandboxToken(req) {
   // From Authorization header

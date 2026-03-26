@@ -7,31 +7,23 @@
 
 import type { IncomingMessage, ServerResponse } from 'http';
 
-let handleMicrosoftConnectFn: any = null;
-let handleMicrosoftCallbackFn: any = null;
-let handleEmailDisconnectFn: any = null;
-let handleEmailStatusFn: any = null;
-let confirmSendFn: any = null;
+let handlers: any = null;
 
 async function getHandlers() {
-  if (!handleMicrosoftConnectFn) {
+  if (!handlers) {
     const mod = await import('../../server/routes/email-auth.js');
-    handleMicrosoftConnectFn = mod.handleMicrosoftConnect;
-    handleMicrosoftCallbackFn = mod.handleMicrosoftCallback;
-    handleEmailDisconnectFn = mod.handleEmailDisconnect;
-    handleEmailStatusFn = mod.handleEmailStatus;
-  }
-  if (!confirmSendFn) {
     const toolMod = await import('../../server/services/email/tool-executor.mjs');
-    confirmSendFn = toolMod.confirmSend;
+    handlers = {
+      handleMicrosoftConnect: mod.handleMicrosoftConnect,
+      handleMicrosoftCallback: mod.handleMicrosoftCallback,
+      handleGmailConnect: mod.handleGmailConnect,
+      handleGmailCallback: mod.handleGmailCallback,
+      handleEmailDisconnect: mod.handleEmailDisconnect,
+      handleEmailStatus: mod.handleEmailStatus,
+      confirmSend: toolMod.confirmSend,
+    };
   }
-  return {
-    handleMicrosoftConnectFn,
-    handleMicrosoftCallbackFn,
-    handleEmailDisconnectFn,
-    handleEmailStatusFn,
-    confirmSendFn,
-  };
+  return handlers;
 }
 
 function readBody(req: IncomingMessage): Promise<any> {
@@ -61,25 +53,37 @@ export function emailAuthMiddleware() {
 
       // GET /api/auth/email/microsoft/connect
       if (url === '/api/auth/email/microsoft/connect' && req.method === 'GET') {
-        await handlers.handleMicrosoftConnectFn(req, res);
+        await handlers.handleMicrosoftConnect(req, res);
         return;
       }
 
       // GET /api/auth/email/microsoft/callback
       if (url === '/api/auth/email/microsoft/callback' && req.method === 'GET') {
-        await handlers.handleMicrosoftCallbackFn(req, res);
+        await handlers.handleMicrosoftCallback(req, res);
+        return;
+      }
+
+      // GET /api/auth/email/gmail/connect
+      if (url === '/api/auth/email/gmail/connect' && req.method === 'GET') {
+        await handlers.handleGmailConnect(req, res);
+        return;
+      }
+
+      // GET /api/auth/email/gmail/callback
+      if (url === '/api/auth/email/gmail/callback' && req.method === 'GET') {
+        await handlers.handleGmailCallback(req, res);
         return;
       }
 
       // POST /api/auth/email/disconnect
       if (url === '/api/auth/email/disconnect' && req.method === 'POST') {
-        await handlers.handleEmailDisconnectFn(req, res);
+        await handlers.handleEmailDisconnect(req, res);
         return;
       }
 
       // GET /api/auth/email/status
       if (url === '/api/auth/email/status' && req.method === 'GET') {
-        await handlers.handleEmailStatusFn(req, res);
+        await handlers.handleEmailStatus(req, res);
         return;
       }
 
@@ -100,7 +104,7 @@ export function emailAuthMiddleware() {
           res.end(JSON.stringify({ error: 'Missing draft_id' }));
           return;
         }
-        const result = await handlers.confirmSendFn(draft_id, tenant.id);
+        const result = await handlers.confirmSend(draft_id, tenant.id);
         res.statusCode = result.success ? 200 : 400;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(result));
