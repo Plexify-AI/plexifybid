@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle, Zap } from 'lucide-react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useSandbox } from '../contexts/SandboxContext';
 import ProspectCardList from './ProspectCardList';
 import OutreachPreview, { parseEmail } from './OutreachPreview';
@@ -43,6 +44,44 @@ const LOADING_MESSAGES = [
 
 const DEEP_ANALYSIS_MSG = 'Plexi is doing deep analysis. Hang tight.';
 const DEEP_ANALYSIS_THRESHOLD = 10_000; // 10 seconds
+
+// Shared markdown component renderers for dark theme
+const markdownComponents = {
+  h1: ({ children }: any) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
+  h2: ({ children }: any) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
+  h3: ({ children }: any) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
+  p: ({ children }: any) => <p className="mb-2 last:mb-0">{children}</p>,
+  strong: ({ children }: any) => <strong className="font-semibold text-blue-200">{children}</strong>,
+  em: ({ children }: any) => <em className="italic text-gray-300">{children}</em>,
+  ul: ({ children }: any) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+  li: ({ children }: any) => <li className="text-gray-200">{children}</li>,
+  a: ({ href, children }: any) => (
+    <a href={href} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  ),
+  code: ({ inline, children }: any) =>
+    inline ? (
+      <code className="bg-gray-700/50 px-1.5 py-0.5 rounded text-xs font-mono text-blue-300">{children}</code>
+    ) : (
+      <pre className="bg-gray-900/70 border border-gray-700/50 rounded-lg p-3 my-2 overflow-x-auto text-xs font-mono text-gray-300">
+        <code>{children}</code>
+      </pre>
+    ),
+  hr: () => <hr className="border-gray-600 my-3" />,
+  // GFM table support
+  table: ({ children }: any) => (
+    <div className="overflow-x-auto my-3">
+      <table className="w-full border-collapse border border-gray-600 text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }: any) => <thead className="bg-gray-700/50">{children}</thead>,
+  tbody: ({ children }: any) => <tbody className="[&>tr:nth-child(even)]:bg-gray-800/30">{children}</tbody>,
+  tr: ({ children }: any) => <tr className="border-t border-gray-700">{children}</tr>,
+  th: ({ children }: any) => <th className="px-3 py-2 text-left font-semibold text-gray-200 border border-gray-600">{children}</th>,
+  td: ({ children }: any) => <td className="px-3 py-2 text-gray-300 border border-gray-700">{children}</td>,
+};
 
 const AskPlexiInterface: React.FC = () => {
   const { token, logout } = useSandbox();
@@ -475,19 +514,7 @@ const AskPlexiInterface: React.FC = () => {
                           if (!commentary) return null;
                           return (
                             <div className="plexi-prose text-sm leading-relaxed mt-3 pt-3 border-t border-gray-700/50">
-                              <Markdown
-                                components={{
-                                  h1: ({ children }) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
-                                  h2: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
-                                  h3: ({ children }) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
-                                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                                  strong: ({ children }) => <strong className="font-semibold text-blue-200">{children}</strong>,
-                                  ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                                  ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                                  li: ({ children }) => <li className="text-gray-200">{children}</li>,
-                                  hr: () => <hr className="border-gray-600 my-3" />,
-                                }}
-                              >
+                              <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                                 {commentary}
                               </Markdown>
                             </div>
@@ -497,27 +524,7 @@ const AskPlexiInterface: React.FC = () => {
                     ) : (
                       <>
                         <div className="plexi-prose text-sm leading-relaxed">
-                          <Markdown
-                            components={{
-                              h1: ({ children }) => <h3 className="text-lg font-bold text-white mt-3 mb-2">{children}</h3>,
-                              h2: ({ children }) => <h3 className="text-base font-bold text-white mt-3 mb-2">{children}</h3>,
-                              h3: ({ children }) => <h4 className="text-sm font-semibold text-white mt-2 mb-1">{children}</h4>,
-                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                              strong: ({ children }) => <strong className="font-semibold text-blue-200">{children}</strong>,
-                              ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                              li: ({ children }) => <li className="text-gray-200">{children}</li>,
-                              a: ({ href, children }) => (
-                                <a href={href} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
-                                  {children}
-                                </a>
-                              ),
-                              code: ({ children }) => (
-                                <code className="bg-gray-700/50 px-1.5 py-0.5 rounded text-xs font-mono text-blue-300">{children}</code>
-                              ),
-                              hr: () => <hr className="border-gray-600 my-3" />,
-                            }}
-                          >
+                          <Markdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                             {message.content}
                           </Markdown>
                         </div>
