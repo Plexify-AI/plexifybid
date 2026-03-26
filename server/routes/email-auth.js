@@ -46,6 +46,10 @@ function getMsalApp() {
 }
 
 function getRedirectUri() {
+  // In local dev, use the dev redirect URI so the OAuth callback routes to localhost
+  if (process.env.NODE_ENV !== 'production' && process.env.MICROSOFT_REDIRECT_URI_DEV) {
+    return process.env.MICROSOFT_REDIRECT_URI_DEV;
+  }
   const uri = process.env.MICROSOFT_REDIRECT_URI;
   if (!uri) {
     throw new Error('[email-auth] MICROSOFT_REDIRECT_URI must be set');
