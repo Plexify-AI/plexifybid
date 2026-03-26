@@ -85,12 +85,18 @@ app.post('/api/auth/validate', async (req, res) => {
 import {
   handleMicrosoftCallback,
   handleMicrosoftConnect,
+  handleGmailCallback,
+  handleGmailConnect,
   handleEmailDisconnect,
   handleEmailStatus,
 } from './routes/email-auth.js';
 
 app.get('/api/auth/email/microsoft/callback', async (req, res) => {
   await handleMicrosoftCallback(req, res);
+});
+
+app.get('/api/auth/email/gmail/callback', async (req, res) => {
+  await handleGmailCallback(req, res);
 });
 
 // ---------------------------------------------------------------------------
@@ -107,6 +113,10 @@ app.use(sandboxAuth());
 // Email OAuth (protected — require sandbox token)
 app.get('/api/auth/email/microsoft/connect', async (req, res) => {
   await handleMicrosoftConnect(req, res);
+});
+
+app.get('/api/auth/email/gmail/connect', async (req, res) => {
+  await handleGmailConnect(req, res);
 });
 
 app.post('/api/auth/email/disconnect', async (req, res) => {
