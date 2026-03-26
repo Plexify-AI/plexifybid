@@ -22,9 +22,12 @@ const SandboxEntry: React.FC = () => {
       return; // Will show "no token" UI below
     }
 
+    // Support ?redirect= for post-auth navigation (e.g. after OAuth callback)
+    const redirectTo = searchParams.get('redirect') || '/home';
+
     // Don't re-validate if already authenticated
     if (isAuthenticated) {
-      navigate('/home', { replace: true });
+      navigate(redirectTo, { replace: true });
       return;
     }
 
@@ -34,7 +37,7 @@ const SandboxEntry: React.FC = () => {
     validateToken(token).then((valid) => {
       clearTimeout(timer);
       if (valid) {
-        navigate('/home', { replace: true });
+        navigate(redirectTo, { replace: true });
       }
     });
 

@@ -131,7 +131,7 @@ export async function handleMicrosoftCallback(req, res) {
   // Validate the sandbox token is still valid
   const { valid, tenant } = await validateToken(state.sandboxToken);
   if (!valid) {
-    return redirectToSettings(res, 'error=invalid_sandbox_token');
+    return redirectToSettings(res, 'error=invalid_sandbox_token', state.sandboxToken);
   }
 
   try {
@@ -205,10 +205,10 @@ export async function handleMicrosoftCallback(req, res) {
 
     console.log(`[email-auth] Connected Microsoft account: ${emailAddress} for tenant ${tenant.slug}`);
 
-    return redirectToSettings(res, `connected=true&token=${encodeURIComponent(state.sandboxToken)}`);
+    return redirectToSettings(res, 'connected=true', state.sandboxToken);
   } catch (err) {
     console.error('[email-auth] OAuth callback failed:', err.message);
-    return redirectToSettings(res, `error=${encodeURIComponent(err.message)}`);
+    return redirectToSettings(res, `error=${encodeURIComponent(err.message)}`, state.sandboxToken);
   }
 }
 
@@ -323,7 +323,16 @@ export async function handleEmailStatus(req, res) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function redirectToSettings(res, queryString) {
+function redirectToSettings(res, queryString, sandboxToken) {
+  if (sandboxToken) {
+    // Re-establish sandbox auth via /sandbox, then redirect to settings
+    const settingsPath = `/settings/email?${queryString}`;
+    const url = `/sandbox?token=${encodeURIComponent(sandboxToken)}&redirect=${encodeURIComponent(settingsPath)}`;
+    res.statusCode = 302;
+    res.setHeader('Location', url);
+    return res.end();
+  }
+  // Fallback (error cases where we may not have the token)
   res.statusCode = 302;
   res.setHeader('Location', `/settings/email?${queryString}`);
   return res.end();
