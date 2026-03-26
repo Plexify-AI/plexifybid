@@ -12,6 +12,17 @@ import { createMicrosoftProvider } from './providers/microsoft.mjs';
 import { createGmailProvider } from './providers/gmail.mjs';
 import { EMAIL_PROVIDERS, CONNECTION_STATUS } from './types.mjs';
 
+/**
+ * Convert a Buffer to PostgreSQL BYTEA hex format for Supabase insertion.
+ * Supabase JS client serializes Buffers as JSON — we need raw hex instead.
+ * @param {Buffer} buf
+ * @returns {string} Hex string with \x prefix
+ */
+function toByteaHex(buf) {
+  if (Buffer.isBuffer(buf)) return '\\x' + buf.toString('hex');
+  return buf; // Already a string (shouldn't happen, but safe fallback)
+}
+
 // ---------------------------------------------------------------------------
 // Account queries
 // ---------------------------------------------------------------------------
@@ -198,8 +209,8 @@ export async function upsertEmailAccount({
         provider,
         email_address: emailAddress,
         display_name: displayName,
-        access_token_encrypted: accessTokenEncrypted,
-        refresh_token_encrypted: refreshTokenEncrypted,
+        access_token_encrypted: toByteaHex(accessTokenEncrypted),
+        refresh_token_encrypted: toByteaHex(refreshTokenEncrypted),
         token_expires_at: tokenExpiresAt.toISOString(),
         scopes,
         connection_status: CONNECTION_STATUS.ACTIVE,
@@ -227,8 +238,8 @@ export async function updateTokens(accountId, accessTokenEncrypted, refreshToken
   const { error } = await supabase
     .from('email_accounts')
     .update({
-      access_token_encrypted: accessTokenEncrypted,
-      refresh_token_encrypted: refreshTokenEncrypted,
+      access_token_encrypted: toByteaHex(accessTokenEncrypted),
+      refresh_token_encrypted: toByteaHex(refreshTokenEncrypted),
       token_expires_at: tokenExpiresAt.toISOString(),
       connection_status: CONNECTION_STATUS.ACTIVE,
       last_error: null,

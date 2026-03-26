@@ -85,8 +85,17 @@ export function encrypt(plaintext) {
  * @returns {string} Decrypted plaintext string
  */
 export function decrypt(buffer) {
+  // Supabase returns BYTEA as hex string (\x...) or base64 — coerce to Buffer
+  if (typeof buffer === 'string') {
+    if (buffer.startsWith('\\x')) {
+      buffer = Buffer.from(buffer.slice(2), 'hex');
+    } else {
+      buffer = Buffer.from(buffer, 'base64');
+    }
+  }
+
   if (!Buffer.isBuffer(buffer)) {
-    throw new Error('[email/encryption] decrypt() requires a Buffer');
+    throw new Error('[email/encryption] decrypt() requires a Buffer or encoded string');
   }
 
   const minLength = IV_LENGTH + AUTH_TAG_LENGTH + 1; // at least 1 byte of ciphertext
