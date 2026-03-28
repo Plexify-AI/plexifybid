@@ -17,6 +17,7 @@ import useReportStore from '../../store/reportStore';
 import { useWorkspaceStore, type Project } from 'plexify-shared-ui';
 import CreateDealRoomDialog from '../deal-room/components/CreateDealRoomDialog';
 import { useNavigateToDealRoom } from './hooks/useNavigateToDealRoom';
+import { GOLDEN_TRIANGLE_ROOM_ID } from '../../types/dealRoom';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -55,6 +56,11 @@ const LegacyProjectCards: React.FC = () => {
   }, [executiveReports]);
 
   const handleViewDealRoom = async (report: UnifiedDailyIntelligence) => {
+    // Golden Triangle BID has a pre-built demo room — navigate directly
+    if (report.projectId === 'project-golden-triangle') {
+      navigate(`/deal-rooms/${GOLDEN_TRIANGLE_ROOM_ID}`);
+      return;
+    }
     const result = await navigateOrCreate(report.projectId);
     if (result === 'create') {
       setCreateDialogOppId(report.projectId);

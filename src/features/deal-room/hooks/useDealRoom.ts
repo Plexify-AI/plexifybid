@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSandbox } from '../../../contexts/SandboxContext';
 import type { DealRoom, DealRoomTab, DealRoomSource, DealRoomArtifact, DealRoomMessage } from '../../../types/dealRoom';
+import { GOLDEN_TRIANGLE_ROOM_ID, EMPTY_TAB_CONTENT } from '../../../types/dealRoom';
 
 interface DealRoomData {
   room: DealRoom | null;
@@ -17,6 +18,130 @@ interface DealRoomData {
   updateRoom: (updates: Partial<DealRoom>) => Promise<void>;
   refetch: () => Promise<void>;
 }
+
+// Fallback demo room + sources for Golden Triangle when DB record doesn't exist
+const GOLDEN_TRIANGLE_DEMO_ROOM: DealRoom = {
+  id: GOLDEN_TRIANGLE_ROOM_ID,
+  tenant_id: '',
+  opportunity_id: 'project-golden-triangle',
+  project_id: null,
+  prospect_id: null,
+  name: 'Golden Triangle BID — DC Innovation District',
+  description: 'District Intelligence',
+  room_type: 'bid',
+  status: 'active',
+  warmth_score: 85,
+  source_count: 3,
+  message_count: 6,
+  word_count: 123,
+  active_tab: 'board_brief',
+  tab_content: EMPTY_TAB_CONTENT,
+  created_at: '2026-03-06T00:00:00.000Z',
+  updated_at: '2026-03-06T00:00:00.000Z',
+};
+
+const GOLDEN_TRIANGLE_DEMO_SOURCES: DealRoomSource[] = [
+  {
+    id: 'demo-src-1',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    file_name: 'GoldenTriangleBID_BusinessPlanFY2428.pdf',
+    file_type: 'pdf',
+    file_size: 2700000,
+    storage_path: null,
+    processing_status: 'ready',
+    summary: null,
+    chunk_count: 24,
+    sort_order: 0,
+    is_selected: true,
+    uploaded_at: '2026-03-06T00:00:00.000Z',
+  },
+  {
+    id: 'demo-src-2',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    file_name: 'GoldenTriangle2024NeighborhoodProfile.pdf',
+    file_type: 'pdf',
+    file_size: 1400000,
+    storage_path: null,
+    processing_status: 'ready',
+    summary: null,
+    chunk_count: 12,
+    sort_order: 1,
+    is_selected: true,
+    uploaded_at: '2026-03-06T00:00:00.000Z',
+  },
+  {
+    id: 'demo-src-3',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    file_name: 'GT_Assessment_Collection_Summary.csv',
+    file_type: 'csv',
+    file_size: 8200,
+    storage_path: null,
+    processing_status: 'ready',
+    summary: null,
+    chunk_count: 3,
+    sort_order: 2,
+    is_selected: true,
+    uploaded_at: '2026-03-06T00:00:00.000Z',
+  },
+];
+
+const GOLDEN_TRIANGLE_DEMO_ARTIFACTS: DealRoomArtifact[] = [
+  {
+    id: 'demo-art-board-brief',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    artifact_type: 'board_brief',
+    title: 'Board Brief',
+    subtitle: 'Q1 2026 Summary',
+    content: null,
+    thumbnail_url: null,
+    status: 'ready',
+    created_at: '2026-03-06T00:00:00.000Z',
+    updated_at: '2026-03-06T00:00:00.000Z',
+  },
+  {
+    id: 'demo-art-comp',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    artifact_type: 'competitive_analysis',
+    title: 'Competitive Analysis',
+    subtitle: 'DC Metro BID Lands...',
+    content: null,
+    thumbnail_url: null,
+    status: 'ready',
+    created_at: '2026-03-06T00:00:00.000Z',
+    updated_at: '2026-03-06T00:00:00.000Z',
+  },
+  {
+    id: 'demo-art-meeting',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    artifact_type: 'meeting_prep',
+    title: 'Meeting Prep',
+    subtitle: 'Board Meeting Q1',
+    content: null,
+    thumbnail_url: null,
+    status: 'ready',
+    created_at: '2026-03-06T00:00:00.000Z',
+    updated_at: '2026-03-06T00:00:00.000Z',
+  },
+  {
+    id: 'demo-art-deal-summary',
+    deal_room_id: GOLDEN_TRIANGLE_ROOM_ID,
+    tenant_id: '',
+    artifact_type: 'deal_summary',
+    title: 'Deal Summary',
+    subtitle: 'Golden Triangle Ove...',
+    content: null,
+    thumbnail_url: null,
+    status: 'ready',
+    created_at: '2026-03-06T00:00:00.000Z',
+    updated_at: '2026-03-06T00:00:00.000Z',
+  },
+];
 
 export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
   const { token } = useSandbox();
@@ -47,7 +172,19 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
         fetch(`/api/deal-rooms/${dealRoomId}/artifacts`, { headers }),
       ]);
 
-      if (!roomRes.ok) throw new Error('Failed to load deal room');
+      if (!roomRes.ok) {
+        // Fallback to demo data for Golden Triangle room
+        if (dealRoomId === GOLDEN_TRIANGLE_ROOM_ID) {
+          setRoom(GOLDEN_TRIANGLE_DEMO_ROOM);
+          setSources(GOLDEN_TRIANGLE_DEMO_SOURCES);
+          setMessages([]);
+          setArtifacts(GOLDEN_TRIANGLE_DEMO_ARTIFACTS);
+          setActiveTabState('board_brief');
+          setLoading(false);
+          return;
+        }
+        throw new Error('Failed to load deal room');
+      }
       const roomData = await roomRes.json();
       setRoom(roomData.deal_room);
       setSources(roomData.sources || []);
@@ -61,6 +198,16 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
         setArtifacts(artData.artifacts || []);
       }
     } catch (err: any) {
+      // Fallback to demo data for Golden Triangle room
+      if (dealRoomId === GOLDEN_TRIANGLE_ROOM_ID) {
+        setRoom(GOLDEN_TRIANGLE_DEMO_ROOM);
+        setSources(GOLDEN_TRIANGLE_DEMO_SOURCES);
+        setMessages([]);
+        setArtifacts(GOLDEN_TRIANGLE_DEMO_ARTIFACTS);
+        setActiveTabState('board_brief');
+        setLoading(false);
+        return;
+      }
       setError(err.message);
     } finally {
       setLoading(false);
