@@ -12,6 +12,7 @@ import {
   Loader2, ArrowRight, FolderOpen
 } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
+import { GOLDEN_TRIANGLE_ROOM_ID } from '../types/dealRoom';
 
 interface DealRoom {
   id: string;
@@ -60,7 +61,22 @@ const DealRoomListPage: React.FC = () => {
       });
       if (!res.ok) throw new Error('Failed to load deal rooms');
       const data = await res.json();
-      setRooms(data.deal_rooms || []);
+      const dbRooms = data.deal_rooms || [];
+      // Ensure Golden Triangle demo room always appears
+      const hasGT = dbRooms.some((r: DealRoom) => r.id === GOLDEN_TRIANGLE_ROOM_ID);
+      if (!hasGT) {
+        dbRooms.unshift({
+          id: GOLDEN_TRIANGLE_ROOM_ID,
+          name: 'Golden Triangle BID — DC Innovation District',
+          description: 'District Intelligence',
+          status: 'active',
+          source_count: 3,
+          message_count: 6,
+          created_at: '2026-03-06T00:00:00.000Z',
+          updated_at: '2026-03-06T00:00:00.000Z',
+        });
+      }
+      setRooms(dbRooms);
     } catch (err: any) {
       setError(err.message);
     } finally {
