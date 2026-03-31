@@ -236,6 +236,18 @@ app.get('/api/deal-rooms/:id/artifacts', async (req, res) => {
   await handleListArtifacts(req, res, req.params.id);
 });
 
+// Skill-based generation (canonical endpoint — replaces hardcoded ARTIFACT_PROMPTS)
+import { handleSkillGenerate, handleGetTabConfig } from './routes/deal-room-generate.js';
+
+app.post('/api/deal-rooms/:id/generate', async (req, res) => {
+  await handleSkillGenerate(req, res, req.params.id, req.body);
+});
+
+// Tenant tab configuration
+app.get('/api/tab-config', async (req, res) => {
+  await handleGetTabConfig(req, res);
+});
+
 // Pipeline Summary (Level 1 template interpolation)
 import { handlePipelineSummary } from './routes/pipeline-summary.js';
 

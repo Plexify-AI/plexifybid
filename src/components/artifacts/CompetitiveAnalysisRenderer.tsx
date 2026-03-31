@@ -9,10 +9,12 @@ import React from 'react';
 import {
   Shield, Target, Lightbulb, TrendingUp, TrendingDown
 } from 'lucide-react';
+import { InlineCitation } from './CitationBadge';
 import type { CompetitiveAnalysisOutput, CompetitorEntry } from '../../types/artifacts';
 
 interface Props {
   output: CompetitiveAnalysisOutput;
+  onCitationClick?: (sourceFileName: string, chunkIndex: number) => void;
 }
 
 function threatBadge(level: string) {
@@ -24,7 +26,7 @@ function threatBadge(level: string) {
   }
 }
 
-const CompetitorCard: React.FC<{ competitor: CompetitorEntry }> = ({ competitor }) => {
+const CompetitorCard: React.FC<{ competitor: CompetitorEntry; onCitationClick?: (sourceFileName: string, chunkIndex: number) => void }> = ({ competitor, onCitationClick }) => {
   const badge = threatBadge(competitor.threat_level);
 
   return (
@@ -40,7 +42,7 @@ const CompetitorCard: React.FC<{ competitor: CompetitorEntry }> = ({ competitor 
       {/* Differentiator */}
       <div className="bg-blue-500/8 border border-blue-500/15 rounded-lg px-3 py-2 mb-3">
         <p className="text-[10px] text-blue-400/70 uppercase tracking-wide mb-0.5">Differentiator</p>
-        <p className="text-xs text-blue-300">{competitor.differentiator}</p>
+        <p className="text-xs text-blue-300"><InlineCitation text={competitor.differentiator} onCitationClick={onCitationClick} /></p>
       </div>
 
       {/* Strengths & Weaknesses */}
@@ -54,7 +56,7 @@ const CompetitorCard: React.FC<{ competitor: CompetitorEntry }> = ({ competitor 
             {competitor.strengths.map((s, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-1.5">
                 <span className="text-green-500/60 mt-0.5">+</span>
-                <span>{s}</span>
+                <span><InlineCitation text={s} onCitationClick={onCitationClick} /></span>
               </li>
             ))}
           </ul>
@@ -68,7 +70,7 @@ const CompetitorCard: React.FC<{ competitor: CompetitorEntry }> = ({ competitor 
             {competitor.weaknesses.map((w, i) => (
               <li key={i} className="text-xs text-gray-400 flex items-start gap-1.5">
                 <span className="text-red-500/60 mt-0.5">−</span>
-                <span>{w}</span>
+                <span><InlineCitation text={w} onCitationClick={onCitationClick} /></span>
               </li>
             ))}
           </ul>
@@ -78,7 +80,7 @@ const CompetitorCard: React.FC<{ competitor: CompetitorEntry }> = ({ competitor 
   );
 };
 
-const CompetitiveAnalysisRenderer: React.FC<Props> = ({ output }) => {
+const CompetitiveAnalysisRenderer: React.FC<Props> = ({ output, onCitationClick }) => {
   return (
     <div className="space-y-5">
       {/* Market Position */}
@@ -87,7 +89,7 @@ const CompetitiveAnalysisRenderer: React.FC<Props> = ({ output }) => {
           <Target size={16} className="text-blue-400" />
           <h3 className="text-sm font-semibold text-white">Market Position</h3>
         </div>
-        <p className="text-sm text-gray-300 leading-relaxed">{output.market_position}</p>
+        <p className="text-sm text-gray-300 leading-relaxed"><InlineCitation text={output.market_position} onCitationClick={onCitationClick} /></p>
       </section>
 
       {/* Competitor Cards */}
@@ -98,7 +100,7 @@ const CompetitiveAnalysisRenderer: React.FC<Props> = ({ output }) => {
         </div>
         <div className="grid grid-cols-1 gap-3">
           {output.competitors.map((comp, i) => (
-            <CompetitorCard key={i} competitor={comp} />
+            <CompetitorCard key={i} competitor={comp} onCitationClick={onCitationClick} />
           ))}
         </div>
       </section>
@@ -114,7 +116,7 @@ const CompetitiveAnalysisRenderer: React.FC<Props> = ({ output }) => {
             {output.strategy_recommendations.map((rec, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
                 <span className="text-amber-400/60 font-semibold shrink-0">{i + 1}.</span>
-                <span>{rec}</span>
+                <span><InlineCitation text={rec} onCitationClick={onCitationClick} /></span>
               </div>
             ))}
           </div>

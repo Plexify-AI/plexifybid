@@ -17,6 +17,7 @@ let _handlers: any = null;
 async function getHandlers() {
   if (!_handlers) {
     const mod = await import('../../server/routes/deal-rooms.js');
+    const genMod = await import('../../server/routes/deal-room-generate.js') as any;
     _handlers = {
       create: mod.handleCreateDealRoom,
       list: mod.handleListDealRooms,
@@ -30,6 +31,8 @@ async function getHandlers() {
       generateAudio: mod.handleGenerateAudio,
       listAudio: mod.handleListAudio,
       streamAudio: mod.handleStreamAudio,
+      skillGenerate: genMod.handleSkillGenerate,
+      getTabConfig: genMod.handleGetTabConfig,
     };
   }
   return _handlers;
@@ -116,6 +119,12 @@ function parseRoute(url: string) {
     return { route: 'chat', dealRoomId: chatMatch[1] };
   }
 
+  // POST /api/deal-rooms/:id/generate (skill-based generation)
+  const generateMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/generate$/);
+  if (generateMatch) {
+    return { route: 'generate', dealRoomId: generateMatch[1] };
+  }
+
   // POST/GET /api/deal-rooms/:id/artifacts
   const artifactsMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/artifacts$/);
   if (artifactsMatch) {
@@ -156,6 +165,18 @@ function parseRoute(url: string) {
 export function dealRoomsMiddleware() {
   return async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const url = req.url || '';
+
+    // Handle /api/tab-config (tenant tab configuration)
+    if (url.startsWith('/api/tab-config') && req.method === 'GET') {
+      try {
+        const handlers = await getHandlers();
+        await handlers.getTabConfig(req, res);
+      } catch (err: any) {
+        console.error('[dealRoomsApi] Tab config error:', err);
+        sendError(res as any, 500, err.message || 'Internal server error');
+      }
+      return;
+    }
 
     // Only handle /api/deal-rooms routes
     if (!url.startsWith('/api/deal-rooms')) return next();
@@ -225,6 +246,16 @@ export function dealRoomsMiddleware() {
           if (req.method === 'POST') {
             const body = await readBody(req);
             await handlers.chat(req, res, parsed.dealRoomId, body);
+          } else {
+            sendError(res as any, 405, 'Method not allowed');
+          }
+          break;
+        }
+
+        case 'generate': {
+          if (req.method === 'POST') {
+            const body = await readBody(req);
+            await handlers.skillGenerate(req, res, parsed.dealRoomId, body);
           } else {
             sendError(res as any, 405, 'Method not allowed');
           }

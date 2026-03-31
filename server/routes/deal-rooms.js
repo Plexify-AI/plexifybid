@@ -50,6 +50,8 @@ import {
   uploadFile,
   downloadFile,
   logUsageEvent,
+  checkAudioBudget,
+  recordAudioCost,
 } from '../lib/supabase.js';
 import { chunkText, searchChunks, buildRAGContext } from '../lib/rag.js';
 import { isElevenLabsConfigured, generateBriefing, generatePodcast } from '../lib/elevenlabs.js';
@@ -782,6 +784,18 @@ export async function handleGenerateAudio(req, res, dealRoomId, body) {
     return sendError(res, 503, 'Audio generation not available — ElevenLabs API key not configured');
   }
 
+  // Budget check: ~$0.15 per briefing, ~$0.40 per podcast
+  const estimatedCost = type === 'briefing' ? 15 : 40;
+  try {
+    const budget = await checkAudioBudget(tenant.id, estimatedCost);
+    if (!budget.allowed) {
+      return sendError(res, 429, `Monthly audio generation budget reached ($${(budget.budget_cap_cents / 100).toFixed(2)}/mo). Resets on the 1st. Used: $${(budget.total_cost_cents / 100).toFixed(2)}, ${budget.generation_count} generations.`);
+    }
+  } catch (budgetErr) {
+    // Non-fatal — don't block generation if budget tracking fails
+    console.error('[deal-rooms] Audio budget check failed:', budgetErr.message);
+  }
+
   try {
     // 1. Verify deal room
     await getDealRoom(tenant.id, dealRoomId);
@@ -859,13 +873,19 @@ export async function handleGenerateAudio(req, res, dealRoomId, body) {
       ...scriptData,
     });
 
-    // 9. Log usage event
+    // 9. Record audio cost (non-blocking)
+    recordAudioCost(tenant.id, estimatedCost).catch((err) => {
+      console.error('[deal-rooms] Audio cost recording failed:', err.message);
+    });
+
+    // 10. Log usage event
     logUsageEvent(tenant.id, 'deal_room_audio_generated', {
       deal_room_id: dealRoomId,
       audio_id: audioRecord.id,
       audio_type: type,
       artifact_id,
       duration_seconds: durationSeconds,
+      estimated_cost_cents: estimatedCost,
     }).catch(() => {});
 
     console.log(`[deal-room] Generated ${type}: ${audioRecord.id} (${durationSeconds}s)`);

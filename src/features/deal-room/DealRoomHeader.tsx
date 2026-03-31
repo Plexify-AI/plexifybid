@@ -1,10 +1,13 @@
-import React from 'react';
-import { ArrowLeft, Share2, Clipboard } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Share2, Clipboard, FileDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { DealRoom } from '../../types/dealRoom';
+import { useSandbox } from '../../contexts/SandboxContext';
+import type { DealRoom, DealRoomTab } from '../../types/dealRoom';
 
 interface DealRoomHeaderProps {
   room: DealRoom;
+  activeTab?: DealRoomTab;
+  editorContent?: string;
 }
 
 function formatDate(dateStr: string): string {
@@ -20,8 +23,57 @@ function getRoomSubtitle(room: DealRoom): string {
   }
 }
 
-const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room }) => {
+const TAB_LABELS: Record<string, string> = {
+  deal_summary: 'Deal Summary',
+  competitive_analysis: 'Competitive Analysis',
+  meeting_prep: 'Meeting Prep',
+  board_brief: 'Board Brief',
+  ozrf_section: 'OZRF Section',
+};
+
+const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editorContent }) => {
   const navigate = useNavigate();
+  const { token } = useSandbox();
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportDocx = async () => {
+    if (!editorContent?.trim() || !token) return;
+    setExporting(true);
+
+    try {
+      const tabLabel = TAB_LABELS[activeTab || ''] || activeTab || 'Report';
+      const filename = `${room.name}_${tabLabel}`.replace(/[^a-zA-Z0-9\-_ ]/g, '');
+
+      const res = await fetch('/api/export/docx', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          boardBrief: null,
+          editorContent,
+          filename,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[DealRoomHeader] DOCX export error:', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#0B1120]">
@@ -61,6 +113,14 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room }) => {
         <div className="text-sm text-white/40">
           {room.source_count} sources · {room.message_count} messages · {formatDate(room.created_at)}
         </div>
+        <button
+          onClick={handleExportDocx}
+          disabled={exporting || !editorContent?.trim()}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <FileDown size={14} />
+          {exporting ? 'Exporting...' : 'Export DOCX'}
+        </button>
         <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 text-white/80 hover:bg-white/5 transition-colors text-sm">
           <Share2 size={14} />
           Share Room

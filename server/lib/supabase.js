@@ -519,6 +519,115 @@ export async function getTenantById(tenantId) {
 }
 
 // ---------------------------------------------------------------------------
+// Audio Budget Tracking
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if the tenant has audio budget remaining for the current month.
+ * Returns { allowed: boolean, remaining_cents, budget_cap_cents, total_cost_cents }.
+ * ElevenLabs costs ~$0.30/1000 chars. Estimate ~$0.15 per briefing, ~$0.40 per podcast.
+ */
+export async function checkAudioBudget(tenantId, estimatedCostCents = 40) {
+  const monthYear = new Date().toISOString().slice(0, 7); // e.g. '2026-04'
+
+  // Upsert to ensure the row exists
+  const { data, error } = await supabase
+    .from('tenant_audio_usage')
+    .upsert(
+      { tenant_id: tenantId, month_year: monthYear },
+      { onConflict: 'tenant_id,month_year', ignoreDuplicates: true }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    // If upsert fails, try a plain select
+    const { data: existing } = await supabase
+      .from('tenant_audio_usage')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('month_year', monthYear)
+      .single();
+
+    if (existing) {
+      const remaining = existing.budget_cap_cents - existing.total_cost_cents;
+      return {
+        allowed: remaining >= estimatedCostCents,
+        remaining_cents: remaining,
+        budget_cap_cents: existing.budget_cap_cents,
+        total_cost_cents: existing.total_cost_cents,
+        generation_count: existing.generation_count,
+      };
+    }
+
+    // No row and upsert failed — allow by default (don't block on tracking failure)
+    return { allowed: true, remaining_cents: 5000, budget_cap_cents: 5000, total_cost_cents: 0, generation_count: 0 };
+  }
+
+  const remaining = data.budget_cap_cents - data.total_cost_cents;
+  return {
+    allowed: remaining >= estimatedCostCents,
+    remaining_cents: remaining,
+    budget_cap_cents: data.budget_cap_cents,
+    total_cost_cents: data.total_cost_cents,
+    generation_count: data.generation_count,
+  };
+}
+
+/**
+ * Record audio generation cost after successful ElevenLabs call.
+ */
+export async function recordAudioCost(tenantId, costCents) {
+  const monthYear = new Date().toISOString().slice(0, 7);
+
+  const { error } = await supabase.rpc('increment_audio_usage', {
+    p_tenant_id: tenantId,
+    p_month_year: monthYear,
+    p_cost_cents: costCents,
+  });
+
+  // If the RPC doesn't exist, fall back to a manual update
+  if (error) {
+    const { data: existing } = await supabase
+      .from('tenant_audio_usage')
+      .select('total_cost_cents, generation_count')
+      .eq('tenant_id', tenantId)
+      .eq('month_year', monthYear)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from('tenant_audio_usage')
+        .update({
+          total_cost_cents: existing.total_cost_cents + costCents,
+          generation_count: existing.generation_count + 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('tenant_id', tenantId)
+        .eq('month_year', monthYear);
+    }
+  }
+}
+
+/**
+ * Get tenant tab configuration. Returns sorted, visible tabs.
+ * Falls back to null if no config exists (caller should use default BID tabs).
+ */
+export async function getTenantTabConfig(tenantId) {
+  const { data, error } = await supabase
+    .from('tenant_tab_config')
+    .select('skill_key, tab_label, sort_order, is_visible')
+    .eq('tenant_id', tenantId)
+    .eq('is_visible', true)
+    .order('sort_order', { ascending: true });
+  if (error) {
+    console.error('[supabase] getTenantTabConfig error:', error.message);
+    return null;
+  }
+  return data && data.length > 0 ? data : null;
+}
+
+// ---------------------------------------------------------------------------
 // Tenant middleware — validates X-Sandbox-Token header
 // ---------------------------------------------------------------------------
 

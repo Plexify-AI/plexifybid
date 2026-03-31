@@ -12,26 +12,34 @@ interface OpportunityContext {
 interface AssistantPanelProps {
   messages: DealRoomMessage[];
   sending: boolean;
+  generatingSkill: string | null;
   onSendMessage: (message: string, actionChip?: string) => Promise<any>;
+  onGenerateSkill: (skillKey: string, label: string) => Promise<any>;
   opportunity?: OpportunityContext | null;
 }
 
 const DEFAULT_ACTION_CHIPS = [
-  { label: 'Generate Board Brief', icon: '📄' },
-  { label: 'Extract Assessment Trends', icon: '📊' },
-  { label: 'Draft OZRF Section', icon: '🏛️' },
+  { label: 'Generate Board Brief', icon: '📄', skillKey: 'board_brief' },
+  { label: 'Extract Assessment Trends', icon: '📊', skillKey: 'deal_summary' },
+  { label: 'Draft OZRF Section', icon: '🏛️', skillKey: 'ozrf_section' },
 ];
 
-function getOpportunityChips(opp: OpportunityContext) {
+interface ActionChip {
+  label: string;
+  icon: string;
+  skillKey?: string;
+}
+
+function getOpportunityChips(opp: OpportunityContext): ActionChip[] {
   const name = opp.contact_name || opp.account_name || 'this contact';
   return [
-    { label: `Draft Outreach Email for ${name}`, icon: '✉️' },
-    { label: `Meeting Prep Brief for ${name}`, icon: '📋' },
+    { label: `Draft Outreach Email for ${name}`, icon: '✉️', skillKey: 'outreach_sequence' },
+    { label: `Meeting Prep Brief for ${name}`, icon: '📋', skillKey: 'meeting_prep' },
     { label: `Follow-Up Message for ${name}`, icon: '🔄' },
   ];
 }
 
-const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, onSendMessage, opportunity }) => {
+const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, generatingSkill, onSendMessage, onGenerateSkill, opportunity }) => {
   const [input, setInput] = useState('');
   const actionChips = opportunity ? getOpportunityChips(opportunity) : DEFAULT_ACTION_CHIPS;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -80,17 +88,37 @@ const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, onSe
 
       {/* Action chips */}
       <div className="px-4 py-2 border-b border-white/10 flex flex-wrap gap-1.5">
-        {actionChips.map((chip) => (
-          <button
-            key={chip.label}
-            onClick={() => onSendMessage(chip.label, chip.label)}
-            disabled={sending}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/20 hover:text-emerald-200 transition-colors disabled:opacity-50"
-          >
-            <span>{chip.icon}</span>
-            <span>{chip.label}</span>
-          </button>
-        ))}
+        {actionChips.map((chip) => {
+          const isSkillChip = 'skillKey' in chip && chip.skillKey;
+          const isThisChipGenerating = isSkillChip && generatingSkill === chip.skillKey;
+          const isDisabled = sending || !!generatingSkill;
+
+          return (
+            <button
+              key={chip.label}
+              onClick={() => {
+                if (isSkillChip) {
+                  onGenerateSkill(chip.skillKey!, chip.label);
+                } else {
+                  onSendMessage(chip.label, chip.label);
+                }
+              }}
+              disabled={isDisabled}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
+                isThisChipGenerating
+                  ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/40 animate-pulse'
+                  : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25 hover:bg-emerald-500/20 hover:text-emerald-200 disabled:opacity-50'
+              }`}
+            >
+              {isThisChipGenerating ? (
+                <span className="w-3 h-3 border border-emerald-300 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>{chip.icon}</span>
+              )}
+              <span>{isThisChipGenerating ? 'Generating...' : chip.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Messages */}

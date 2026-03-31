@@ -8,12 +8,14 @@
 import React from 'react';
 import {
   TrendingUp, Users, Clock, AlertTriangle,
-  ArrowRight, BarChart3, CheckCircle2
+  ArrowRight, BarChart3, CheckCircle2, Flame
 } from 'lucide-react';
+import { InlineCitation } from './CitationBadge';
 import type { DealSummaryOutput } from '../../types/artifacts';
 
 interface Props {
-  output: DealSummaryOutput;
+  output: DealSummaryOutput & { warmth_score_factors?: string[] };
+  onCitationClick?: (sourceFileName: string, chunkIndex: number) => void;
 }
 
 function severityColor(severity: string) {
@@ -25,7 +27,7 @@ function severityColor(severity: string) {
   }
 }
 
-const DealSummaryRenderer: React.FC<Props> = ({ output }) => {
+const DealSummaryRenderer: React.FC<Props> = ({ output, onCitationClick }) => {
   return (
     <div className="space-y-5">
       {/* Executive Summary */}
@@ -38,7 +40,7 @@ const DealSummaryRenderer: React.FC<Props> = ({ output }) => {
           {output.executive_summary.map((item, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
               <span className="text-blue-400 mt-1 shrink-0">•</span>
-              <span>{item}</span>
+              <span><InlineCitation text={item} onCitationClick={onCitationClick} /></span>
             </li>
           ))}
         </ul>
@@ -100,7 +102,7 @@ const DealSummaryRenderer: React.FC<Props> = ({ output }) => {
                 <div className="w-5 h-5 rounded-full bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-[9px] font-bold text-cyan-400">{i + 1}</span>
                 </div>
-                <p className="text-sm text-gray-300">{item}</p>
+                <p className="text-sm text-gray-300"><InlineCitation text={item} onCitationClick={onCitationClick} /></p>
               </div>
             ))}
           </div>
@@ -122,10 +124,10 @@ const DealSummaryRenderer: React.FC<Props> = ({ output }) => {
                     {risk.severity}
                   </span>
                 </div>
-                <p className="text-sm text-gray-300">{risk.description}</p>
+                <p className="text-sm text-gray-300"><InlineCitation text={risk.description} onCitationClick={onCitationClick} /></p>
                 {risk.mitigation && (
                   <p className="text-xs text-gray-500 mt-1">
-                    <span className="text-gray-400">Mitigation:</span> {risk.mitigation}
+                    <span className="text-gray-400">Mitigation:</span> <InlineCitation text={risk.mitigation} onCitationClick={onCitationClick} />
                   </p>
                 )}
               </div>
@@ -145,8 +147,28 @@ const DealSummaryRenderer: React.FC<Props> = ({ output }) => {
             {output.next_steps.map((step, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
                 <CheckCircle2 size={14} className="text-blue-400/60 shrink-0 mt-0.5" />
-                <span>{step}</span>
+                <span><InlineCitation text={step} onCitationClick={onCitationClick} /></span>
               </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Warmth Score Factors */}
+      {output.warmth_score_factors && output.warmth_score_factors.length > 0 && (
+        <section className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Flame size={16} className="text-orange-400" />
+            <h3 className="text-sm font-semibold text-white">Warmth Signals</h3>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {output.warmth_score_factors.map((factor, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] bg-orange-500/10 text-orange-300 border border-orange-500/25"
+              >
+                <InlineCitation text={factor} onCitationClick={onCitationClick} />
+              </span>
             ))}
           </div>
         </section>

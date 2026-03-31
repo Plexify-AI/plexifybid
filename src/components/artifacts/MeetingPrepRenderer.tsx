@@ -7,15 +7,23 @@
 
 import React from 'react';
 import {
-  Calendar, MessageCircle, Shield, HelpCircle, BookOpen, Clock
+  Calendar, MessageCircle, Shield, HelpCircle, BookOpen, Clock, Users
 } from 'lucide-react';
+import { InlineCitation } from './CitationBadge';
 import type { MeetingPrepOutput } from '../../types/artifacts';
 
-interface Props {
-  output: MeetingPrepOutput;
+interface Attendee {
+  name: string;
+  role: string;
+  relationship_notes: string;
 }
 
-const MeetingPrepRenderer: React.FC<Props> = ({ output }) => {
+interface Props {
+  output: MeetingPrepOutput & { attendees?: Attendee[] };
+  onCitationClick?: (sourceFileName: string, chunkIndex: number) => void;
+}
+
+const MeetingPrepRenderer: React.FC<Props> = ({ output, onCitationClick }) => {
   return (
     <div className="space-y-5">
       {/* Meeting Context */}
@@ -24,8 +32,36 @@ const MeetingPrepRenderer: React.FC<Props> = ({ output }) => {
           <Calendar size={16} className="text-blue-400" />
           <h3 className="text-sm font-semibold text-white">Meeting Context</h3>
         </div>
-        <p className="text-sm text-gray-300 leading-relaxed">{output.meeting_context}</p>
+        <p className="text-sm text-gray-300 leading-relaxed"><InlineCitation text={output.meeting_context} onCitationClick={onCitationClick} /></p>
       </section>
+
+      {/* Attendees */}
+      {output.attendees && output.attendees.length > 0 && (
+        <section className="bg-gray-800/40 border border-gray-700/40 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Users size={16} className="text-purple-400" />
+            <h3 className="text-sm font-semibold text-white">Attendees</h3>
+          </div>
+          <div className="space-y-2">
+            {output.attendees.map((person, i) => (
+              <div key={i} className="flex items-center gap-3 bg-gray-900/30 rounded-lg px-3 py-2">
+                <div className="w-7 h-7 rounded-full bg-purple-500/15 border border-purple-500/25 flex items-center justify-center shrink-0">
+                  <span className="text-[10px] font-bold text-purple-400">{person.name.charAt(0)}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{person.name}</p>
+                  <p className="text-[11px] text-gray-500">{person.role}</p>
+                  {person.relationship_notes && (
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      <InlineCitation text={person.relationship_notes} onCitationClick={onCitationClick} />
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Agenda */}
       {output.agenda && output.agenda.length > 0 && (
@@ -66,7 +102,7 @@ const MeetingPrepRenderer: React.FC<Props> = ({ output }) => {
             {output.talking_points.map((point, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
                 <span className="text-emerald-400/60 font-semibold shrink-0">{i + 1}.</span>
-                <span>{point}</span>
+                <span><InlineCitation text={point} onCitationClick={onCitationClick} /></span>
               </div>
             ))}
           </div>
@@ -87,13 +123,13 @@ const MeetingPrepRenderer: React.FC<Props> = ({ output }) => {
                   <span className="text-[10px] font-medium text-red-400/70 bg-red-500/10 px-1.5 py-0.5 rounded shrink-0 mt-0.5">
                     OBJECTION
                   </span>
-                  <p className="text-sm text-gray-300">{handler.objection}</p>
+                  <p className="text-sm text-gray-300"><InlineCitation text={handler.objection} onCitationClick={onCitationClick} /></p>
                 </div>
                 <div className="flex items-start gap-2 pl-[72px]">
                   <span className="text-[10px] font-medium text-green-400/70 bg-green-500/10 px-1.5 py-0.5 rounded shrink-0 mt-0.5">
                     RESPONSE
                   </span>
-                  <p className="text-sm text-gray-400">{handler.response}</p>
+                  <p className="text-sm text-gray-400"><InlineCitation text={handler.response} onCitationClick={onCitationClick} /></p>
                 </div>
               </div>
             ))}
@@ -112,7 +148,7 @@ const MeetingPrepRenderer: React.FC<Props> = ({ output }) => {
             {output.key_questions.map((q, i) => (
               <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
                 <span className="text-purple-400 shrink-0">?</span>
-                <span>{q}</span>
+                <span><InlineCitation text={q} onCitationClick={onCitationClick} /></span>
               </div>
             ))}
           </div>
@@ -126,7 +162,7 @@ const MeetingPrepRenderer: React.FC<Props> = ({ output }) => {
             <BookOpen size={16} className="text-gray-400" />
             <h3 className="text-sm font-semibold text-white">Background Context</h3>
           </div>
-          <p className="text-sm text-gray-400 leading-relaxed">{output.background_context}</p>
+          <p className="text-sm text-gray-400 leading-relaxed"><InlineCitation text={output.background_context} onCitationClick={onCitationClick} /></p>
         </section>
       )}
     </div>

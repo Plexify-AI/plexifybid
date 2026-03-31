@@ -8,8 +8,11 @@ import Underline from '@tiptap/extension-underline';
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
   AlignLeft, AlignCenter, AlignRight, Quote, Code, Undo, Redo,
+  Sparkles,
 } from 'lucide-react';
-import type { DealRoomTab } from '../../../types/dealRoom';
+import type { DealRoomTab, DealRoomArtifact } from '../../../types/dealRoom';
+import { DEAL_ROOM_TAB_LABELS } from '../../../types/dealRoom';
+import ArtifactRenderer from '../../../components/artifacts/ArtifactRenderer';
 
 interface EditorPanelProps {
   content: string;
@@ -18,6 +21,12 @@ interface EditorPanelProps {
   saving: boolean;
   lastSaved: Date | null;
   onContentChange: (tab: DealRoomTab, content: string) => void;
+  /** Latest ready artifact for the active tab (if one exists) */
+  activeArtifact?: DealRoomArtifact | null;
+  /** Whether a skill generation is in progress */
+  generatingSkill?: string | null;
+  /** Trigger skill generation for the active tab */
+  onGenerateSkill?: (skillKey: string, label: string) => void;
 }
 
 type EditorSubTab = 'chat' | 'editor' | 'artifacts';
@@ -29,6 +38,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   saving,
   lastSaved,
   onContentChange,
+  activeArtifact,
+  generatingSkill,
+  onGenerateSkill,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<EditorSubTab>('editor');
   const [localWordCount, setLocalWordCount] = useState(0);
@@ -242,8 +254,35 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       )}
 
       {activeSubTab === 'artifacts' && (
-        <div className="flex-1 flex items-center justify-center text-white/40 text-sm">
-          View generated artifacts in the left panel
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          {activeArtifact && activeArtifact.content ? (
+            <ArtifactRenderer
+              artifactType={activeArtifact.artifact_type}
+              contentJson={activeArtifact.content}
+            />
+          ) : generatingSkill === activeTab ? (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3" />
+              <p className="text-white/60 text-sm">Generating {DEAL_ROOM_TAB_LABELS[activeTab]}...</p>
+              <p className="text-white/30 text-xs mt-1">This may take 15-30 seconds</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <Sparkles size={32} className="text-white/20 mb-3" />
+              <p className="text-white/50 text-sm mb-3">
+                No {DEAL_ROOM_TAB_LABELS[activeTab]} generated yet
+              </p>
+              {onGenerateSkill && (
+                <button
+                  onClick={() => onGenerateSkill(activeTab, `Generate ${DEAL_ROOM_TAB_LABELS[activeTab]}`)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-sm"
+                >
+                  <Sparkles size={14} />
+                  Generate {DEAL_ROOM_TAB_LABELS[activeTab]}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

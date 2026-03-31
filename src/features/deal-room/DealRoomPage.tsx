@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useDealRoom } from './hooks/useDealRoom';
 import { useDealRoomSources } from './hooks/useDealRoomSources';
 import { useDealRoomChat } from './hooks/useDealRoomChat';
@@ -11,7 +11,7 @@ import EditorPanel from './panels/EditorPanel';
 import AssistantPanel from './panels/AssistantPanel';
 import { useSandbox } from '../../contexts/SandboxContext';
 import type { DealRoomMessage, DealRoomTab, DealRoomArtifact } from '../../types/dealRoom';
-import { GOLDEN_TRIANGLE_ROOM_ID } from '../../types/dealRoom';
+import { GOLDEN_TRIANGLE_ROOM_ID, DEAL_ROOM_TABS } from '../../types/dealRoom';
 
 // Pre-loaded conversation for Golden Triangle demo (shows AI already working)
 const GOLDEN_TRIANGLE_SEED_MESSAGES: DealRoomMessage[] = [
@@ -137,12 +137,15 @@ const DealRoomPage: React.FC = () => {
   const { token } = useSandbox();
   const [messages, setMessages] = useState<DealRoomMessage[]>([]);
   const [linkedOpportunity, setLinkedOpportunity] = useState<LinkedOpportunity | null>(null);
+  const [generatingSkill, setGeneratingSkill] = useState<string | null>(null);
 
   const {
     room,
     sources,
     messages: initialMessages,
     artifacts,
+    artifactsByType,
+    tabConfig,
     loading,
     error,
     saving,
@@ -152,6 +155,18 @@ const DealRoomPage: React.FC = () => {
     saveTabContent,
     refetch,
   } = useDealRoom(id);
+
+  // URL deep-linking: read ?tab= on mount (FR-015)
+  const [searchParams] = useSearchParams();
+  const urlTabApplied = React.useRef(false);
+  useEffect(() => {
+    if (urlTabApplied.current || loading) return;
+    const tabParam = searchParams.get('tab') as DealRoomTab | null;
+    if (tabParam && DEAL_ROOM_TABS.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    urlTabApplied.current = true;
+  }, [loading, searchParams, setActiveTab]);
 
   // Fetch linked opportunity data if room has opportunity_id
   useEffect(() => {
@@ -212,9 +227,12 @@ const DealRoomPage: React.FC = () => {
     return '';
   }, [room?.tab_content, activeTab, id]);
 
-  // Handle tab change — saves current content then switches
+  // Handle tab change — update URL with replaceState (don't pollute history) + switch tab
   const handleTabChange = useCallback((tab: DealRoomTab) => {
     setActiveTab(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.replaceState(null, '', url.toString());
   }, [setActiveTab]);
 
   // Handle editor content change (debounced save)
@@ -226,6 +244,94 @@ const DealRoomPage: React.FC = () => {
   const handleSendMessage = useCallback(async (message: string, actionChip?: string) => {
     return sendMessage(message, actionChip);
   }, [sendMessage]);
+
+  // Handle skill-based artifact generation from agent chips
+  const handleGenerateSkill = useCallback(async (skillKey: string, label: string) => {
+    if (!id || !token) return;
+
+    setGeneratingSkill(skillKey);
+
+    // Add user message to chat
+    const userMsg: DealRoomMessage = {
+      id: `skill-user-${Date.now()}`,
+      deal_room_id: id,
+      tenant_id: '',
+      role: 'user',
+      content: label,
+      citations: [],
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, userMsg]);
+
+    try {
+      // Golden Triangle demo: use pre-built responses via chat path
+      if (id === GOLDEN_TRIANGLE_ROOM_ID) {
+        await sendMessage(label, label);
+        return;
+      }
+
+      // Real rooms: call the skill generation endpoint
+      const res = await fetch(`/api/deal-rooms/${id}/generate`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ skillKey }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Generation failed' }));
+        const aiMsg: DealRoomMessage = {
+          id: `skill-err-${Date.now()}`,
+          deal_room_id: id,
+          tenant_id: '',
+          role: 'assistant',
+          content: `Failed to generate ${label}: ${err.error || 'Unknown error'}`,
+          citations: [],
+          created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, aiMsg]);
+        return;
+      }
+
+      const artifact = await res.json();
+      const output = artifact.content?.output;
+
+      // Build a summary message for the chat panel
+      const summary = output?.title
+        ? `**${output.title}**\n\nGenerated successfully. View the full ${label} in the Report Editor tab.`
+        : `${label} generated successfully. View it in the Report Editor tab.`;
+
+      const aiMsg: DealRoomMessage = {
+        id: `skill-ai-${Date.now()}`,
+        deal_room_id: id,
+        tenant_id: '',
+        role: 'assistant',
+        content: summary,
+        citations: [],
+        created_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, aiMsg]);
+
+      // Refresh deal room data (artifacts list, etc.)
+      refetch();
+    } catch (err: any) {
+      console.error('[DealRoomPage] Skill generation error:', err);
+      const aiMsg: DealRoomMessage = {
+        id: `skill-err-${Date.now()}`,
+        deal_room_id: id,
+        tenant_id: '',
+        role: 'assistant',
+        content: `Failed to generate ${label}: ${err.message || 'Network error'}`,
+        citations: [],
+        created_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, aiMsg]);
+    } finally {
+      setGeneratingSkill(null);
+    }
+  }, [id, token, sendMessage, refetch]);
 
   // Loading state
   if (loading) {
@@ -260,8 +366,8 @@ const DealRoomPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#0B1120]">
-      <DealRoomHeader room={room} />
-      <DealRoomTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      <DealRoomHeader room={room} activeTab={activeTab} editorContent={currentContent} />
+      <DealRoomTabs activeTab={activeTab} onTabChange={handleTabChange} tabConfig={tabConfig} />
       <DealRoomLayout
         leftPanel={
           <SourcesPanel
@@ -271,6 +377,12 @@ const DealRoomPage: React.FC = () => {
             uploadProgress={uploadProgress}
             onUploadFile={uploadFile}
             onDeleteSource={deleteSource}
+            onArtifactClick={(artifactType) => {
+              // Switch to the artifact's tab if it maps to a tab
+              if (DEAL_ROOM_TABS.includes(artifactType as any)) {
+                handleTabChange(artifactType as DealRoomTab);
+              }
+            }}
           />
         }
         centerPanel={
@@ -281,13 +393,18 @@ const DealRoomPage: React.FC = () => {
             saving={saving}
             lastSaved={lastSaved}
             onContentChange={handleContentChange}
+            activeArtifact={artifactsByType.get(activeTab) || null}
+            generatingSkill={generatingSkill}
+            onGenerateSkill={handleGenerateSkill}
           />
         }
         rightPanel={
           <AssistantPanel
             messages={messages}
             sending={sending}
+            generatingSkill={generatingSkill}
             onSendMessage={handleSendMessage}
+            onGenerateSkill={handleGenerateSkill}
             opportunity={linkedOpportunity}
           />
         }

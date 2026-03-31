@@ -1,13 +1,23 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSandbox } from '../../../contexts/SandboxContext';
 import type { DealRoom, DealRoomTab, DealRoomSource, DealRoomArtifact, DealRoomMessage } from '../../../types/dealRoom';
-import { GOLDEN_TRIANGLE_ROOM_ID, EMPTY_TAB_CONTENT } from '../../../types/dealRoom';
+import { GOLDEN_TRIANGLE_ROOM_ID, EMPTY_TAB_CONTENT, DEAL_ROOM_TABS } from '../../../types/dealRoom';
+
+export interface TabConfigEntry {
+  skill_key: string;
+  tab_label: string;
+  sort_order: number;
+}
 
 interface DealRoomData {
   room: DealRoom | null;
   sources: DealRoomSource[];
   messages: DealRoomMessage[];
   artifacts: DealRoomArtifact[];
+  /** Latest ready artifact per type — zero network calls on tab switch */
+  artifactsByType: Map<string, DealRoomArtifact>;
+  /** Tenant-specific tab config (null = use default BID tabs) */
+  tabConfig: TabConfigEntry[] | null;
   loading: boolean;
   error: string | null;
   saving: boolean;
@@ -154,6 +164,7 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [activeTab, setActiveTabState] = useState<DealRoomTab>('deal_summary');
+  const [tabConfig, setTabConfig] = useState<TabConfigEntry[] | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const headers = {
@@ -167,9 +178,10 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
     setError(null);
 
     try {
-      const [roomRes, artifactsRes] = await Promise.all([
+      const [roomRes, artifactsRes, tabConfigRes] = await Promise.all([
         fetch(`/api/deal-rooms/${dealRoomId}`, { headers }),
         fetch(`/api/deal-rooms/${dealRoomId}/artifacts`, { headers }),
+        fetch('/api/tab-config', { headers }),
       ]);
 
       if (!roomRes.ok) {
@@ -196,6 +208,11 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
       if (artifactsRes.ok) {
         const artData = await artifactsRes.json();
         setArtifacts(artData.artifacts || []);
+      }
+
+      if (tabConfigRes.ok) {
+        const tcData = await tabConfigRes.json();
+        setTabConfig(tcData.tabs || null);
       }
     } catch (err: any) {
       // Fallback to demo data for Golden Triangle room
@@ -278,6 +295,18 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
     }
   }, [dealRoomId, token]);
 
+  // Build artifactsByType map — latest version per type, status = 'ready' only
+  const artifactsByType = useMemo(() => {
+    const map = new Map<string, DealRoomArtifact>();
+    // Artifacts come from the API sorted by created_at desc, so first match per type is latest
+    for (const art of artifacts) {
+      if (art.status === 'ready' && !map.has(art.artifact_type)) {
+        map.set(art.artifact_type, art);
+      }
+    }
+    return map;
+  }, [artifacts]);
+
   // Cleanup timer on unmount
   useEffect(() => {
     return () => {
@@ -290,6 +319,8 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
     sources,
     messages,
     artifacts,
+    artifactsByType,
+    tabConfig,
     loading,
     error,
     saving,

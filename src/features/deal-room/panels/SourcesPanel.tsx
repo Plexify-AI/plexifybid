@@ -11,6 +11,7 @@ interface SourcesPanelProps {
   uploadProgress: string;
   onUploadFile: (file: File) => Promise<any>;
   onDeleteSource: (sourceId: string) => Promise<boolean>;
+  onArtifactClick?: (artifactType: string) => void;
 }
 
 const SourcesPanel: React.FC<SourcesPanelProps> = ({
@@ -20,6 +21,7 @@ const SourcesPanel: React.FC<SourcesPanelProps> = ({
   uploadProgress,
   onUploadFile,
   onDeleteSource,
+  onArtifactClick,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -106,7 +108,11 @@ const SourcesPanel: React.FC<SourcesPanelProps> = ({
           {artifactsExpanded && (
             <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
               {visualArtifacts.map((artifact) => (
-                <ArtifactThumbnail key={artifact.id} artifact={artifact} />
+                <ArtifactThumbnail
+                  key={artifact.id}
+                  artifact={artifact}
+                  onClick={() => onArtifactClick?.(artifact.artifact_type)}
+                />
               ))}
             </div>
           )}
