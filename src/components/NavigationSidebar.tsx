@@ -90,7 +90,7 @@ const NavigationSidebar: React.FC = () => {
           <div className="mb-3">
             <div className="flex flex-col items-center justify-center text-center">
               <img
-                src="/assets/logos/flat_P_logo.png"
+                src="/assets/logos/shaded_P_logo.png"
                 alt="PlexifySOLO"
                 className={`object-contain transition-all duration-300 ${isCollapsed ? 'w-11 h-11' : 'w-[108px] h-[108px]'}`}
               />
