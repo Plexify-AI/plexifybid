@@ -39,7 +39,8 @@ function getMsalApp() {
     auth: {
       clientId,
       clientSecret,
-      authority: 'https://login.microsoftonline.com/consumers',
+      // /common supports both personal (MSA) and work/school (M365) accounts
+      authority: 'https://login.microsoftonline.com/common',
     },
   });
 
@@ -123,6 +124,16 @@ export async function handleMicrosoftCallback(req, res) {
   // Microsoft returned an error
   if (errorParam) {
     console.error(`[email-auth] Microsoft OAuth error: ${errorParam} — ${errorDesc}`);
+
+    // M365 Business accounts may require IT admin to grant consent
+    if (errorParam === 'admin_consent_required' || errorParam === 'consent_required') {
+      const clientId = process.env.MICROSOFT_CLIENT_ID || '';
+      const state = stateId ? consumeOAuthState(stateId) : null;
+      const adminConsentUrl = `https://login.microsoftonline.com/common/adminconsent?client_id=${clientId}&redirect_uri=${encodeURIComponent(getRedirectUri())}`;
+      const qs = `error=admin_consent_required&admin_consent_url=${encodeURIComponent(adminConsentUrl)}${state ? `&token=${encodeURIComponent(state.sandboxToken)}` : ''}`;
+      return redirectToSettings(res, qs);
+    }
+
     return redirectToSettings(res, `error=${encodeURIComponent(errorDesc || errorParam)}`);
   }
 
@@ -202,13 +213,18 @@ export async function handleMicrosoftCallback(req, res) {
       scopes: SCOPES,
     });
 
+    // Determine account type from token claims
+    // tid 9188040d-... = Microsoft personal account (MSA); anything else = M365 work/school
+    const tid = tokenResponse.idTokenClaims?.tid || '';
+    const accountType = tid === '9188040d-6c67-4c5b-b112-36a304b66dad' ? 'personal' : 'work_school';
+
     // Audit log
     logEmailAudit({
       tenantId: tenant.id,
       userId: tenant.id,
       emailAccountId: account.id,
       actionType: 'connect',
-      metadata: { provider: 'microsoft', email: emailAddress },
+      metadata: { provider: 'microsoft', email: emailAddress, account_type: accountType },
     });
 
     console.log(`[email-auth] Connected Microsoft account: ${emailAddress} for tenant ${tenant.slug}`);
