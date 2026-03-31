@@ -145,7 +145,7 @@ const EmailSettingsPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">Email Integration</h1>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-300">
               Connect your email so Ask Plexi can read, search, and send on your behalf
             </p>
           </div>
@@ -173,7 +173,7 @@ const EmailSettingsPage: React.FC = () => {
       {/* Security note */}
       <div className="mb-6 px-4 py-3 rounded-lg bg-gray-800/40 border border-gray-700/40 flex items-start gap-3">
         <Shield size={18} className="text-gray-400 mt-0.5 shrink-0" />
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-300">
           Your credentials are encrypted with AES-256 and stored securely. Plexi will never send an email without showing you a preview first.
         </p>
       </div>
@@ -194,7 +194,7 @@ const EmailSettingsPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">Microsoft Outlook</h3>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-300">
                   Connect your Outlook.com or Microsoft 365 account
                 </p>
               </div>
@@ -212,7 +212,7 @@ const EmailSettingsPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-white">{status.displayName || status.email}</p>
                   {status.displayName && (
-                    <p className="text-xs text-gray-400">{status.email}</p>
+                    <p className="text-xs text-gray-300">{status.email}</p>
                   )}
                   {status.lastUsedAt && (
                     <p className="text-xs text-gray-500 mt-1">
@@ -292,7 +292,7 @@ const EmailSettingsPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">Google Gmail</h3>
-                <p className="text-sm text-gray-400">Connect your Gmail or Google Workspace account</p>
+                <p className="text-sm text-gray-300">Connect your Gmail or Google Workspace account</p>
               </div>
             </div>
             <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-600/30 text-gray-400 border border-gray-600/30">
@@ -305,7 +305,7 @@ const EmailSettingsPage: React.FC = () => {
       {/* What you can do */}
       <div className="mt-8 rounded-xl bg-gray-800/40 border border-gray-700/40 p-6">
         <h3 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">What Plexi Can Do With Your Email</h3>
-        <ul className="space-y-2 text-sm text-gray-400">
+        <ul className="space-y-2 text-sm text-gray-300">
           <li className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             Read and search your inbox for relevant conversations
@@ -330,7 +330,7 @@ const EmailSettingsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 max-w-md mx-4">
             <h3 className="text-lg font-semibold text-white mb-2">Disconnect Email?</h3>
-            <p className="text-sm text-gray-400 mb-4">
+            <p className="text-sm text-gray-300 mb-4">
               Ask Plexi will no longer be able to read, search, or send emails on your behalf. You can reconnect anytime.
             </p>
             <div className="flex gap-3 justify-end">
