@@ -23,14 +23,19 @@ const EmailSettingsPage: React.FC = () => {
   const [disconnecting, setDisconnecting] = useState(false);
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
+  const [adminConsentUrl, setAdminConsentUrl] = useState<string | null>(null);
 
   // Check for OAuth callback results in URL
   useEffect(() => {
     const connected = searchParams.get('connected');
     const error = searchParams.get('error');
+    const consentUrl = searchParams.get('admin_consent_url');
 
     if (connected === 'true') {
       setFlashMessage('Email connected successfully.');
+    } else if (error === 'admin_consent_required') {
+      setFlashMessage('Your Microsoft 365 organization requires admin approval before connecting. Ask your IT admin to grant consent.');
+      if (consentUrl) setAdminConsentUrl(decodeURIComponent(consentUrl));
     } else if (error) {
       setFlashMessage(`Connection failed: ${decodeURIComponent(error)}`);
     }
@@ -149,8 +154,19 @@ const EmailSettingsPage: React.FC = () => {
 
       {/* Flash message */}
       {flashMessage && (
-        <div className="mb-6 px-4 py-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-300 text-sm">
-          {flashMessage}
+        <div className={`mb-6 px-4 py-3 rounded-lg text-sm ${adminConsentUrl ? 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-300' : 'bg-blue-500/10 border border-blue-500/30 text-blue-300'}`}>
+          <p>{flashMessage}</p>
+          {adminConsentUrl && (
+            <a
+              href={adminConsentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-yellow-400 underline hover:text-yellow-300"
+            >
+              <ExternalLink size={12} />
+              Open Admin Consent Page
+            </a>
+          )}
         </div>
       )}
 
