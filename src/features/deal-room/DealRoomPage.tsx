@@ -154,6 +154,7 @@ const DealRoomPage: React.FC = () => {
     setActiveTab,
     saveTabContent,
     refetch,
+    addArtifact,
   } = useDealRoom(id);
 
   // URL deep-linking: read ?tab= on mount (FR-015)
@@ -245,6 +246,26 @@ const DealRoomPage: React.FC = () => {
     return sendMessage(message, actionChip);
   }, [sendMessage]);
 
+  // Copy AI response content to the active tab's editor (appends to existing)
+  const handleCopyToEditor = useCallback((markdownContent: string) => {
+    // Convert markdown to simple HTML for TipTap
+    const html = markdownContent
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br/>');
+    const wrapped = `<p>${html}</p>`.replace(/<p><h([123])>/g, '<h$1>').replace(/<\/h([123])><\/p>/g, '</h$1>');
+
+    // Append to existing editor content (build document from multiple chats)
+    const existing = (room?.tab_content as Record<string, string>)?.[activeTab] || '';
+    const separator = existing ? '<hr/>' : '';
+    const combined = existing + separator + wrapped;
+    saveTabContent(activeTab, combined);
+  }, [saveTabContent, activeTab, room?.tab_content]);
+
   // Handle skill-based artifact generation from agent chips
   const handleGenerateSkill = useCallback(async (skillKey: string, label: string) => {
     if (!id || !token) return;
@@ -314,8 +335,13 @@ const DealRoomPage: React.FC = () => {
       };
       setMessages(prev => [...prev, aiMsg]);
 
-      // Refresh deal room data (artifacts list, etc.)
-      refetch();
+      // Add artifact to local state (no full refetch = no loading flash)
+      addArtifact(artifact);
+
+      // Switch to the generated skill's tab so the user sees the result
+      if (DEAL_ROOM_TABS.includes(skillKey as DealRoomTab)) {
+        handleTabChange(skillKey as DealRoomTab);
+      }
     } catch (err: any) {
       console.error('[DealRoomPage] Skill generation error:', err);
       const aiMsg: DealRoomMessage = {
@@ -331,7 +357,7 @@ const DealRoomPage: React.FC = () => {
     } finally {
       setGeneratingSkill(null);
     }
-  }, [id, token, sendMessage, refetch]);
+  }, [id, token, sendMessage, addArtifact, handleTabChange]);
 
   // Loading state
   if (loading) {
@@ -405,6 +431,7 @@ const DealRoomPage: React.FC = () => {
             generatingSkill={generatingSkill}
             onSendMessage={handleSendMessage}
             onGenerateSkill={handleGenerateSkill}
+            onCopyToEditor={handleCopyToEditor}
             opportunity={linkedOpportunity}
           />
         }

@@ -15,6 +15,7 @@ interface AssistantPanelProps {
   generatingSkill: string | null;
   onSendMessage: (message: string, actionChip?: string) => Promise<any>;
   onGenerateSkill: (skillKey: string, label: string) => Promise<any>;
+  onCopyToEditor?: (content: string) => void;
   opportunity?: OpportunityContext | null;
 }
 
@@ -39,7 +40,7 @@ function getOpportunityChips(opp: OpportunityContext): ActionChip[] {
   ];
 }
 
-const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, generatingSkill, onSendMessage, onGenerateSkill, opportunity }) => {
+const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, generatingSkill, onSendMessage, onGenerateSkill, onCopyToEditor, opportunity }) => {
   const [input, setInput] = useState('');
   const actionChips = opportunity ? getOpportunityChips(opportunity) : DEFAULT_ACTION_CHIPS;
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -130,7 +131,7 @@ const AssistantPanel: React.FC<AssistantPanelProps> = ({ messages, sending, gene
           </div>
         )}
         {messages.map((msg) => (
-          <DealRoomChatMessage key={msg.id} message={msg} />
+          <DealRoomChatMessage key={msg.id} message={msg} onCopyToEditor={onCopyToEditor} />
         ))}
         {sending && (
           <div className="flex items-center gap-2 text-white/40 text-sm mb-3">

@@ -176,7 +176,35 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       </div>
 
       {/* Content area */}
-      {activeSubTab === 'editor' && editor && (
+      {activeSubTab === 'editor' && (
+        generatingSkill === activeTab ? (
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-white/60 text-sm">Generating {DEAL_ROOM_TAB_LABELS[activeTab]}...</p>
+            <p className="text-white/30 text-xs mt-1">This may take 15-30 seconds</p>
+          </div>
+        ) : activeArtifact?.content ? (
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <ArtifactRenderer
+              artifactType={activeArtifact.artifact_type}
+              contentJson={activeArtifact.content}
+            />
+          </div>
+        ) : !content && onGenerateSkill ? (
+          <div className="flex flex-col items-center justify-center flex-1 text-center">
+            <Sparkles size={32} className="text-white/20 mb-3" />
+            <p className="text-white/50 text-sm mb-3">
+              No {DEAL_ROOM_TAB_LABELS[activeTab]} generated yet
+            </p>
+            <button
+              onClick={() => onGenerateSkill(activeTab, `Generate ${DEAL_ROOM_TAB_LABELS[activeTab]}`)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-sm"
+            >
+              <Sparkles size={14} />
+              Generate {DEAL_ROOM_TAB_LABELS[activeTab]}
+            </button>
+          </div>
+        ) : editor ? (
         <>
           {/* Toolbar */}
           <div className="flex items-center gap-0.5 px-4 py-2 border-b border-white/10 flex-wrap">
@@ -245,6 +273,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             </span>
           </div>
         </>
+        ) : null
       )}
 
       {activeSubTab === 'chat' && (

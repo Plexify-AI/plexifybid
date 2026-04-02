@@ -27,6 +27,8 @@ interface DealRoomData {
   saveTabContent: (tab: DealRoomTab, content: string) => Promise<void>;
   updateRoom: (updates: Partial<DealRoom>) => Promise<void>;
   refetch: () => Promise<void>;
+  /** Add a newly generated artifact to local state without full refetch */
+  addArtifact: (artifact: DealRoomArtifact) => void;
 }
 
 // Fallback demo room + sources for Golden Triangle when DB record doesn't exist
@@ -295,6 +297,11 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
     }
   }, [dealRoomId, token]);
 
+  // Add a single artifact to local state (avoids full refetch flash)
+  const addArtifact = useCallback((artifact: DealRoomArtifact) => {
+    setArtifacts(prev => [artifact, ...prev]);
+  }, []);
+
   // Build artifactsByType map — latest version per type, status = 'ready' only
   const artifactsByType = useMemo(() => {
     const map = new Map<string, DealRoomArtifact>();
@@ -330,5 +337,6 @@ export function useDealRoom(dealRoomId: string | undefined): DealRoomData {
     saveTabContent,
     updateRoom,
     refetch: fetchRoom,
+    addArtifact,
   };
 }

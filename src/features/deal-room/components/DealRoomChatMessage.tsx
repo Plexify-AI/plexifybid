@@ -1,14 +1,16 @@
-import React from 'react';
-import { Paperclip } from 'lucide-react';
+import React, { useState } from 'react';
+import { Paperclip, ClipboardCopy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { DealRoomMessage } from '../../../types/dealRoom';
 
 interface DealRoomChatMessageProps {
   message: DealRoomMessage;
+  onCopyToEditor?: (content: string) => void;
 }
 
-const DealRoomChatMessage: React.FC<DealRoomChatMessageProps> = ({ message }) => {
+const DealRoomChatMessage: React.FC<DealRoomChatMessageProps> = ({ message, onCopyToEditor }) => {
   const isUser = message.role === 'user';
+  const [copied, setCopied] = useState(false);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}>
@@ -52,6 +54,21 @@ const DealRoomChatMessage: React.FC<DealRoomChatMessageProps> = ({ message }) =>
               </span>
             ))}
           </div>
+        )}
+
+        {/* Copy to Editor chip — assistant messages only */}
+        {!isUser && onCopyToEditor && (
+          <button
+            onClick={() => {
+              onCopyToEditor(message.content);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-md text-[11px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/25 transition-colors"
+          >
+            {copied ? <Check size={10} /> : <ClipboardCopy size={10} />}
+            {copied ? 'Copied to Editor' : 'Copy to Editor'}
+          </button>
         )}
       </div>
     </div>

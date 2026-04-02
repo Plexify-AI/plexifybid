@@ -248,6 +248,13 @@ app.get('/api/tab-config', async (req, res) => {
   await handleGetTabConfig(req, res);
 });
 
+// DOCX Export
+import { handleExportDocx } from './routes/export-docx.js';
+
+app.post('/api/export/docx', async (req, res) => {
+  await handleExportDocx(req, res, req.body);
+});
+
 // Pipeline Summary (Level 1 template interpolation)
 import { handlePipelineSummary } from './routes/pipeline-summary.js';
 
