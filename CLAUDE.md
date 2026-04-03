@@ -241,3 +241,8 @@ See @docs/HANDOFF_SESSION12_COMPLETE.md for Session 12 details.
 - Never use: delve, leverage, seamless, transformative
 - Hit a blocker? Tell me immediately
 - Uncertain? Propose 2-3 options, let me choose
+## Verification Rules (non-negotiable)
+- Never claim a feature works based on build/compilation alone
+- Every task requires an Acceptance Test with specific browser steps
+- Never claim "done" — provide Ken test steps and wait for confirmation
+- Ken's browser output is the truth. If he sees failure, it's failure.

@@ -13,6 +13,124 @@ import {
 import type { DealRoomTab, DealRoomArtifact } from '../../../types/dealRoom';
 import { DEAL_ROOM_TAB_LABELS } from '../../../types/dealRoom';
 import ArtifactRenderer from '../../../components/artifacts/ArtifactRenderer';
+import { boardBriefToHtml } from '../../../components/BoardBriefRenderer';
+import { ozrfSectionToHtml } from '../../../components/OZRFSectionRenderer';
+
+/**
+ * Convert artifact JSON to TipTap-compatible HTML.
+ * Uses dedicated converters for board_brief and ozrf_section,
+ * generic section-based converter for all other types.
+ */
+function artifactToHtml(artifactType: string, contentJson: any): string {
+  const output = contentJson?.output ?? contentJson;
+  if (!output) return '';
+
+  try {
+    if (artifactType === 'board_brief') {
+      const envelope = contentJson.agentId ? contentJson : {
+        agentId: 'board-brief' as const,
+        schemaVersion: '1.0' as const,
+        generatedAt: contentJson.generated_at || new Date().toISOString(),
+        projectId: contentJson.deal_room_id || '',
+        sourcesUsed: [],
+        output,
+      };
+      return boardBriefToHtml(envelope);
+    }
+
+    if (artifactType === 'ozrf_section') {
+      const envelope = contentJson.agentId ? contentJson : {
+        agentId: 'ozrf-section' as const,
+        schemaVersion: '1.0' as const,
+        generatedAt: contentJson.generated_at || new Date().toISOString(),
+        projectId: contentJson.deal_room_id || '',
+        sourcesUsed: [],
+        output,
+      };
+      return ozrfSectionToHtml(envelope);
+    }
+
+    // Generic converter for deal_summary, competitive_analysis, meeting_prep, etc.
+    return genericArtifactToHtml(artifactType, output);
+  } catch {
+    return `<h1>${artifactType.replace(/_/g, ' ')}</h1><p>Content loaded — edit below.</p>`;
+  }
+}
+
+function genericArtifactToHtml(type: string, output: any): string {
+  const esc = (s: string) => s?.toString()
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') ?? '';
+  const ul = (items: string[]) =>
+    items?.length ? `<ul>${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : '';
+
+  const parts: string[] = [];
+
+  if (output.title) parts.push(`<h1>${esc(output.title)}</h1>`);
+
+  // deal_summary
+  if (output.executive_summary) {
+    parts.push('<h2>Executive Summary</h2>', ul(output.executive_summary));
+  }
+  if (output.key_metrics?.length) {
+    parts.push('<h2>Key Metrics</h2>',
+      `<ul>${output.key_metrics.map((m: any) => `<li><strong>${esc(m.label || m.metric)}:</strong> ${esc(m.value)}</li>`).join('')}</ul>`);
+  }
+  if (output.key_players?.length) {
+    parts.push('<h2>Key Players</h2>',
+      `<ul>${output.key_players.map((p: any) => `<li><strong>${esc(p.name)}</strong> — ${esc(p.role || p.title || '')}</li>`).join('')}</ul>`);
+  }
+  if (output.timeline) {
+    parts.push('<h2>Timeline</h2>', ul(output.timeline));
+  }
+  if (output.risks?.length) {
+    parts.push('<h2>Risks</h2>',
+      `<ul>${output.risks.map((r: any) => typeof r === 'string' ? `<li>${esc(r)}</li>` : `<li><strong>[${esc(r.severity || '')}]</strong> ${esc(r.description || r.risk || '')}</li>`).join('')}</ul>`);
+  }
+  if (output.next_steps) {
+    parts.push('<h2>Next Steps</h2>', ul(output.next_steps));
+  }
+
+  // competitive_analysis
+  if (output.competitors?.length) {
+    parts.push('<h2>Competitors</h2>');
+    for (const c of output.competitors) {
+      parts.push(`<h3>${esc(c.name)} (${esc(c.threat_level || '')})</h3>`);
+      if (c.strengths?.length) parts.push('<p><strong>Strengths:</strong></p>', ul(c.strengths));
+      if (c.weaknesses?.length) parts.push('<p><strong>Weaknesses:</strong></p>', ul(c.weaknesses));
+      if (c.differentiator) parts.push(`<p><strong>Differentiator:</strong> ${esc(c.differentiator)}</p>`);
+    }
+  }
+  if (output.market_position) {
+    parts.push('<h2>Market Position</h2>', `<p>${esc(output.market_position)}</p>`);
+  }
+  if (output.strategy_recommendations) {
+    parts.push('<h2>Strategy Recommendations</h2>', ul(output.strategy_recommendations));
+  }
+
+  // meeting_prep
+  if (output.meeting_context) {
+    parts.push('<h2>Meeting Context</h2>', `<p>${esc(output.meeting_context)}</p>`);
+  }
+  if (output.agenda?.length) {
+    parts.push('<h2>Agenda</h2>',
+      `<ul>${output.agenda.map((a: any) => `<li><strong>${esc(a.topic)}</strong> (${a.duration_minutes} min)${a.owner ? ` — ${esc(a.owner)}` : ''}</li>`).join('')}</ul>`);
+  }
+  if (output.talking_points) {
+    parts.push('<h2>Talking Points</h2>', ul(output.talking_points));
+  }
+  if (output.objection_handlers?.length) {
+    parts.push('<h2>Objection Handlers</h2>',
+      `<ul>${output.objection_handlers.map((o: any) => `<li><strong>${esc(o.objection)}:</strong> ${esc(o.response)}</li>`).join('')}</ul>`);
+  }
+  if (output.key_questions) {
+    parts.push('<h2>Key Questions</h2>', ul(output.key_questions));
+  }
+  if (output.background_context) {
+    parts.push('<h2>Background Context</h2>', `<p>${esc(output.background_context)}</p>`);
+  }
+
+  return parts.filter(Boolean).join('\n');
+}
 
 interface EditorPanelProps {
   content: string;
@@ -29,7 +147,7 @@ interface EditorPanelProps {
   onGenerateSkill?: (skillKey: string, label: string) => void;
 }
 
-type EditorSubTab = 'chat' | 'editor' | 'artifacts';
+type EditorSubTab = 'editor' | 'artifacts';
 
 const EditorPanel: React.FC<EditorPanelProps> = ({
   content,
@@ -48,6 +166,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   const isUpdatingRef = useRef(false);
   const pendingContentRef = useRef<{ tab: DealRoomTab; html: string } | null>(null);
   const prevTabRef = useRef<DealRoomTab>(activeTab);
+  const lastSyncedContentRef = useRef<string>(content || '');
 
   // Calculate word count from plain text
   const calcWordCount = useCallback((text: string) => {
@@ -81,6 +200,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       // Update local word count
       setLocalWordCount(calcWordCount(editor.getText()));
 
+      // Track what the editor has so sync effect doesn't re-set it
+      lastSyncedContentRef.current = html;
+
       // Track pending content for flush on tab switch
       pendingContentRef.current = { tab: activeTab, html };
 
@@ -108,14 +230,38 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       prevTabRef.current = activeTab;
     }
 
-    // Sync editor content to new tab
-    if (editor && content !== undefined) {
+    // Sync editor content when content prop changes from parent
+    // (tab switch, Copy to Editor, etc.) but skip if editor already has it
+    const incoming = content || '';
+    if (editor && incoming !== lastSyncedContentRef.current) {
+      lastSyncedContentRef.current = incoming;
       isUpdatingRef.current = true;
-      editor.commands.setContent(content || '');
+      editor.commands.setContent(incoming);
       setLocalWordCount(calcWordCount(editor.getText()));
       isUpdatingRef.current = false;
     }
   }, [content, activeTab]);
+
+  // One-time auto-populate: load artifact HTML into TipTap when editor is empty
+  const populatedArtifactsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!editor || !activeArtifact?.content) return;
+    // Skip if we already populated this artifact for this tab
+    const key = `${activeTab}:${activeArtifact.id || activeArtifact.artifact_type}`;
+    if (populatedArtifactsRef.current.has(key)) return;
+    // Only populate if editor is empty (no user edits)
+    const currentText = editor.getText().trim();
+    if (currentText.length > 0) return;
+    const html = artifactToHtml(activeArtifact.artifact_type, activeArtifact.content);
+    if (!html) return;
+    populatedArtifactsRef.current.add(key);
+    isUpdatingRef.current = true;
+    editor.commands.setContent(html);
+    setLocalWordCount(calcWordCount(editor.getText()));
+    isUpdatingRef.current = false;
+    // Save so it persists — use setTimeout to avoid sync re-render cascade
+    setTimeout(() => onContentChange(activeTab, html), 0);
+  }, [editor, activeArtifact, activeTab]);
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -155,7 +301,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
     <div className="flex flex-col h-full">
       {/* Sub-tabs */}
       <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-white/10">
-        {(['chat', 'editor', 'artifacts'] as EditorSubTab[]).map((tab) => (
+        {(['editor', 'artifacts'] as EditorSubTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -165,7 +311,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
                 : 'text-white/50 hover:text-white/70'
             }`}
           >
-            {tab === 'chat' ? 'Chat' : tab === 'editor' ? 'Report Editor' : 'Artifacts'}
+            {tab === 'editor' ? 'Report Editor' : 'Artifacts'}
             {activeSubTab === tab && tab === 'editor' && (
               <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-300 uppercase">
                 Active
@@ -183,30 +329,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             <p className="text-white/60 text-sm">Generating {DEAL_ROOM_TAB_LABELS[activeTab]}...</p>
             <p className="text-white/30 text-xs mt-1">This may take 15-30 seconds</p>
           </div>
-        ) : activeArtifact?.content ? (
-          <div className="flex-1 overflow-y-auto px-4 py-4">
-            <ArtifactRenderer
-              artifactType={activeArtifact.artifact_type}
-              contentJson={activeArtifact.content}
-            />
-          </div>
-        ) : !content && onGenerateSkill ? (
-          <div className="flex flex-col items-center justify-center flex-1 text-center">
-            <Sparkles size={32} className="text-white/20 mb-3" />
-            <p className="text-white/50 text-sm mb-3">
-              No {DEAL_ROOM_TAB_LABELS[activeTab]} generated yet
-            </p>
-            <button
-              onClick={() => onGenerateSkill(activeTab, `Generate ${DEAL_ROOM_TAB_LABELS[activeTab]}`)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-sm"
-            >
-              <Sparkles size={14} />
-              Generate {DEAL_ROOM_TAB_LABELS[activeTab]}
-            </button>
-          </div>
         ) : editor ? (
         <>
-          {/* Toolbar */}
+          {/* Toolbar — always visible */}
           <div className="flex items-center gap-0.5 px-4 py-2 border-b border-white/10 flex-wrap">
             <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold">
               <Bold size={16} />
@@ -251,6 +376,19 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             <ToolbarBtn onClick={() => editor.chain().focus().redo().run()} title="Redo">
               <Redo size={16} />
             </ToolbarBtn>
+            {/* Generate button — inline in toolbar when no content and no artifact */}
+            {!content && !activeArtifact?.content && onGenerateSkill && (
+              <>
+                <div className="w-px h-5 bg-white/10 mx-1" />
+                <button
+                  onClick={() => onGenerateSkill(activeTab, `Generate ${DEAL_ROOM_TAB_LABELS[activeTab]}`)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-xs"
+                >
+                  <Sparkles size={12} />
+                  Generate
+                </button>
+              </>
+            )}
           </div>
 
           {/* Editor */}
@@ -274,12 +412,6 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           </div>
         </>
         ) : null
-      )}
-
-      {activeSubTab === 'chat' && (
-        <div className="flex-1 flex items-center justify-center text-white/40 text-sm">
-          Use the AI Assistant panel on the right →
-        </div>
       )}
 
       {activeSubTab === 'artifacts' && (

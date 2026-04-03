@@ -379,7 +379,7 @@ const AppBody: React.FC = () => {
             <Routes>
               {/* Public routes */}
               <Route path="/sandbox" element={<SandboxEntry />} />
-              <Route path="/demo/mel" element={<MelDemo />} />
+              <Route path="/demo/mel" element={<Navigate to="/momentum" replace />} />
 
               {/* Protected routes — require sandbox auth */}
               {isAuthenticated ? (

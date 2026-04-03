@@ -70,7 +70,7 @@ export function ozrfSectionToHtml(section: OZRFSectionEnvelope): string {
 function CitationMark({ citation }: { citation?: StructuredCitation }) {
   if (!citation) return null;
   return (
-    <span className="ml-1 text-xs text-slate-400 align-super">[{citation.number}]</span>
+    <span className="ml-1 text-xs text-white/40 align-super">[{citation.number}]</span>
   );
 }
 
@@ -84,9 +84,9 @@ function MetricCard({
   citation?: StructuredCitation;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3">
-      <div className="text-xs font-medium text-slate-500">{label}</div>
-      <div className="mt-1 text-sm font-semibold text-slate-900">
+    <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+      <div className="text-xs font-medium text-white/50">{label}</div>
+      <div className="mt-1 text-sm font-semibold text-white">
         {value}
         <CitationMark citation={citation} />
       </div>
@@ -106,15 +106,15 @@ export default function OZRFSectionRenderer({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">{output.title}</h2>
-        <p className="text-sm text-slate-500">
+        <h2 className="text-lg font-semibold text-white">{output.title}</h2>
+        <p className="text-sm text-white/50">
           Reporting Period: {output.metadata.reportingPeriod} • Prepared{' '}
           {output.metadata.preparedDate}
         </p>
       </div>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Community Impact Metrics</h3>
+        <h3 className="text-sm font-semibold text-white/90">Community Impact Metrics</h3>
         <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <MetricCard
             label="Jobs Created"
@@ -135,7 +135,7 @@ export default function OZRFSectionRenderer({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Investment Facilitation</h3>
+        <h3 className="text-sm font-semibold text-white/90">Investment Facilitation</h3>
         <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <MetricCard
             label="Total Investment Attracted"
@@ -156,10 +156,10 @@ export default function OZRFSectionRenderer({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">
+        <h3 className="text-sm font-semibold text-white/90">
           Environmental &amp; Social Outcomes
         </h3>
-        <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <ul className="mt-2 list-disc pl-5 text-sm text-white/70 space-y-1">
           {environmentalSocial.map((item, idx) => (
             <li key={idx}>
               <span className="font-medium">{item.metric}:</span> {item.value}
@@ -167,14 +167,14 @@ export default function OZRFSectionRenderer({
             </li>
           ))}
           {environmentalSocial.length === 0 ? (
-            <li className="list-none text-slate-500">No environmental/social outcomes.</li>
+            <li className="list-none text-white/50">No environmental/social outcomes.</li>
           ) : null}
         </ul>
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Disclosure Statement</h3>
-        <p className="mt-2 text-sm text-slate-700">{disclosureStatement}</p>
+        <h3 className="text-sm font-semibold text-white/90">Disclosure Statement</h3>
+        <p className="mt-2 text-sm text-white/70">{disclosureStatement}</p>
       </section>
     </div>
   );

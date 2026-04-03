@@ -58,9 +58,9 @@ export default function BoardBriefRenderer({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">{output.title}</h2>
+        <h2 className="text-lg font-semibold text-white">{output.title}</h2>
         {(output.districtName || output.reportingPeriod) && (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-white/50">
             {[output.districtName, output.reportingPeriod]
               .filter(Boolean)
               .join(' • ')}
@@ -69,10 +69,10 @@ export default function BoardBriefRenderer({
       </div>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">
+        <h3 className="text-sm font-semibold text-white/90">
           Executive Summary
         </h3>
-        <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <ul className="mt-2 list-disc pl-5 text-sm text-white/70 space-y-1">
           {output.executiveSummary.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
@@ -80,8 +80,8 @@ export default function BoardBriefRenderer({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Key Metrics</h3>
-        <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <h3 className="text-sm font-semibold text-white/90">Key Metrics</h3>
+        <ul className="mt-2 list-disc pl-5 text-sm text-white/70 space-y-1">
           {output.keyMetrics.map((m, idx) => (
             <li key={idx}>
               <span className="font-medium">{m.label}:</span> {m.value}
@@ -91,8 +91,8 @@ export default function BoardBriefRenderer({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Highlights</h3>
-        <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <h3 className="text-sm font-semibold text-white/90">Highlights</h3>
+        <ul className="mt-2 list-disc pl-5 text-sm text-white/70 space-y-1">
           {output.highlights.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
@@ -100,8 +100,8 @@ export default function BoardBriefRenderer({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Risks</h3>
-        <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <h3 className="text-sm font-semibold text-white/90">Risks</h3>
+        <ul className="mt-2 list-disc pl-5 text-sm text-white/70 space-y-1">
           {output.risks.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
@@ -109,8 +109,8 @@ export default function BoardBriefRenderer({
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-slate-800">Recommendations</h3>
-        <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
+        <h3 className="text-sm font-semibold text-white/90">Recommendations</h3>
+        <ul className="mt-2 list-disc pl-5 text-sm text-white/70 space-y-1">
           {output.recommendations.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
