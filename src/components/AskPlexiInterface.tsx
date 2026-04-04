@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle, Zap } from 'lucide-react';
+import { Send, Clock, Target, BarChart3, Mail, Copy, Check, AlertCircle, Zap, MessageSquarePlus } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useSandbox } from '../contexts/SandboxContext';
+import { useAskPlexiChat } from '../contexts/AskPlexiChatContext';
+import type { PlexiMessage } from '../contexts/AskPlexiChatContext';
 import ProspectCardList from './ProspectCardList';
 import OutreachPreview, { parseEmail } from './OutreachPreview';
 import PipelineAnalysis from './PipelineAnalysis';
@@ -17,15 +19,9 @@ interface ToolResult {
   result: any;
 }
 
-interface Message {
-  id: string;
-  content: string;
-  isUser: boolean;
-  timestamp: Date;
-  toolsUsed?: string[];
-  toolResults?: ToolResult[];
-  isError?: boolean;
-}
+// Message type is defined in AskPlexiChatContext as PlexiMessage.
+// Alias here so existing code in this file doesn't need renaming.
+type Message = PlexiMessage;
 
 // Conversation history for the API (role/content pairs)
 interface ChatEntry {
@@ -86,17 +82,26 @@ const markdownComponents = {
 const AskPlexiInterface: React.FC = () => {
   const { token, logout } = useSandbox();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Persisted state — survives sidebar navigation via context
+  const {
+    messages, setMessages,
+    conversationId, setConversationId,
+    chatHistory, setChatHistory,
+    emailDraft, setEmailDraft,
+    inputDraft, setInputDraft,
+    clearChat, hasExistingChat,
+  } = useAskPlexiChat();
+
+  // Local-only state — resets on mount (transient UI concerns)
   const [currentQuery, setCurrentQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [emailDraft, setEmailDraft] = useState<any>(null);
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
-  const [chatHistory, setChatHistory] = useState<ChatEntry[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [autoSent, setAutoSent] = useState(false);
   const [powerflowLevel, setPowerflowLevel] = useState<number | null>(null);
   const [prefillApplied, setPrefillApplied] = useState(false);
+  const [showNewChatConfirm, setShowNewChatConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const loadingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -149,19 +154,31 @@ const AskPlexiInterface: React.FC = () => {
     };
   }, [isLoading]);
 
-  // Initialize with welcome message
+  // Initialize with welcome message when context has no messages (first visit or after New Chat clear)
   useEffect(() => {
-    const welcomeMessage: Message = {
-      id: 'welcome',
-      content:
-        "I'm your AI business development specialist for AEC. " +
-        'I have access to your **live prospect pipeline**, contact network, and case study library.\n\n' +
-        'Try asking me to find prospects, draft outreach emails, or analyze your pipeline.',
-      isUser: false,
-      timestamp: new Date(),
-    };
-    setMessages([welcomeMessage]);
-  }, []);
+    if (messages.length === 0) {
+      const welcomeMessage: PlexiMessage = {
+        id: 'welcome',
+        content:
+          "I'm your AI business development specialist for AEC. " +
+          'I have access to your **live prospect pipeline**, contact network, and case study library.\n\n' +
+          'Try asking me to find prospects, draft outreach emails, or analyze your pipeline.',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setMessages([welcomeMessage]);
+    }
+  }, [messages.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Restore input draft from context on mount
+  useEffect(() => {
+    if (inputDraft) setCurrentQuery(inputDraft);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Save input draft to context when typing (so it survives navigation)
+  useEffect(() => {
+    setInputDraft(currentQuery);
+  }, [currentQuery, setInputDraft]);
 
   // Auto-send from ?q= URL param (e.g., from Home action cards)
   useEffect(() => {
@@ -469,8 +486,47 @@ const AskPlexiInterface: React.FC = () => {
               ) : null;
             })()}
           </div>
+          {/* New Chat button — only show when there's conversation history */}
+          {hasExistingChat && (
+            <button
+              onClick={() => setShowNewChatConfirm(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-colors text-xs"
+              title="Start a new conversation"
+            >
+              <MessageSquarePlus size={14} />
+              <span>New Chat</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* New Chat confirmation bar */}
+      {showNewChatConfirm && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-3">
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            <span className="text-sm text-amber-200">Start a new conversation? Current chat will be cleared.</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowNewChatConfirm(false)}
+                className="px-3 py-1 rounded-lg text-xs text-white/60 hover:text-white/80 hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  clearChat();
+                  setCurrentQuery('');
+                  setShowNewChatConfirm(false);
+                  inputRef.current?.focus();
+                }}
+                className="px-3 py-1 rounded-lg text-xs bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 border border-amber-500/30 transition-colors"
+              >
+                New Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4">

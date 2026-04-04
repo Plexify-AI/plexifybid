@@ -35,6 +35,7 @@ import OZRFSectionRenderer from './components/OZRFSectionRenderer';
 import PodcastPlayerWidget from './components/PodcastPlayerWidget';
 import { MelDemo } from './features/mel-demo';
 import { SandboxProvider, useSandbox } from './contexts/SandboxContext';
+import { AskPlexiChatProvider } from './contexts/AskPlexiChatContext';
 import SandboxEntry from './pages/SandboxEntry';
 import AccessRequired from './pages/AccessRequired';
 import PlexiCosAgentsPage from './pages/PlexiCosAgentsPage';
@@ -375,6 +376,7 @@ const AppBody: React.FC = () => {
         {/* Only show sidebar when authenticated */}
         {isAuthenticated && <NavigationSidebar />}
 
+        <AskPlexiChatProvider>
           <main className={isAuthenticated ? "main-content" : "main-content w-full"}>
             <Routes>
               {/* Public routes */}
@@ -415,6 +417,7 @@ const AppBody: React.FC = () => {
               )}
             </Routes>
           </main>
+        </AskPlexiChatProvider>
 
         {isOpen ? (
           <div className="fixed inset-0 z-[9999]">
