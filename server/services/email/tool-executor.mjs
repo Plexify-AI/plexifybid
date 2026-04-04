@@ -412,3 +412,105 @@ export async function confirmSend(draftId, tenantId) {
     return { success: false, error: `Failed to send: ${err.message}` };
   }
 }
+
+/**
+ * Save a PlexifyAEC draft to the user's actual Gmail/Outlook Drafts folder.
+ * Same auth flow as confirmSend but calls provider.saveDraft() instead of sendEmail().
+ *
+ * @param {string} draftId - UUID from email_send_drafts
+ * @param {string} tenantId - Must match the draft's tenant_id
+ * @returns {Promise<Object>} { success: boolean, gmailDraftId?: string, error?: string }
+ */
+export async function saveDraftToProvider(draftId, tenantId) {
+  const supabase = getSupabase();
+
+  // Load draft — verify tenant ownership and status
+  const { data: draft, error } = await supabase
+    .from('email_send_drafts')
+    .select('*')
+    .eq('id', draftId)
+    .eq('tenant_id', tenantId)
+    .eq('status', 'pending')
+    .single();
+
+  if (error || !draft) {
+    return { success: false, error: 'Draft not found, already sent, or expired.' };
+  }
+
+  // Check expiry
+  if (new Date(draft.expires_at) < new Date()) {
+    await supabase
+      .from('email_send_drafts')
+      .update({ status: 'expired' })
+      .eq('id', draftId);
+    return { success: false, error: 'Draft has expired. Please ask Plexi to draft the email again.' };
+  }
+
+  // Get fresh token
+  let accessToken;
+  try {
+    const result = await ensureFreshToken(draft.email_account_id);
+    accessToken = result.accessToken;
+  } catch (err) {
+    return { success: false, error: `Authentication failed: ${err.message}. Reconnect your email in Settings > Email.` };
+  }
+
+  // Load account for provider info
+  const { data: account } = await supabase
+    .from('email_accounts')
+    .select('provider, email_address, user_id')
+    .eq('id', draft.email_account_id)
+    .single();
+
+  if (!account) {
+    return { success: false, error: 'Email account not found.' };
+  }
+
+  const provider = createProvider(account.provider, accessToken);
+  const payload = draft.draft_payload;
+
+  // Check if provider supports saveDraft
+  if (typeof provider.saveDraft !== 'function') {
+    return { success: false, error: `Save to Drafts is not supported for ${account.provider} accounts yet.` };
+  }
+
+  try {
+    const result = await provider.saveDraft({
+      to: payload.to,
+      cc: payload.cc,
+      bcc: payload.bcc,
+      subject: payload.subject,
+      bodyHtml: payload.bodyHtml,
+    });
+
+    // Mark draft as saved (not sent — user can still send from Gmail)
+    await supabase
+      .from('email_send_drafts')
+      .update({ status: 'saved_to_drafts' })
+      .eq('id', draftId);
+
+    logEmailAudit({
+      tenantId,
+      userId: account.user_id,
+      emailAccountId: draft.email_account_id,
+      actionType: 'save_draft',
+      recipientsCount: (payload.to?.length || 0) + (payload.cc?.length || 0),
+      subject: payload.subject,
+      metadata: { draft_id: draftId, gmail_draft_id: result.draftId },
+    });
+
+    return { success: true, gmailDraftId: result.draftId };
+  } catch (err) {
+    logEmailAudit({
+      tenantId,
+      userId: account.user_id,
+      emailAccountId: draft.email_account_id,
+      actionType: 'save_draft',
+      success: false,
+      errorMessage: err.message,
+      metadata: { draft_id: draftId },
+    });
+
+    return { success: false, error: `Failed to save draft: ${err.message}` };
+  }
+}

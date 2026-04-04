@@ -213,6 +213,34 @@ export function createGmailProvider(accessToken) {
   }
 
   // -------------------------------------------------------------------------
+  // Save Draft (to Gmail Drafts folder — not sent)
+  // -------------------------------------------------------------------------
+
+  async function saveDraft(params) {
+    // Get sender email from profile
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    const from = profile.data.emailAddress;
+
+    const raw = buildRawEmail({
+      to: params.to,
+      cc: params.cc,
+      bcc: params.bcc,
+      subject: params.subject,
+      bodyHtml: params.bodyHtml,
+      from,
+    });
+
+    const res = await gmail.users.drafts.create({
+      userId: 'me',
+      requestBody: {
+        message: { raw },
+      },
+    });
+
+    return { success: true, draftId: res.data.id, messageId: res.data.message?.id };
+  }
+
+  // -------------------------------------------------------------------------
   // List
   // -------------------------------------------------------------------------
 
@@ -353,6 +381,7 @@ export function createGmailProvider(accessToken) {
 
   return {
     sendEmail,
+    saveDraft,
     listMessages,
     searchMessages,
     getMessage,

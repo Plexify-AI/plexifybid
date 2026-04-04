@@ -127,8 +127,8 @@ app.get('/api/auth/email/status', async (req, res) => {
   await handleEmailStatus(req, res);
 });
 
-// Email confirm-send (two-step approval pattern)
-import { confirmSend } from './services/email/tool-executor.mjs';
+// Email confirm-send (two-step approval pattern) + save-to-drafts
+import { confirmSend, saveDraftToProvider } from './services/email/tool-executor.mjs';
 
 app.post('/api/email/confirm-send', async (req, res) => {
   const tenant = req.tenant;
@@ -147,6 +147,34 @@ app.post('/api/email/confirm-send', async (req, res) => {
 
   try {
     const result = await confirmSend(draft_id, tenant.id);
+    res.statusCode = result.success ? 200 : 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify(result));
+  } catch (err) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: err.message }));
+  }
+});
+
+// Email save-to-drafts (saves to Gmail/Outlook Drafts folder without sending)
+app.post('/api/email/save-to-gmail-drafts', async (req, res) => {
+  const tenant = req.tenant;
+  if (!tenant) {
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Not authenticated' }));
+  }
+
+  const { draft_id } = req.body;
+  if (!draft_id) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ error: 'Missing draft_id' }));
+  }
+
+  try {
+    const result = await saveDraftToProvider(draft_id, tenant.id);
     res.statusCode = result.success ? 200 : 400;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify(result));

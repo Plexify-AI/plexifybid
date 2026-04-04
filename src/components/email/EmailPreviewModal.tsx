@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { X, Send, AlertTriangle, Mail, Users } from 'lucide-react';
+import { X, Send, AlertTriangle, Mail, Users, Save, Check } from 'lucide-react';
 import { useSandbox } from '../../contexts/SandboxContext';
 
 interface EmailDraft {
@@ -32,6 +32,8 @@ const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
 }) => {
   const { token } = useSandbox();
   const [sending, setSending] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const totalRecipients =
@@ -62,6 +64,34 @@ const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
       setError(err.message);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setSavingDraft(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/email/save-to-gmail-drafts', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ draft_id: draft.draft_id }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save draft');
+      }
+
+      setDraftSaved(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -189,22 +219,42 @@ const EmailPreviewModal: React.FC<EmailPreviewModalProps> = ({
           </div>
         )}
 
+        {/* Draft saved confirmation */}
+        {draftSaved && (
+          <div className="mx-6 mb-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm flex items-center gap-2">
+            <Check size={14} />
+            Draft saved to your Gmail Drafts folder. Open Gmail to review and send when ready.
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-700/40">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors"
           >
-            Cancel
+            {draftSaved ? 'Close' : 'Cancel'}
           </button>
-          <button
-            onClick={handleSend}
-            disabled={sending}
-            className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send size={14} />
-            {sending ? 'Sending...' : 'Send Now'}
-          </button>
+          {!draftSaved && (
+            <button
+              onClick={handleSaveDraft}
+              disabled={savingDraft || sending}
+              className="px-4 py-2 text-sm text-gray-300 hover:text-white border border-gray-600 hover:border-gray-500 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save size={14} />
+              {savingDraft ? 'Saving...' : 'Save as Draft'}
+            </button>
+          )}
+          {!draftSaved && (
+            <button
+              onClick={handleSend}
+              disabled={sending || savingDraft}
+              className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send size={14} />
+              {sending ? 'Sending...' : 'Send Now'}
+            </button>
+          )}
         </div>
       </div>
     </div>
