@@ -425,7 +425,7 @@ const DealRoomPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0B1120]">
+    <div className="flex flex-col h-screen overflow-hidden bg-[#0B1120]">
       <DealRoomHeader room={room} activeTab={activeTab} editorContent={currentContent} />
       <DealRoomTabs activeTab={activeTab} onTabChange={handleTabChange} tabConfig={tabConfig} />
       <DealRoomLayout

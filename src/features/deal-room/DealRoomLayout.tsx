@@ -9,6 +9,11 @@ interface DealRoomLayoutProps {
 const panelCard =
   'rounded-xl overflow-y-auto overflow-x-hidden border border-[rgba(139,92,246,0.1)] shadow-[0_4px_24px_rgba(0,0,0,0.3)]';
 
+// Right panel uses overflow-hidden so the AssistantPanel's internal flex layout
+// handles scrolling — keeps header + chips pinned, only messages scroll.
+const panelCardNoScroll =
+  'rounded-xl overflow-hidden border border-[rgba(139,92,246,0.1)] shadow-[0_4px_24px_rgba(0,0,0,0.3)]';
+
 const panelBg: React.CSSProperties = {
   background: 'rgba(19, 31, 62, 0.85)',
   backdropFilter: 'blur(12px)',
@@ -40,8 +45,8 @@ const DealRoomLayout: React.FC<DealRoomLayoutProps> = ({ leftPanel, centerPanel,
         {centerPanel}
       </div>
 
-      {/* Right Panel: AI Assistant */}
-      <div className={panelCard} style={panelBg}>
+      {/* Right Panel: AI Assistant — overflow-hidden so chips stay pinned */}
+      <div className={panelCardNoScroll} style={panelBg}>
         {rightPanel}
       </div>
     </div>
