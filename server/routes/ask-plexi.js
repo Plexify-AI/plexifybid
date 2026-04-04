@@ -5,10 +5,13 @@
  * Accepts: { message: string, conversation_id?: string, history?: Array, powerflow_level?: number }
  * Returns: { reply: string, conversation_id: string, tool_results: Array, usage: object }
  *
- * When powerflow_level (1-6) is provided, the system prompt is stacked 3 layers:
+ * System prompt is stacked 5 layers:
+ *   Layer 0: PERSPECTIVE GUARDRAIL (non-negotiable — {user_name} at {user_company})
  *   Layer 1: tenant.system_prompt_override.context (industry/persona)
+ *   Layer 1.5: Voice DNA (writing style)
  *   Layer 2: POWERFLOW_SYSTEM_PROMPTS[level] (capsule sales stage)
  *   Layer 3: DEFAULT_SYSTEM_PROMPT (base Plexi behavior)
+ *   Layer 4: Opportunity pipeline snapshot (live data)
  *
  * Auth: sandboxAuth middleware sets req.tenant before this handler runs.
  */
@@ -117,17 +120,37 @@ async function buildOpportunitySummary(tenantId) {
 /**
  * Build the system prompt for a tenant with optional Powerflow capsule layer.
  *
- * 4-layer stack (top to bottom):
+ * 5-layer stack (top to bottom):
+ *   Layer 0: PERSPECTIVE GUARDRAIL (non-negotiable — never overridden)
  *   Layer 1: tenant.system_prompt_override.context  (industry/persona context)
+ *   Layer 1.5: Voice DNA                            (writing style injection)
  *   Layer 2: POWERFLOW_SYSTEM_PROMPTS[level]        (capsule sales stage context)
  *   Layer 3: DEFAULT_SYSTEM_PROMPT                  (base Plexi behavior)
  *   Layer 4: Opportunity pipeline snapshot           (live data context)
+ *
+ * Layer 0 is ALWAYS first — it anchors the BD executive perspective and
+ * cannot be overridden by any subsequent layer. This prevents the LLM from
+ * adopting the prospect's perspective.
  *
  * Layer 2 is only included when powerflowLevel is provided (1-6).
  * Layer 4 is async — fetched from opportunities table.
  */
 async function buildSystemPrompt(tenant, powerflowLevel) {
   const layers = [];
+
+  // Layer 0: Perspective guardrail (non-negotiable, always first)
+  const userName = tenant?.name || 'the user';
+  const userCompany = tenant?.company || 'their company';
+  layers.push(
+    `You are Plexify AI, the Business Development intelligence assistant for ${userName} at ${userCompany}.\n\n` +
+    `CRITICAL PERSPECTIVE RULE: You ALWAYS speak from ${userName}'s perspective as a BD executive. When analyzing any company or contact:\n` +
+    `- They are a PROSPECT or TARGET ACCOUNT for ${userName}\n` +
+    `- You help ${userName} sell TO them, build relationships WITH them, win work FROM them\n` +
+    `- NEVER adopt the prospect's perspective or speak as if you work for the prospect company\n` +
+    `- NEVER say "our company" or "our team" when referring to the prospect — say "their company" or "their team"\n` +
+    `- Always frame insights as intelligence that helps ${userName} pursue the opportunity\n` +
+    `- When referencing contacts from the database, use the EXACT name spelling from the data`
+  );
 
   // Layer 1: Tenant override (industry/persona context)
   try {

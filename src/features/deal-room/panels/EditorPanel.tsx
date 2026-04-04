@@ -8,7 +8,7 @@ import Underline from '@tiptap/extension-underline';
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
   AlignLeft, AlignCenter, AlignRight, Quote, Code, Undo, Redo,
-  Sparkles,
+  Sparkles, Info, Upload,
 } from 'lucide-react';
 import type { DealRoomTab, DealRoomArtifact } from '../../../types/dealRoom';
 import { DEAL_ROOM_TAB_LABELS } from '../../../types/dealRoom';
@@ -145,6 +145,8 @@ interface EditorPanelProps {
   generatingSkill?: string | null;
   /** Trigger skill generation for the active tab */
   onGenerateSkill?: (skillKey: string, label: string) => void;
+  /** Info message when sources are insufficient for the active tab */
+  insufficientDataMessage?: string;
 }
 
 type EditorSubTab = 'editor' | 'artifacts';
@@ -159,6 +161,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   activeArtifact,
   generatingSkill,
   onGenerateSkill,
+  insufficientDataMessage,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<EditorSubTab>('editor');
   const [localWordCount, setLocalWordCount] = useState(0);
@@ -274,6 +277,25 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
       }
     };
   }, []);
+
+  // Teal info card for insufficient source data
+  const InsufficientDataCard = insufficientDataMessage ? (
+    <div className="mx-4 mt-4 p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.08]">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Info size={16} className="text-emerald-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-emerald-300 text-sm font-medium mb-1">More sources needed</p>
+          <p className="text-emerald-200/70 text-xs leading-relaxed">{insufficientDataMessage}</p>
+          <div className="flex items-center gap-1.5 mt-3 text-emerald-300/60 text-xs">
+            <Upload size={12} />
+            <span>Drag files to the Sources panel on the left</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
   function formatTimeSince(date: Date): string {
     const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -391,6 +413,9 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             )}
           </div>
 
+          {/* Insufficient data info (shown above editor when empty) */}
+          {InsufficientDataCard && !content && !activeArtifact?.content && InsufficientDataCard}
+
           {/* Editor */}
           <div className="flex-1 overflow-y-auto deal-room-editor">
             <EditorContent editor={editor} />
@@ -426,6 +451,10 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
               <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3" />
               <p className="text-white/60 text-sm">Generating {DEAL_ROOM_TAB_LABELS[activeTab]}...</p>
               <p className="text-white/30 text-xs mt-1">This may take 15-30 seconds</p>
+            </div>
+          ) : insufficientDataMessage ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              {InsufficientDataCard}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center">

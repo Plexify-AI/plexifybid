@@ -138,6 +138,7 @@ const DealRoomPage: React.FC = () => {
   const [messages, setMessages] = useState<DealRoomMessage[]>([]);
   const [linkedOpportunity, setLinkedOpportunity] = useState<LinkedOpportunity | null>(null);
   const [generatingSkill, setGeneratingSkill] = useState<string | null>(null);
+  const [insufficientDataMsg, setInsufficientDataMsg] = useState<{ tab: DealRoomTab; message: string } | null>(null);
 
   const {
     room,
@@ -271,6 +272,7 @@ const DealRoomPage: React.FC = () => {
     if (!id || !token) return;
 
     setGeneratingSkill(skillKey);
+    setInsufficientDataMsg(null); // Clear any previous info message
 
     // Add user message to chat
     const userMsg: DealRoomMessage = {
@@ -316,13 +318,40 @@ const DealRoomPage: React.FC = () => {
         return;
       }
 
-      const artifact = await res.json();
-      const output = artifact.content?.output;
+      const result = await res.json();
+
+      // Handle insufficient data — sources too thin to generate
+      if (result.success === false && result.reason === 'insufficient_data') {
+        const aiMsg: DealRoomMessage = {
+          id: `skill-info-${Date.now()}`,
+          deal_room_id: id,
+          tenant_id: '',
+          role: 'assistant',
+          content: result.message || `Not enough source data to generate ${label}.`,
+          citations: [],
+          created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, aiMsg]);
+        // Show teal info in the editor panel
+        if (DEAL_ROOM_TABS.includes(skillKey as DealRoomTab)) {
+          setInsufficientDataMsg({ tab: skillKey as DealRoomTab, message: result.message });
+          handleTabChange(skillKey as DealRoomTab);
+        }
+        return;
+      }
+
+      // Normal artifact response
+      const output = result.content?.output;
 
       // Build a summary message for the chat panel
-      const summary = output?.title
+      let summary = output?.title
         ? `**${output.title}**\n\nGenerated successfully. View the full ${label} in the Report Editor tab.`
         : `${label} generated successfully. View it in the Report Editor tab.`;
+
+      // Append thin-data note if quality is low
+      if (result.data_quality === 'thin' && result.data_message) {
+        summary += `\n\n*Note: ${result.data_message}*`;
+      }
 
       const aiMsg: DealRoomMessage = {
         id: `skill-ai-${Date.now()}`,
@@ -336,7 +365,12 @@ const DealRoomPage: React.FC = () => {
       setMessages(prev => [...prev, aiMsg]);
 
       // Add artifact to local state (no full refetch = no loading flash)
-      addArtifact(artifact);
+      addArtifact(result);
+
+      // Show thin-data hint in editor if quality is low
+      if (result.data_quality === 'thin' && result.data_message && DEAL_ROOM_TABS.includes(skillKey as DealRoomTab)) {
+        setInsufficientDataMsg({ tab: skillKey as DealRoomTab, message: result.data_message });
+      }
 
       // Switch to the generated skill's tab so the user sees the result
       if (DEAL_ROOM_TABS.includes(skillKey as DealRoomTab)) {
@@ -422,6 +456,9 @@ const DealRoomPage: React.FC = () => {
             activeArtifact={artifactsByType.get(activeTab) || null}
             generatingSkill={generatingSkill}
             onGenerateSkill={handleGenerateSkill}
+            insufficientDataMessage={
+              insufficientDataMsg?.tab === activeTab ? insufficientDataMsg.message : undefined
+            }
           />
         }
         rightPanel={

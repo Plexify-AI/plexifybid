@@ -112,6 +112,11 @@ function extractDomainKeywords(systemPrompt) {
 
 const MAX_CHUNKS = 20;
 const TRUNCATION_THRESHOLD = 30;
+// Minimum chunks required before calling the LLM. Below this threshold the
+// Deal Room is too thin to produce useful output — return a helpful message
+// instead of wasting an API call. Per-skill min_chunks is a future refinement
+// (column on deal_room_skills); for now this universal floor works.
+const MIN_CHUNKS_FLOOR = 3;
 
 // ---------------------------------------------------------------------------
 // Skill Loader
@@ -231,6 +236,24 @@ export async function handleSkillGenerate(req, res, dealRoomId, body) {
       );
     }
 
+    // Pre-generation check: bail early if source data is too thin
+    if (allChunks.length < MIN_CHUNKS_FLOOR) {
+      console.log(
+        `[deal-room-generate] Insufficient data: ${allChunks.length} chunks (min ${MIN_CHUNKS_FLOOR}) ` +
+        `for skill="${skillKey}" deal_room="${dealRoomId}"`
+      );
+      return sendJSON(res, 200, {
+        success: false,
+        reason: 'insufficient_data',
+        message: `This Deal Room needs more source documents to generate a ${skill.skill_name}. ` +
+          `Upload PDFs, DOCX, or TXT files to the Sources panel.`,
+        skillKey,
+        skillName: skill.skill_name,
+        chunksFound: allChunks.length,
+        chunksRequired: MIN_CHUNKS_FLOOR,
+      });
+    }
+
     // Build RAG context string
     const ragContext = buildRAGContext(allChunks);
 
@@ -266,7 +289,10 @@ export async function handleSkillGenerate(req, res, dealRoomId, body) {
       messages: [
         {
           role: 'user',
-          content: `Generate ${skill.skill_name} from the following sources:\n\n${ragContext}`,
+          content: `Generate ${skill.skill_name} from the following sources:\n\n${ragContext}\n\n` +
+            `IMPORTANT: If the source documents do not contain enough information to populate a section, ` +
+            `write '[Insufficient source data — upload additional documents]' for that section rather than ` +
+            `omitting it or fabricating content.`,
         },
       ],
       maxTokens: 4096,
@@ -298,6 +324,27 @@ export async function handleSkillGenerate(req, res, dealRoomId, body) {
       });
 
       return sendError(res, 422, 'Claude returned content that could not be parsed as JSON. The artifact has been saved with status "failed" for debugging.');
+    }
+
+    // 7b. Post-generation validation — check field coverage
+    const PLACEHOLDER_RE = /^\[Insufficient source data/i;
+    function isPopulated(val) {
+      if (val == null) return false;
+      if (typeof val === 'string') return val.trim().length > 0 && !PLACEHOLDER_RE.test(val.trim());
+      if (Array.isArray(val)) return val.length > 0;
+      if (typeof val === 'object') return Object.keys(val).length > 0;
+      return true;
+    }
+    const outputKeys = Object.keys(parsed).filter(k => k !== 'title');
+    const populatedCount = outputKeys.filter(k => isPopulated(parsed[k])).length;
+    const coverageRatio = outputKeys.length > 0 ? populatedCount / outputKeys.length : 0;
+    const dataQuality = coverageRatio < 0.5 ? 'thin' : 'sufficient';
+
+    if (dataQuality === 'thin') {
+      console.warn(
+        `[deal-room-generate] Thin data: ${populatedCount}/${outputKeys.length} fields populated ` +
+        `(${Math.round(coverageRatio * 100)}%) for skill="${skillKey}" artifact="${artifact.id}"`
+      );
     }
 
     // 8. Build provenance
@@ -355,7 +402,15 @@ export async function handleSkillGenerate(req, res, dealRoomId, body) {
     // 12. Powerflow Stage 5: Artifact generated
     markPowerflowStage(tenant, 5);
 
-    return sendJSON(res, 201, updated);
+    // Attach data quality info so frontend can show guidance on thin results
+    const response = { ...updated, data_quality: dataQuality };
+    if (dataQuality === 'thin') {
+      response.data_message =
+        `The uploaded sources only covered ${populatedCount} of ${outputKeys.length} sections. ` +
+        `Upload additional documents to improve the ${skill.skill_name}.`;
+    }
+
+    return sendJSON(res, 201, response);
   } catch (err) {
     console.error('[deal-room-generate] Generation error:', err);
     return sendError(res, 500, `Failed to generate ${skillKey}: ${err.message}`);

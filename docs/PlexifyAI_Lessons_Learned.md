@@ -2,7 +2,7 @@
 ## Insights from Ken D'Amato and Claude across the full project lifecycle
 
 **Created:** April 2, 2026
-**Last Updated:** April 2, 2026
+**Last Updated:** April 4, 2026
 **Purpose:** Living document capturing hard-won insights from building PlexifyAI. These lessons apply to this project, future Claude Code sessions, and any AI-assisted development effort. Upload this to any new Claude project for instant context.
 
 ---
@@ -281,6 +281,22 @@ TTS costs add up fast. The $50/month per-tenant cap exists for a reason. Track c
 *Origin: Multiple debugging sessions in Express.js.*
 
 In `server/index.mjs`, new routes must register AFTER specific routes and BEFORE catch-all routes. If a catch-all route (like a SPA fallback or 404 handler) is registered first, it swallows all requests and the new endpoint never receives traffic. This has caused silent failures multiple times — the endpoint exists but no requests reach it.
+
+---
+
+## 23. Claude Code Must Self-Verify Before Handing to Ken
+
+*Origin: Day 2 sprint, April 2026. Claude Code completed Task 1 (Graceful Degradation for Thin-Data Deal Rooms) but couldn't preview its own work, then asked Ken which verification path to take — putting the burden on Ken to solve a workflow problem that Claude Code should have handled.*
+
+After completing any task, Claude Code must:
+
+1. Run `cd C:\dev\plexifybid && npm run dev` (if server isn't already running)
+2. Open the relevant page in the preview browser using the sandbox token
+3. Perform its OWN first-pass visual check against the acceptance test criteria
+4. Report what it SAW (screenshots or descriptions), not just what it BUILT
+5. THEN hand Ken the specific test steps for final confirmation
+
+"Build passes" is Step 0. Claude Code's browser check is Step 1. Ken's browser is Step 2 (the truth). Never skip Step 1 and go straight to Step 2.
 
 ---
 

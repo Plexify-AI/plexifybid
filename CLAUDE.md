@@ -246,3 +246,10 @@ See @docs/HANDOFF_SESSION12_COMPLETE.md for Session 12 details.
 - Every task requires an Acceptance Test with specific browser steps
 - Never claim "done" — provide Ken test steps and wait for confirmation
 - Ken's browser output is the truth. If he sees failure, it's failure.
+- **Self-verify before handing to Ken (Lesson 23):**
+  1. Run `cd C:\dev\plexifybid && npm run dev` if server isn't already running
+  2. Open the relevant page in browser using the sandbox token
+  3. Perform first-pass visual check against acceptance test criteria
+  4. Report what you SAW (screenshots), not just what you BUILT
+  5. Then hand Ken specific test steps for final confirmation
+  - "Build passes" = Step 0. Browser self-check = Step 1. Ken's browser = Step 2 (truth).
