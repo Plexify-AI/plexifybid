@@ -514,3 +514,73 @@ export async function saveDraftToProvider(draftId, tenantId) {
     return { success: false, error: `Failed to save draft: ${err.message}` };
   }
 }
+
+/**
+ * Save an email directly to Gmail Drafts from raw content (no DB draft needed).
+ * Used by the one-click "Save to Drafts" button on OutreachPreview.
+ *
+ * @param {string} tenantId - Tenant UUID
+ * @param {Object} email - { to: string|string[], subject: string, bodyHtml: string }
+ * @returns {Promise<Object>} { success: boolean, error?: string }
+ */
+export async function saveDraftDirect(tenantId, email) {
+  // Get active email account
+  const account = await getActiveAccount(tenantId);
+  if (!account) {
+    return { success: false, error: 'No email account connected. Connect Gmail in Settings > Email.' };
+  }
+
+  // Get fresh token
+  let accessToken;
+  try {
+    const result = await ensureFreshToken(account.id);
+    accessToken = result.accessToken;
+  } catch (err) {
+    return { success: false, error: `Authentication failed: ${err.message}. Reconnect your email in Settings > Email.` };
+  }
+
+  const provider = createProvider(account.provider, accessToken);
+
+  if (typeof provider.saveDraft !== 'function') {
+    return { success: false, error: `Save to Drafts is not supported for ${account.provider} accounts yet.` };
+  }
+
+  // Normalize recipients to array format
+  const toArray = Array.isArray(email.to) ? email.to : [email.to];
+  const toFormatted = toArray.map(addr => {
+    if (typeof addr === 'object') return addr;
+    return { email: addr };
+  });
+
+  try {
+    const result = await provider.saveDraft({
+      to: toFormatted,
+      subject: email.subject,
+      bodyHtml: email.bodyHtml || `<p>${(email.body || '').replace(/\n/g, '<br/>')}</p>`,
+    });
+
+    logEmailAudit({
+      tenantId,
+      userId: account.user_id,
+      emailAccountId: account.id,
+      actionType: 'save_draft',
+      recipientsCount: toArray.length,
+      subject: email.subject,
+      metadata: { direct: true, gmail_draft_id: result.draftId },
+    });
+
+    return { success: true, gmailDraftId: result.draftId };
+  } catch (err) {
+    logEmailAudit({
+      tenantId,
+      userId: account.user_id,
+      emailAccountId: account.id,
+      actionType: 'save_draft',
+      success: false,
+      errorMessage: err.message,
+      metadata: { direct: true },
+    });
+
+    return { success: false, error: `Failed to save draft: ${err.message}` };
+  }
+}

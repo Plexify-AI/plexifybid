@@ -7,7 +7,8 @@
  */
 
 import React, { useState } from 'react';
-import { Mail, Copy, Check, User, Building2, Award, Zap } from 'lucide-react';
+import { Mail, Copy, Check, User, Building2, Award, Zap, Save } from 'lucide-react';
+import { useSandbox } from '../contexts/SandboxContext';
 
 interface OutreachContext {
   prospect?: {
@@ -99,9 +100,44 @@ export function parseEmail(content: string): { subject: string; body: string; co
 }
 
 const OutreachPreview: React.FC<OutreachPreviewProps> = ({ replyContent, emailContext }) => {
+  const { token } = useSandbox();
   const [copied, setCopied] = useState(false);
+  const [draftSaving, setDraftSaving] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const { subject, body } = parseEmail(replyContent);
   // commentary is handled by the parent (AskPlexiInterface) via Markdown
+
+  const recipientEmail = emailContext?.contact?.email;
+
+  const handleSaveToDrafts = async () => {
+    if (!recipientEmail || !token) return;
+    setDraftSaving(true);
+    setDraftError(null);
+    try {
+      const res = await fetch('/api/email/save-to-gmail-drafts', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: recipientEmail,
+          subject: subject || '(No subject)',
+          body_html: `<div>${body.replace(/\n/g, '<br/>')}</div>`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save draft');
+      }
+      setDraftSaved(true);
+    } catch (err: any) {
+      setDraftError(err.message);
+    } finally {
+      setDraftSaving(false);
+    }
+  };
 
   const handleCopy = async () => {
     const fullEmail = subject ? `Subject: ${subject}\n\n${body}` : body;
@@ -172,22 +208,48 @@ const OutreachPreview: React.FC<OutreachPreviewProps> = ({ replyContent, emailCo
               </span>
             )}
           </div>
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md hover:bg-gray-600/50 transition-colors"
-          >
-            {copied ? (
-              <>
-                <Check size={12} className="text-green-400" />
-                <span className="text-green-400">Copied</span>
-              </>
-            ) : (
-              <>
-                <Copy size={12} className="text-gray-400" />
-                <span className="text-gray-400">Copy</span>
-              </>
+          <div className="flex items-center gap-1">
+            {recipientEmail && (
+              <button
+                onClick={handleSaveToDrafts}
+                disabled={draftSaved || draftSaving}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md hover:bg-gray-600/50 transition-colors disabled:opacity-60 disabled:cursor-default"
+              >
+                {draftSaved ? (
+                  <>
+                    <Check size={12} className="text-green-400" />
+                    <span className="text-green-400">Saved ✓</span>
+                  </>
+                ) : draftSaving ? (
+                  <>
+                    <Save size={12} className="text-gray-400 animate-pulse" />
+                    <span className="text-gray-400">Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={12} className="text-gray-400" />
+                    <span className="text-gray-400">Save to Drafts</span>
+                  </>
+                )}
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md hover:bg-gray-600/50 transition-colors"
+            >
+              {copied ? (
+                <>
+                  <Check size={12} className="text-green-400" />
+                  <span className="text-green-400">Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={12} className="text-gray-400" />
+                  <span className="text-gray-400">Copy</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Subject line */}
@@ -205,6 +267,13 @@ const OutreachPreview: React.FC<OutreachPreviewProps> = ({ replyContent, emailCo
           </div>
         </div>
       </div>
+
+      {/* Draft save error */}
+      {draftError && (
+        <div className="mt-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
+          {draftError}
+        </div>
+      )}
     </div>
   );
 };

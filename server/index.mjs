@@ -158,6 +158,10 @@ app.post('/api/email/confirm-send', async (req, res) => {
 });
 
 // Email save-to-drafts (saves to Gmail/Outlook Drafts folder without sending)
+// Accepts either { draft_id } (from email_send_drafts table) or
+// { to, subject, body_html } (direct from outreach preview — no DB draft needed)
+import { saveDraftDirect } from './services/email/tool-executor.mjs';
+
 app.post('/api/email/save-to-gmail-drafts', async (req, res) => {
   const tenant = req.tenant;
   if (!tenant) {
@@ -166,15 +170,22 @@ app.post('/api/email/save-to-gmail-drafts', async (req, res) => {
     return res.end(JSON.stringify({ error: 'Not authenticated' }));
   }
 
-  const { draft_id } = req.body;
-  if (!draft_id) {
-    res.statusCode = 400;
-    res.setHeader('Content-Type', 'application/json');
-    return res.end(JSON.stringify({ error: 'Missing draft_id' }));
-  }
+  const { draft_id, to, subject, body_html } = req.body;
 
   try {
-    const result = await saveDraftToProvider(draft_id, tenant.id);
+    let result;
+    if (draft_id) {
+      // Path 1: Save from email_send_drafts table (EmailPreviewModal flow)
+      result = await saveDraftToProvider(draft_id, tenant.id);
+    } else if (to && subject) {
+      // Path 2: Save directly from outreach preview (one-click flow)
+      result = await saveDraftDirect(tenant.id, { to, subject, bodyHtml: body_html });
+    } else {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Provide either draft_id or (to + subject + body_html)' }));
+    }
+
     res.statusCode = result.success ? 200 : 400;
     res.setHeader('Content-Type', 'application/json');
     return res.end(JSON.stringify(result));
