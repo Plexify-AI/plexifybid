@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { Upload, ChevronDown, ChevronRight, Volume2 } from 'lucide-react';
+import { Upload, ChevronDown, ChevronRight, Volume2, BarChart3, Loader2 } from 'lucide-react';
 import SourceFileCard from '../components/SourceFileCard';
 import ArtifactThumbnail from '../components/ArtifactThumbnail';
 import type { DealRoomSource, DealRoomArtifact } from '../../../types/dealRoom';
@@ -12,6 +12,8 @@ interface SourcesPanelProps {
   onUploadFile: (file: File) => Promise<any>;
   onDeleteSource: (sourceId: string) => Promise<boolean>;
   onArtifactClick?: (artifactType: string) => void;
+  onGenerateSkill?: (skillKey: string, label: string) => void;
+  generatingSkill?: string | null;
 }
 
 const SourcesPanel: React.FC<SourcesPanelProps> = ({
@@ -22,6 +24,8 @@ const SourcesPanel: React.FC<SourcesPanelProps> = ({
   onUploadFile,
   onDeleteSource,
   onArtifactClick,
+  onGenerateSkill,
+  generatingSkill,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -106,15 +110,37 @@ const SourcesPanel: React.FC<SourcesPanelProps> = ({
             Generated Artifacts ({visualArtifacts.length})
           </button>
           {artifactsExpanded && (
-            <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
-              {visualArtifacts.map((artifact) => (
-                <ArtifactThumbnail
-                  key={artifact.id}
-                  artifact={artifact}
-                  onClick={() => onArtifactClick?.(artifact.artifact_type)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))' }}>
+                {visualArtifacts.map((artifact) => (
+                  <ArtifactThumbnail
+                    key={artifact.id}
+                    artifact={artifact}
+                    onClick={() => onArtifactClick?.(artifact.artifact_type)}
+                  />
+                ))}
+              </div>
+              {/* Generate Infographic button */}
+              {onGenerateSkill && !visualArtifacts.some(a => a.artifact_type === 'infographic') && (
+                <button
+                  onClick={() => onGenerateSkill('infographic', 'Generate Infographic')}
+                  disabled={!!generatingSkill}
+                  className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-violet-500/30 bg-violet-500/[0.08] text-violet-300 hover:bg-violet-500/15 hover:text-violet-200 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {generatingSkill === 'infographic' ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Generating Infographic...
+                    </>
+                  ) : (
+                    <>
+                      <BarChart3 size={14} />
+                      Generate Infographic
+                    </>
+                  )}
+                </button>
+              )}
+            </>
           )}
         </div>
       )}

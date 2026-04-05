@@ -443,6 +443,8 @@ const DealRoomPage: React.FC = () => {
                 handleTabChange(artifactType as DealRoomTab);
               }
             }}
+            onGenerateSkill={handleGenerateSkill}
+            generatingSkill={generatingSkill}
           />
         }
         centerPanel={
