@@ -204,6 +204,20 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<EditorSubTab>('editor');
   const [localWordCount, setLocalWordCount] = useState(0);
+
+  // Auto-switch to Artifacts sub-tab when viewing a non-tab artifact (infographic, etc.)
+  const prevArtifactRef = useRef<string | null>(null);
+  useEffect(() => {
+    const artId = activeArtifact?.id || null;
+    if (activeArtifact?.content && artId !== prevArtifactRef.current) {
+      // Check if this artifact's type is NOT a tab — means it's a "floating" artifact
+      const isTabArtifact = ['deal_summary', 'competitive_analysis', 'meeting_prep', 'board_brief', 'ozrf_section'].includes(activeArtifact.artifact_type);
+      if (!isTabArtifact) {
+        setActiveSubTab('artifacts');
+      }
+      prevArtifactRef.current = artId;
+    }
+  }, [activeArtifact]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isUpdatingRef = useRef(false);
   const pendingContentRef = useRef<{ tab: DealRoomTab; html: string } | null>(null);

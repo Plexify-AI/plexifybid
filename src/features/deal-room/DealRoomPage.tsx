@@ -139,6 +139,8 @@ const DealRoomPage: React.FC = () => {
   const [linkedOpportunity, setLinkedOpportunity] = useState<LinkedOpportunity | null>(null);
   const [generatingSkill, setGeneratingSkill] = useState<string | null>(null);
   const [insufficientDataMsg, setInsufficientDataMsg] = useState<{ tab: DealRoomTab; message: string } | null>(null);
+  // For non-tab artifacts (infographic, etc.) — shown in Artifacts sub-tab when set
+  const [viewingArtifact, setViewingArtifact] = useState<DealRoomArtifact | null>(null);
 
   const {
     room,
@@ -232,6 +234,7 @@ const DealRoomPage: React.FC = () => {
   // Handle tab change — update URL with replaceState (don't pollute history) + switch tab
   const handleTabChange = useCallback((tab: DealRoomTab) => {
     setActiveTab(tab);
+    setViewingArtifact(null); // Clear non-tab artifact view when switching tabs
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     window.history.replaceState(null, '', url.toString());
@@ -375,6 +378,9 @@ const DealRoomPage: React.FC = () => {
       // Switch to the generated skill's tab so the user sees the result
       if (DEAL_ROOM_TABS.includes(skillKey as DealRoomTab)) {
         handleTabChange(skillKey as DealRoomTab);
+      } else {
+        // Non-tab artifact (infographic, etc.) — show in Artifacts sub-tab
+        setViewingArtifact(result);
       }
     } catch (err: any) {
       console.error('[DealRoomPage] Skill generation error:', err);
@@ -438,9 +444,14 @@ const DealRoomPage: React.FC = () => {
             onUploadFile={uploadFile}
             onDeleteSource={deleteSource}
             onArtifactClick={(artifactType) => {
-              // Switch to the artifact's tab if it maps to a tab
               if (DEAL_ROOM_TABS.includes(artifactType as any)) {
+                // Tab-based artifact — switch tab
+                setViewingArtifact(null);
                 handleTabChange(artifactType as DealRoomTab);
+              } else {
+                // Non-tab artifact (infographic, etc.) — show in Artifacts sub-tab
+                const art = artifacts.find(a => a.artifact_type === artifactType);
+                if (art) setViewingArtifact(art);
               }
             }}
             onGenerateSkill={handleGenerateSkill}
@@ -455,7 +466,7 @@ const DealRoomPage: React.FC = () => {
             saving={saving}
             lastSaved={lastSaved}
             onContentChange={handleContentChange}
-            activeArtifact={artifactsByType.get(activeTab) || null}
+            activeArtifact={viewingArtifact || artifactsByType.get(activeTab) || null}
             generatingSkill={generatingSkill}
             onGenerateSkill={handleGenerateSkill}
             insufficientDataMessage={
