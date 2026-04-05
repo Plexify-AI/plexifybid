@@ -369,7 +369,7 @@ export async function handleSkillGenerate(req, res, dealRoomId, body) {
     // 10. Update DB record with result
     const updated = await updateDealRoomArtifact(artifact.id, {
       status: 'ready',
-      title: skillKey === 'infographic' ? (parsed.title ? `Infographic — ${parsed.title}` : 'Infographic') : (parsed.title || skill.skill_name),
+      title: skillKey === 'infographic' ? 'Infographic' : (parsed.title || skill.skill_name),
       content: envelope,
       provenance_json: provenance,
       model_used: result.model || null,

@@ -8,7 +8,9 @@
  * Electric Violet accents. Glassmorphism cards.
  */
 
-import React from 'react';
+import React, { useRef, useState, useCallback } from 'react';
+import { toPng } from 'html-to-image';
+import { Download, Check } from 'lucide-react';
 
 // Icon map — simple SVG icons for metric cards
 const ICONS: Record<string, React.ReactNode> = {
@@ -106,6 +108,31 @@ function statusColor(status: string): { dot: string; line: string; text: string 
 }
 
 const InfographicRenderer: React.FC<InfographicRendererProps> = ({ output }) => {
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+
+  const handleDownload = useCallback(async () => {
+    if (!captureRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(captureRef.current, {
+        backgroundColor: '#0D1B3E',
+        pixelRatio: 2,
+      });
+      const link = document.createElement('a');
+      link.download = `infographic-${output.title?.replace(/\s+/g, '-').toLowerCase() || 'export'}.png`;
+      link.href = dataUrl;
+      link.click();
+      setDownloaded(true);
+      setTimeout(() => setDownloaded(false), 2000);
+    } catch (err) {
+      console.error('Failed to export infographic:', err);
+    } finally {
+      setDownloading(false);
+    }
+  }, [output.title]);
+
   const {
     title,
     subtitle,
@@ -119,6 +146,25 @@ const InfographicRenderer: React.FC<InfographicRendererProps> = ({ output }) => 
 
   return (
     <div className="space-y-5 pb-4">
+      {/* Download button — floating at top */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 hover:text-violet-200 transition-colors text-xs disabled:opacity-50"
+        >
+          {downloaded ? (
+            <><Check size={13} /> Saved</>
+          ) : downloading ? (
+            <><Download size={13} className="animate-pulse" /> Exporting...</>
+          ) : (
+            <><Download size={13} /> Download PNG</>
+          )}
+        </button>
+      </div>
+
+      {/* Capturable content area */}
+      <div ref={captureRef} className="space-y-5 p-4 rounded-xl" style={{ backgroundColor: '#0D1B3E' }}>
       {/* Header */}
       <div className="text-center py-4">
         <h1 className="text-xl font-bold text-white">{title}</h1>
@@ -253,6 +299,7 @@ const InfographicRenderer: React.FC<InfographicRendererProps> = ({ output }) => 
           <p className="text-sm text-white/90 leading-relaxed">{recommendation}</p>
         </div>
       )}
+      </div>{/* end capturable area */}
     </div>
   );
 };
