@@ -11,6 +11,7 @@ import DealSummaryRenderer from './DealSummaryRenderer';
 import CompetitiveAnalysisRenderer from './CompetitiveAnalysisRenderer';
 import MeetingPrepRenderer from './MeetingPrepRenderer';
 import OutreachSequenceRenderer from './OutreachSequenceRenderer';
+import InfographicRenderer from './InfographicRenderer';
 import BoardBriefRenderer from '../BoardBriefRenderer';
 import OZRFSectionRenderer from '../OZRFSectionRenderer';
 
@@ -94,6 +95,9 @@ export default function ArtifactRenderer({
 
       case 'outreach_sequence':
         return <OutreachSequenceRenderer output={output} onCitationClick={onCitationClick} />;
+
+      case 'infographic':
+        return <InfographicRenderer output={output} onCitationClick={onCitationClick} />;
 
       default:
         // Fallback: formatted JSON for unknown types

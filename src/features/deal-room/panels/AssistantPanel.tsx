@@ -23,6 +23,7 @@ const DEFAULT_ACTION_CHIPS = [
   { label: 'Generate Board Brief', icon: '📄', skillKey: 'board_brief' },
   { label: 'Extract Assessment Trends', icon: '📊', skillKey: 'deal_summary' },
   { label: 'Draft OZRF Section', icon: '🏛️', skillKey: 'ozrf_section' },
+  { label: 'Generate Infographic', icon: '📈', skillKey: 'infographic' },
 ];
 
 interface ActionChip {

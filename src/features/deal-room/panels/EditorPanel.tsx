@@ -50,11 +50,50 @@ function artifactToHtml(artifactType: string, contentJson: any): string {
       return ozrfSectionToHtml(envelope);
     }
 
+    if (artifactType === 'infographic') {
+      return infographicToHtml(output);
+    }
+
     // Generic converter for deal_summary, competitive_analysis, meeting_prep, etc.
     return genericArtifactToHtml(artifactType, output);
   } catch {
     return `<h1>${artifactType.replace(/_/g, ' ')}</h1><p>Content loaded — edit below.</p>`;
   }
+}
+
+function infographicToHtml(output: any): string {
+  const esc = (s: string) => s?.toString()
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') ?? '';
+  const parts: string[] = [];
+
+  if (output.title) parts.push(`<h1>${esc(output.title)}</h1>`);
+  if (output.subtitle) parts.push(`<p><em>${esc(output.subtitle)}</em></p>`);
+
+  if (output.metrics?.length) {
+    parts.push('<h2>Key Metrics</h2>');
+    parts.push(`<ul>${output.metrics.map((m: any) => `<li><strong>${esc(m.label)}:</strong> ${esc(m.value)}</li>`).join('')}</ul>`);
+  }
+  if (output.timeline?.length) {
+    parts.push('<h2>Timeline</h2>');
+    parts.push(`<ul>${output.timeline.map((t: any) => `<li><strong>${esc(t.date)}</strong> — ${esc(t.event)} (${esc(t.status)})</li>`).join('')}</ul>`);
+  }
+  if (output.key_contacts?.length) {
+    parts.push('<h2>Key Contacts</h2>');
+    parts.push(`<ul>${output.key_contacts.map((c: any) => `<li><strong>${esc(c.name)}</strong> — ${esc(c.title)}${c.warmth != null ? ` (warmth: ${c.warmth}/100)` : ''}</li>`).join('')}</ul>`);
+  }
+  if (output.strengths?.length) {
+    parts.push('<h2>Strengths</h2>');
+    parts.push(`<ul>${output.strengths.map((s: string) => `<li>${esc(s)}</li>`).join('')}</ul>`);
+  }
+  if (output.risks?.length) {
+    parts.push('<h2>Risks</h2>');
+    parts.push(`<ul>${output.risks.map((r: string) => `<li>${esc(r)}</li>`).join('')}</ul>`);
+  }
+  if (output.recommendation) {
+    parts.push(`<h2>Recommendation</h2><blockquote>${esc(output.recommendation)}</blockquote>`);
+  }
+
+  return parts.join('\n');
 }
 
 function genericArtifactToHtml(type: string, output: any): string {
