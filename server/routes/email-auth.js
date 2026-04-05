@@ -19,7 +19,7 @@ import { validateToken } from '../middleware/sandboxAuth.js';
 // MSAL configuration — lazy init
 // ---------------------------------------------------------------------------
 
-const SCOPES = ['Mail.Read', 'Mail.Send', 'User.Read', 'offline_access'];
+const SCOPES = ['Mail.Read', 'Mail.ReadWrite', 'Mail.Send', 'User.Read', 'offline_access'];  // Mail.ReadWrite required for Save as Draft (POST /me/messages)
 
 let _msalApp = null;
 

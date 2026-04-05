@@ -122,6 +122,46 @@ export function createMicrosoftProvider(accessToken) {
   }
 
   /**
+   * Save a message to the Drafts folder without sending.
+   * POST /me/messages creates a draft (unlike /me/sendMail which sends immediately).
+   * @param {import('../types.mjs').SendEmailParams} params
+   * @returns {Promise<{success: boolean, draftId?: string}>}
+   */
+  async function saveDraft(params) {
+    const message = {
+      subject: params.subject,
+      body: {
+        contentType: 'html',
+        content: params.bodyHtml,
+      },
+      toRecipients: (params.to || []).map(r => ({
+        emailAddress: { address: r.email, name: r.name || '' },
+      })),
+    };
+
+    if (params.cc?.length) {
+      message.ccRecipients = params.cc.map(r => ({
+        emailAddress: { address: r.email, name: r.name || '' },
+      }));
+    }
+
+    if (params.bcc?.length) {
+      message.bccRecipients = params.bcc.map(r => ({
+        emailAddress: { address: r.email, name: r.name || '' },
+      }));
+    }
+
+    if (params.importance && params.importance !== 'normal') {
+      message.importance = params.importance;
+    }
+
+    // POST /me/messages — creates in Drafts folder, does NOT send
+    const result = await client.api('/me/messages').post(message);
+
+    return { success: true, draftId: result.id };
+  }
+
+  /**
    * List messages from a folder.
    * @param {import('../types.mjs').EmailListParams} params
    * @returns {Promise<import('../types.mjs').EmailListResult>}
@@ -253,6 +293,7 @@ export function createMicrosoftProvider(accessToken) {
 
   return {
     sendEmail,
+    saveDraft,
     listMessages,
     searchMessages,
     getMessage,
