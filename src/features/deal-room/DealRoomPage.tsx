@@ -472,6 +472,7 @@ const DealRoomPage: React.FC = () => {
             insufficientDataMessage={
               insufficientDataMsg?.tab === activeTab ? insufficientDataMsg.message : undefined
             }
+            showArtifactsView={!!viewingArtifact}
           />
         }
         rightPanel={

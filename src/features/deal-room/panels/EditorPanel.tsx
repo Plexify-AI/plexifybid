@@ -186,6 +186,8 @@ interface EditorPanelProps {
   onGenerateSkill?: (skillKey: string, label: string) => void;
   /** Info message when sources are insufficient for the active tab */
   insufficientDataMessage?: string;
+  /** Force switch to artifacts sub-tab (for non-tab artifacts like infographic) */
+  showArtifactsView?: boolean;
 }
 
 type EditorSubTab = 'editor' | 'artifacts';
@@ -201,23 +203,17 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   generatingSkill,
   onGenerateSkill,
   insufficientDataMessage,
+  showArtifactsView,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<EditorSubTab>('editor');
   const [localWordCount, setLocalWordCount] = useState(0);
 
-  // Auto-switch to Artifacts sub-tab when viewing a non-tab artifact (infographic, etc.)
-  const prevArtifactRef = useRef<string | null>(null);
+  // Switch to Artifacts sub-tab when parent explicitly requests it (infographic, etc.)
   useEffect(() => {
-    const artId = activeArtifact?.id || null;
-    if (activeArtifact?.content && artId !== prevArtifactRef.current) {
-      // Check if this artifact's type is NOT a tab — means it's a "floating" artifact
-      const isTabArtifact = ['deal_summary', 'competitive_analysis', 'meeting_prep', 'board_brief', 'ozrf_section'].includes(activeArtifact.artifact_type);
-      if (!isTabArtifact) {
-        setActiveSubTab('artifacts');
-      }
-      prevArtifactRef.current = artId;
+    if (showArtifactsView) {
+      setActiveSubTab('artifacts');
     }
-  }, [activeArtifact]);
+  }, [showArtifactsView, activeArtifact]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isUpdatingRef = useRef(false);
   const pendingContentRef = useRef<{ tab: DealRoomTab; html: string } | null>(null);
