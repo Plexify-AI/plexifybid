@@ -72,6 +72,7 @@
         "plexify-shared-ui": "file:./plexify-shared-ui",
         "plyr": "^3.8.4",
         "postcss": "^8.5.6",
+        "pptxgenjs": "^4.0.1",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
         "react-h5-audio-player": "^3.10.1",

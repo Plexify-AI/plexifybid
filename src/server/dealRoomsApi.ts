@@ -18,6 +18,7 @@ async function getHandlers() {
   if (!_handlers) {
     const mod = await import('../../server/routes/deal-rooms.js');
     const genMod = await import('../../server/routes/deal-room-generate.js') as any;
+    const pptxMod = await import('../../server/routes/export-pptx.js') as any;
     _handlers = {
       create: mod.handleCreateDealRoom,
       list: mod.handleListDealRooms,
@@ -33,6 +34,7 @@ async function getHandlers() {
       streamAudio: mod.handleStreamAudio,
       skillGenerate: genMod.handleSkillGenerate,
       getTabConfig: genMod.handleGetTabConfig,
+      generateDeck: pptxMod.handleGenerateDeck,
     };
   }
   return _handlers;
@@ -123,6 +125,12 @@ function parseRoute(url: string) {
   const generateMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/generate$/);
   if (generateMatch) {
     return { route: 'generate', dealRoomId: generateMatch[1] };
+  }
+
+  // POST /api/deal-rooms/:id/generate-deck (PPTX deck generation)
+  const generateDeckMatch = path.match(/^\/api\/deal-rooms\/([^/]+)\/generate-deck$/);
+  if (generateDeckMatch) {
+    return { route: 'generate-deck', dealRoomId: generateDeckMatch[1] };
   }
 
   // POST/GET /api/deal-rooms/:id/artifacts
@@ -256,6 +264,16 @@ export function dealRoomsMiddleware() {
           if (req.method === 'POST') {
             const body = await readBody(req);
             await handlers.skillGenerate(req, res, parsed.dealRoomId, body);
+          } else {
+            sendError(res as any, 405, 'Method not allowed');
+          }
+          break;
+        }
+
+        case 'generate-deck': {
+          if (req.method === 'POST') {
+            const body = await readBody(req);
+            await handlers.generateDeck(req, res, parsed.dealRoomId, body);
           } else {
             sendError(res as any, 405, 'Method not allowed');
           }

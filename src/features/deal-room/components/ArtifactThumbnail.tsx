@@ -32,6 +32,7 @@ const ARTIFACT_COLORS: Record<string, string> = {
   ozrf_section: 'from-slate-600/40 to-slate-800/40',
   outreach_sequence: 'from-pink-600/40 to-pink-800/40',
   slide_deck: 'from-amber-600/40 to-amber-800/40',
+  board_deck: 'from-amber-600/40 to-amber-800/40',
   podcast: 'from-rose-600/40 to-rose-800/40',
   audio_briefing: 'from-rose-600/40 to-rose-800/40',
   presentation: 'from-amber-600/40 to-amber-800/40',
@@ -52,6 +53,7 @@ const ARTIFACT_ICONS: Record<string, LucideIcon> = {
   ozrf_section: Landmark,
   outreach_sequence: Mail,
   slide_deck: MonitorPlay,
+  board_deck: MonitorPlay,
   infographic: PieChart,
 };
 

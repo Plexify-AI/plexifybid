@@ -296,6 +296,68 @@ const DealRoomPage: React.FC = () => {
         return;
       }
 
+      // Board Deck uses a dedicated endpoint that returns binary PPTX
+      if (skillKey === 'board_deck') {
+        const deckRes = await fetch(`/api/deal-rooms/${id}/generate-deck`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ skillKey: 'board_deck' }),
+        });
+
+        // Check for JSON error or insufficient data response
+        const contentType = deckRes.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const jsonResult = await deckRes.json();
+          if (jsonResult.success === false && jsonResult.reason === 'insufficient_data') {
+            const aiMsg: DealRoomMessage = {
+              id: `skill-info-${Date.now()}`,
+              deal_room_id: id,
+              tenant_id: '',
+              role: 'assistant',
+              content: jsonResult.message || 'Not enough source data to generate a Board Deck.',
+              citations: [],
+              created_at: new Date().toISOString(),
+            };
+            setMessages(prev => [...prev, aiMsg]);
+            return;
+          }
+          if (jsonResult.error) {
+            throw new Error(jsonResult.error);
+          }
+        }
+
+        if (!deckRes.ok) throw new Error('Deck generation failed');
+
+        // Download the PPTX blob
+        const blob = await deckRes.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${room?.name || 'Board-Deck'}_Board-Deck.pptx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        const aiMsg: DealRoomMessage = {
+          id: `skill-ai-${Date.now()}`,
+          deal_room_id: id,
+          tenant_id: '',
+          role: 'assistant',
+          content: '**Board Deck generated!** Your branded .pptx file has been downloaded. Open it in PowerPoint or Google Slides.',
+          citations: [],
+          created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, aiMsg]);
+
+        // Refresh artifacts list to pick up the new record
+        refetch();
+        return;
+      }
+
       // Real rooms: call the skill generation endpoint
       const res = await fetch(`/api/deal-rooms/${id}/generate`, {
         method: 'POST',

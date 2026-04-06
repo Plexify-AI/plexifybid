@@ -54,6 +54,10 @@ function artifactToHtml(artifactType: string, contentJson: any): string {
       return infographicToHtml(output);
     }
 
+    if (artifactType === 'board_deck') {
+      return boardDeckToHtml(output);
+    }
+
     // Generic converter for deal_summary, competitive_analysis, meeting_prep, etc.
     return genericArtifactToHtml(artifactType, output);
   } catch {
@@ -91,6 +95,41 @@ function infographicToHtml(output: any): string {
   }
   if (output.recommendation) {
     parts.push(`<h2>Recommendation</h2><blockquote>${esc(output.recommendation)}</blockquote>`);
+  }
+
+  return parts.join('\n');
+}
+
+function boardDeckToHtml(output: any): string {
+  const esc = (s: string) => s?.toString()
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') ?? '';
+  const parts: string[] = [];
+
+  if (output.title) parts.push(`<h1>${esc(output.title)}</h1>`);
+  if (output.subtitle) parts.push(`<p><em>${esc(output.subtitle)}</em></p>`);
+
+  for (const slide of (output.slides || [])) {
+    if (slide.title) parts.push(`<h2>${esc(slide.title)}</h2>`);
+
+    if (slide.bullets?.length) {
+      parts.push(`<ul>${slide.bullets.map((b: string) => `<li>${esc(b)}</li>`).join('')}</ul>`);
+    }
+    if (slide.metrics?.length) {
+      parts.push(`<ul>${slide.metrics.map((m: any) =>
+        `<li><strong>${esc(m.label)}:</strong> ${esc(m.value)}${m.context ? ` (${esc(m.context)})` : ''}</li>`
+      ).join('')}</ul>`);
+    }
+    if (slide.left_bullets?.length || slide.right_bullets?.length) {
+      if (slide.left_header) parts.push(`<h3>${esc(slide.left_header)}</h3>`);
+      if (slide.left_bullets?.length) {
+        parts.push(`<ul>${slide.left_bullets.map((b: string) => `<li>${esc(b)}</li>`).join('')}</ul>`);
+      }
+      if (slide.right_header) parts.push(`<h3>${esc(slide.right_header)}</h3>`);
+      if (slide.right_bullets?.length) {
+        parts.push(`<ul>${slide.right_bullets.map((b: string) => `<li>${esc(b)}</li>`).join('')}</ul>`);
+      }
+    }
+    if (slide.content) parts.push(`<p>${esc(slide.content)}</p>`);
   }
 
   return parts.join('\n');

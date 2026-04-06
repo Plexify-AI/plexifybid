@@ -12,6 +12,7 @@ import CompetitiveAnalysisRenderer from './CompetitiveAnalysisRenderer';
 import MeetingPrepRenderer from './MeetingPrepRenderer';
 import OutreachSequenceRenderer from './OutreachSequenceRenderer';
 import InfographicRenderer from './InfographicRenderer';
+import SlideDeckRenderer from '../../features/deal-room/components/SlideDeckRenderer';
 import BoardBriefRenderer from '../BoardBriefRenderer';
 import OZRFSectionRenderer from '../OZRFSectionRenderer';
 
@@ -98,6 +99,9 @@ export default function ArtifactRenderer({
 
       case 'infographic':
         return <InfographicRenderer output={output} onCitationClick={onCitationClick} />;
+
+      case 'board_deck':
+        return <SlideDeckRenderer output={output} onCitationClick={onCitationClick} />;
 
       default:
         // Fallback: formatted JSON for unknown types

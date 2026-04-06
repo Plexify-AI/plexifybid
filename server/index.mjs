@@ -294,6 +294,17 @@ app.post('/api/export/docx', async (req, res) => {
   await handleExportDocx(req, res, req.body);
 });
 
+// PPTX Export + Deck Generation
+import { handleExportPptx, handleGenerateDeck } from './routes/export-pptx.js';
+
+app.post('/api/deal-rooms/:id/generate-deck', async (req, res) => {
+  await handleGenerateDeck(req, res, req.params.id, req.body);
+});
+
+app.post('/api/export/pptx', async (req, res) => {
+  await handleExportPptx(req, res, req.body);
+});
+
 // Pipeline Summary (Level 1 template interpolation)
 import { handlePipelineSummary } from './routes/pipeline-summary.js';
 

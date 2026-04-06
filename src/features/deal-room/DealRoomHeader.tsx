@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Share2, Clipboard, FileDown } from 'lucide-react';
+import { ArrowLeft, Share2, Clipboard, FileDown, Presentation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSandbox } from '../../contexts/SandboxContext';
 import type { DealRoom, DealRoomTab } from '../../types/dealRoom';
@@ -35,6 +35,7 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
   const navigate = useNavigate();
   const { token } = useSandbox();
   const [exporting, setExporting] = useState(false);
+  const [exportingPptx, setExportingPptx] = useState(false);
 
   const handleExportDocx = async () => {
     if (!editorContent?.trim() || !token) return;
@@ -72,6 +73,41 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
       console.error('[DealRoomHeader] DOCX export error:', err);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportPptx = async () => {
+    if (!editorContent?.trim() || !token) return;
+    setExportingPptx(true);
+
+    try {
+      const tabLabel = TAB_LABELS[activeTab || ''] || activeTab || 'Report';
+      const filename = `${room.name}_${tabLabel}`.replace(/[^a-zA-Z0-9\-_ ]/g, '');
+
+      const res = await fetch('/api/export/pptx', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ editorContent, filename }),
+      });
+
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filename}.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[DealRoomHeader] PPTX export error:', err);
+    } finally {
+      setExportingPptx(false);
     }
   };
 
@@ -120,6 +156,14 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
         >
           <FileDown size={14} />
           {exporting ? 'Exporting...' : 'Export DOCX'}
+        </button>
+        <button
+          onClick={handleExportPptx}
+          disabled={exportingPptx || !editorContent?.trim()}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Presentation size={14} />
+          {exportingPptx ? 'Exporting...' : 'Export PPTX'}
         </button>
         <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/15 text-white/80 hover:bg-white/5 transition-colors text-sm">
           <Share2 size={14} />

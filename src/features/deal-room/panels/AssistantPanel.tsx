@@ -23,6 +23,7 @@ const DEFAULT_ACTION_CHIPS = [
   { label: 'Generate Board Brief', icon: '📄', skillKey: 'board_brief' },
   { label: 'Extract Assessment Trends', icon: '📊', skillKey: 'deal_summary' },
   { label: 'Draft OZRF Section', icon: '🏛️', skillKey: 'ozrf_section' },
+  { label: 'Generate Board Deck', icon: '🎯', skillKey: 'board_deck' },
 ];
 
 interface ActionChip {
@@ -37,6 +38,7 @@ function getOpportunityChips(opp: OpportunityContext): ActionChip[] {
     { label: `Draft Outreach Email for ${name}`, icon: '✉️', skillKey: 'outreach_sequence' },
     { label: `Meeting Prep Brief for ${name}`, icon: '📋', skillKey: 'meeting_prep' },
     { label: `Follow-Up Message for ${name}`, icon: '🔄' },
+    { label: 'Generate Board Deck', icon: '🎯', skillKey: 'board_deck' },
   ];
 }
 
