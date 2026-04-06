@@ -11,6 +11,7 @@ import OutreachPreview, { parseEmail } from './OutreachPreview';
 import PipelineAnalysis from './PipelineAnalysis';
 import { POWERFLOW_LEFT_PROMPTS } from '../constants/powerflowLeftPyramidPrompts';
 import EmailPreviewModal from './email/EmailPreviewModal';
+import BatchEmailPanel from './BatchEmailPanel';
 
 // Structured tool result from the API
 interface ToolResult {
@@ -102,6 +103,7 @@ const AskPlexiInterface: React.FC = () => {
   const [powerflowLevel, setPowerflowLevel] = useState<number | null>(null);
   const [prefillApplied, setPrefillApplied] = useState(false);
   const [showNewChatConfirm, setShowNewChatConfirm] = useState(false);
+  const [showBatchEmail, setShowBatchEmail] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const loadingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -677,7 +679,22 @@ const AskPlexiInterface: React.FC = () => {
                   {suggestion}
                 </button>
               ))}
+              <button
+                onClick={() => setShowBatchEmail(true)}
+                className="px-3 py-1.5 text-xs bg-amber-500/10 border border-amber-500/30 rounded-full hover:bg-amber-500/20 hover:border-amber-500/50 text-amber-300 transition-all cursor-pointer"
+              >
+                Batch Outreach
+              </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Email Panel */}
+      {showBatchEmail && (
+        <div className="px-6 py-3 border-t border-gray-700/50">
+          <div className="max-w-4xl mx-auto">
+            <BatchEmailPanel onClose={() => setShowBatchEmail(false)} />
           </div>
         </div>
       )}

@@ -294,6 +294,13 @@ app.post('/api/export/docx', async (req, res) => {
   await handleExportDocx(req, res, req.body);
 });
 
+// Batch Email Generation
+import { handleBatchGenerate } from './routes/batch-email.js';
+
+app.post('/api/batch-email/generate', async (req, res) => {
+  await handleBatchGenerate(req, res, req.body);
+});
+
 // PPTX Export + Deck Generation
 import { handleExportPptx, handleGenerateDeck } from './routes/export-pptx.js';
 

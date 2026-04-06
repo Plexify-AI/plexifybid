@@ -23,6 +23,7 @@ import { voiceDnaMiddleware } from './src/server/voiceDnaApi';
 import { linkedinImportMiddleware } from './src/server/linkedinImportApi';
 import { emailAuthMiddleware } from './src/server/emailAuthApi';
 import { pptxExportMiddleware } from './src/server/pptxApi';
+import { batchEmailMiddleware } from './src/server/batchEmailApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -54,6 +55,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(notebookBDPodcastMiddleware());
         server.middlewares.use(notebookBDDocxMiddleware());
         server.middlewares.use(pptxExportMiddleware());
+        server.middlewares.use(batchEmailMiddleware());
         server.middlewares.use(healthMiddleware());
         server.middlewares.use(agentManagementMiddleware());
         server.middlewares.use(askPlexiMiddleware());
