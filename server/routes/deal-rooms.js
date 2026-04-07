@@ -317,6 +317,17 @@ export async function handleUploadSource(req, res, dealRoomId) {
 
   const storagePath = `${tenant.id}/${dealRoomId}/${Date.now()}-${file.originalname}`;
 
+  // Normalize MIME type — browsers send application/octet-stream for .md and
+  // other extensions that Supabase Storage may reject.
+  const MIME_MAP = {
+    pdf: 'application/pdf',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    txt: 'text/plain',
+    md: 'text/plain',
+    csv: 'text/csv',
+  };
+  const safeMime = MIME_MAP[ext] || file.mimetype;
+
   try {
     // Verify deal room exists and belongs to tenant
     await getDealRoom(tenant.id, dealRoomId);
@@ -330,8 +341,8 @@ export async function handleUploadSource(req, res, dealRoomId) {
       processing_status: 'pending',
     });
 
-    // 2. Upload to Supabase Storage
-    await uploadFile(storagePath, file.buffer, file.mimetype);
+    // 2. Upload to Supabase Storage (use normalized MIME type)
+    await uploadFile(storagePath, file.buffer, safeMime);
 
     // 3. Update status to processing
     await updateDealRoomSource(source.id, { processing_status: 'processing' });
