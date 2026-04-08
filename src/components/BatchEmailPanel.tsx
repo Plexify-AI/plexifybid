@@ -54,6 +54,8 @@ const BatchEmailPanel: React.FC<BatchEmailPanelProps> = ({ onClose }) => {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loadingOpps, setLoadingOpps] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'warmth_desc' | 'created'>('warmth_desc');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Generating state
   const [generatingProgress, setGeneratingProgress] = useState(0);
@@ -65,11 +67,11 @@ const BatchEmailPanel: React.FC<BatchEmailPanelProps> = ({ onClose }) => {
   const [savingDraft, setSavingDraft] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
-  // Load opportunities on mount
+  // Load opportunities when mount or sort changes
   useEffect(() => {
     if (!token) return;
     setLoadingOpps(true);
-    fetch('/api/opportunities?sort=warmth_desc&limit=50', {
+    fetch(`/api/opportunities?sort=${sortBy}&limit=200`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -79,7 +81,7 @@ const BatchEmailPanel: React.FC<BatchEmailPanelProps> = ({ onClose }) => {
       })
       .catch(err => console.error('[BatchEmailPanel] Load error:', err))
       .finally(() => setLoadingOpps(false));
-  }, [token]);
+  }, [token, sortBy]);
 
   const toggleSelect = (id: string) => {
     setSelected(prev => {
@@ -91,7 +93,16 @@ const BatchEmailPanel: React.FC<BatchEmailPanelProps> = ({ onClose }) => {
   };
 
   const selectAll = () => {
-    const top = opportunities.slice(0, 15);
+    const filtered = opportunities.filter(opp => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (opp.contact_name || '').toLowerCase().includes(q) ||
+        (opp.account_name || '').toLowerCase().includes(q) ||
+        (opp.contact_email || '').toLowerCase().includes(q)
+      );
+    });
+    const top = filtered.filter(o => o.contact_email).slice(0, 15);
     setSelected(new Set(top.map(o => o.id)));
   };
 
@@ -241,7 +252,39 @@ const BatchEmailPanel: React.FC<BatchEmailPanelProps> = ({ onClose }) => {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-3">
+              {/* Sort toggle + search */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center bg-gray-800/60 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setSortBy('warmth_desc')}
+                    className={`px-2.5 py-1 text-[11px] rounded-md transition-colors ${
+                      sortBy === 'warmth_desc'
+                        ? 'bg-blue-500/20 text-blue-300'
+                        : 'text-white/40 hover:text-white/60'
+                    }`}
+                  >
+                    Warmth
+                  </button>
+                  <button
+                    onClick={() => setSortBy('created')}
+                    className={`px-2.5 py-1 text-[11px] rounded-md transition-colors ${
+                      sortBy === 'created'
+                        ? 'bg-blue-500/20 text-blue-300'
+                        : 'text-white/40 hover:text-white/60'
+                    }`}
+                  >
+                    Recent
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search name or company..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="flex-1 px-2.5 py-1 text-xs bg-gray-800/40 border border-gray-700/40 rounded-lg text-white placeholder-white/30 focus:outline-none focus:border-blue-500/40"
+                />
+              </div>
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-white/40">{selected.size} selected (max 15)</span>
                 <button
                   onClick={selectAll}
@@ -251,7 +294,15 @@ const BatchEmailPanel: React.FC<BatchEmailPanelProps> = ({ onClose }) => {
                 </button>
               </div>
               <div className="space-y-1.5">
-                {opportunities.map(opp => (
+                {opportunities.filter(opp => {
+                  if (!searchQuery.trim()) return true;
+                  const q = searchQuery.toLowerCase();
+                  return (
+                    (opp.contact_name || '').toLowerCase().includes(q) ||
+                    (opp.account_name || '').toLowerCase().includes(q) ||
+                    (opp.contact_email || '').toLowerCase().includes(q)
+                  );
+                }).map(opp => (
                   <label
                     key={opp.id}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
