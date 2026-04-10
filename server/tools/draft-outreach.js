@@ -12,6 +12,7 @@ import {
   getCaseStudyByRef,
   getConnections,
   createOutreachDraft,
+  getTenantById,
 } from '../lib/supabase.js';
 
 // ---------------------------------------------------------------------------
@@ -166,6 +167,19 @@ export async function execute(input, tenantId) {
     console.error('[draft_outreach] Failed to save draft:', err.message);
   }
 
+  // Fetch tenant for sender name + email preferences
+  let tenant;
+  try { tenant = await getTenantById(tenantId); } catch { tenant = null; }
+  const prefs = tenant?.preferences || {};
+  const senderName = tenant?.name || '';
+
+  let closingInstruction = '';
+  if (prefs.include_closing !== false && prefs.default_closing && senderName) {
+    closingInstruction = `End the email with EXACTLY: "${prefs.default_closing}" followed by "${senderName}" on the next line. `;
+  } else if (senderName) {
+    closingInstruction = `Sign the email as ${senderName}. `;
+  }
+
   return {
     email_context: emailContext,
     instructions:
@@ -174,6 +188,8 @@ export async function execute(input, tenantId) {
       'Reference the specific project, pain points, and relevant case study ROI. ' +
       'If a warm intro path exists, suggest mentioning the mutual connection. ' +
       `Tone: ${tone}. Focus: ${focus}. ` +
-      'Keep it under 200 words — AEC executives skim.',
+      'Keep it under 200 words — AEC executives skim. ' +
+      closingInstruction +
+      'Do NOT include a signature block — it is appended automatically by the system.',
   };
 }

@@ -45,6 +45,7 @@ import MomentumPage from './features/momentum/MomentumPage';
 import HomePage from './features/home/HomePage';
 import LinkedInImportPage from './pages/LinkedInImportPage';
 import EmailSettingsPage from './pages/EmailSettingsPage';
+import SettingsPage from './pages/SettingsPage';
 
 // Agent Management route wrappers
 function SessionListWrapper() {
@@ -394,15 +395,7 @@ const AppBody: React.FC = () => {
                   <Route path="/agents" element={<PlexiCosAgentsPage />} />
                   <Route path="/deal-rooms" element={<DealRoomListPage />} />
                   <Route path="/deal-rooms/:id" element={<DealRoomPage />} />
-                  <Route
-                    path="/settings"
-                    element={
-                      <PlaceholderPage
-                        title="Settings"
-                        description="Configure your PlexifySOLO preferences."
-                      />
-                    }
-                  />
+                  <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/integrations" element={<IntegrationsPage />} />
                   <Route path="/linkedin-import" element={<LinkedInImportPage />} />
                   <Route path="/settings/email" element={<EmailSettingsPage />} />

@@ -61,6 +61,7 @@ function buildOutreachPrompt(opportunity, toneOverride) {
     (ed.industry ? `Their industry is ${ed.industry}. ` : '') +
     'Make it specific and actionable — no boilerplate. ' +
     'NEVER use these words: delve, leverage, seamless, transformative. ' +
+    'Do NOT include a signature block — it is appended automatically by the system. ' +
     'Format the email with Subject: on the first line, then the body.';
 
   return {
@@ -112,10 +113,27 @@ export async function handleBatchGenerate(req, res, body) {
       // Non-fatal
     }
 
+    const prefs = tenant.preferences || {};
+    let closingInstruction = '';
+    if (prefs.include_closing !== false && prefs.default_closing) {
+      closingInstruction = `\nEnd every email with EXACTLY: "${prefs.default_closing}" followed by "${tenant.name}" on the next line.`;
+    }
+
+    let priceInstruction = '';
+    if (prefs.price_list && prefs.price_list.length > 0) {
+      const col = prefs.default_price_column === 'msrp' ? 'msrp' : 'map';
+      const colLabel = col === 'msrp' ? 'MSRP' : 'MAP';
+      const items = prefs.price_list.map(p => `  ${p.product} (${p.sku}): ${p[col] || p.map || p.msrp || ''}`).join('\n');
+      priceInstruction = `\n\nPRODUCT PRICING — Use ${colLabel} prices unless told otherwise.\n${prefs.price_note || ''}\n${items}\nNever estimate or round prices — use exact values from this list.`;
+    }
+
     const systemPrompt =
       `You are a business development professional drafting outreach emails. ` +
       `You write as ${tenant.name} from ${tenant.company}. ` +
       (voiceBlock ? `\n\n${voiceBlock}` : '') +
+      closingInstruction +
+      `\n\nDo NOT include a signature block — it is appended automatically by the system.` +
+      priceInstruction +
       `\n\nNEVER use these words: delve, leverage, seamless, transformative.`;
 
     const emails = [];

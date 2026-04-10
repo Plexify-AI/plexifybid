@@ -294,6 +294,17 @@ app.post('/api/export/docx', async (req, res) => {
   await handleExportDocx(req, res, req.body);
 });
 
+// Tenant Preferences
+import { handleGetPreferences, handleUpdatePreferences } from './routes/preferences.js';
+
+app.get('/api/preferences', async (req, res) => {
+  await handleGetPreferences(req, res);
+});
+
+app.put('/api/preferences', async (req, res) => {
+  await handleUpdatePreferences(req, res, req.body);
+});
+
 // Batch Email Generation
 import { handleBatchGenerate } from './routes/batch-email.js';
 
