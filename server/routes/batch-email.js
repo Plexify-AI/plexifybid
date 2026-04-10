@@ -33,6 +33,62 @@ function sendError(res, status, message) {
  * Build outreach context + instructions for a single opportunity.
  * Mirrors logic from server/tools/draft-opportunity-outreach.js
  */
+/**
+ * Build event context block for Xencelabs TN leads (Animation Y'all 2026).
+ * Returns empty string for non-event leads.
+ */
+function buildEventContext(enrichmentData) {
+  const ed = enrichmentData || {};
+  if (ed.source !== 'xencelabs_tn_event') return '';
+
+  const isRegistered = !!ed.animation_yall_registered;
+  const industry = ed.industry || 'creative technology';
+
+  // Industry-specific hooks for the invitation tone
+  const industryHooks = {
+    'K-12': 'see how schools are adopting pen displays for digital art curriculum',
+    'Higher Edu- Design': 'check out the latest Xencelabs pen displays used in university design programs',
+    'Game Development/Simulation': 'try the pen display pipeline our studio customers use for game art',
+    'Animation': 'get hands-on with the pen displays animators are switching to',
+    'VFX / FILM': 'see the pen tablet workflow VFX artists use in production',
+    'Medical/Healthcare': 'explore how medical illustration teams use Xencelabs pen displays',
+    'Broadcast /Video Editing': 'see how broadcast graphics teams use Xencelabs pen displays',
+    'Photography': 'try the pen display retouching workflow photographers love',
+    'Graphic Design': 'get hands-on with the pen displays graphic designers are switching to',
+    'Government/Simulation/Other': 'see how simulation teams use Xencelabs pen displays',
+  };
+  const hook = industryHooks[industry] || 'get hands-on with the latest Xencelabs pen displays';
+
+  if (isRegistered) {
+    return (
+      '\n\nEVENT OUTREACH CONTEXT (this contact is a REGISTERED ATTENDEE):\n' +
+      'Show: Animation Y\'all!\n' +
+      'Venue: Lipscomb University / Allen Arena Lobby\n' +
+      'Booth: XenceLabs - Booth C\n' +
+      'Dates: Saturday April 11th 10am-6pm, Sunday April 12th 10am-5pm\n\n' +
+      'This person is already registered for Animation Y\'all. Use a warm, excited tone:\n' +
+      '"Since you\'re already registered for Animation Y\'all, stop by Booth C — ' +
+      'I\'d love to give you a hands-on demo of the latest Xencelabs pen displays."\n' +
+      'Suggest scheduling a specific time at the booth. Casual, inviting. ' +
+      'Include booth number (Booth C) and exhibition times.'
+    );
+  }
+
+  return (
+    '\n\nEVENT OUTREACH CONTEXT (this is an INVITATION — they may not know about the event):\n' +
+    'Show: Animation Y\'all!\n' +
+    'Venue: Lipscomb University / Allen Arena Lobby\n' +
+    'Booth: XenceLabs - Booth C\n' +
+    'Dates: Saturday April 11th 10am-6pm, Sunday April 12th 10am-5pm\n\n' +
+    'This person may not know about Animation Y\'all. Invite them to attend:\n' +
+    '"Animation Y\'all is happening this weekend at Lipscomb University — ' +
+    'free to attend and we\'ll have Xencelabs pen displays set up at Booth C for hands-on demos."\n' +
+    `Position the event as worth their time: "${hook}". ` +
+    'Casual, inviting, specific. Include booth number (Booth C) and exhibition times. ' +
+    'Do NOT use corporate stiff language.'
+  );
+}
+
 function buildOutreachPrompt(opportunity, toneOverride) {
   const ed = opportunity.enrichment_data || {};
   const isWarm = ed.warm_status === 'Y' || (ed.message_count && ed.message_count > 0);
@@ -54,6 +110,9 @@ function buildOutreachPrompt(opportunity, toneOverride) {
       'No generic marketing speak. Specific value proposition. Under 150 words.';
   }
 
+  // Inject event context for Xencelabs TN event leads
+  const eventContext = buildEventContext(ed);
+
   const instructions =
     `${channelInstructions} ` +
     `Use the contact's real name (${opportunity.contact_name || opportunity.account_name}). ` +
@@ -62,7 +121,8 @@ function buildOutreachPrompt(opportunity, toneOverride) {
     'Make it specific and actionable — no boilerplate. ' +
     'NEVER use these words: delve, leverage, seamless, transformative. ' +
     'Do NOT include a signature block — it is appended automatically by the system. ' +
-    'Format the email with Subject: on the first line, then the body.';
+    'Format the email with Subject: on the first line, then the body.' +
+    eventContext;
 
   return {
     contact: {
