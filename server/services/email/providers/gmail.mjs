@@ -37,8 +37,9 @@ function createGmailClient(accessToken) {
 /**
  * Build a raw RFC 2822 email message, base64url encoded for Gmail send.
  */
-function buildRawEmail({ to, cc, bcc, subject, bodyHtml, from, inReplyTo, references, threadSubject }) {
+function buildRawEmail({ to, cc, bcc, subject, bodyHtml, from, inReplyTo, references, threadSubject, attachments }) {
   const boundary = `plx_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const hasAttachments = attachments && attachments.length > 0;
 
   const formatAddr = (r) => r.name ? `${r.name} <${r.email}>` : r.email;
 
@@ -55,15 +56,30 @@ function buildRawEmail({ to, cc, bcc, subject, bodyHtml, from, inReplyTo, refere
   headers.push(
     `Subject: ${threadSubject || subject}`,
     `MIME-Version: 1.0`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    `Content-Type: ${hasAttachments ? 'multipart/mixed' : 'multipart/alternative'}; boundary="${boundary}"`,
     '',
     `--${boundary}`,
     `Content-Type: text/html; charset="UTF-8"`,
     `Content-Transfer-Encoding: base64`,
     '',
     Buffer.from(bodyHtml, 'utf-8').toString('base64'),
-    `--${boundary}--`,
   );
+
+  // Append file attachments
+  if (hasAttachments) {
+    for (const att of attachments) {
+      headers.push(
+        `--${boundary}`,
+        `Content-Type: ${att.contentType || 'application/octet-stream'}; name="${att.filename}"`,
+        `Content-Disposition: attachment; filename="${att.filename}"`,
+        `Content-Transfer-Encoding: base64`,
+        '',
+        att.contentBase64,
+      );
+    }
+  }
+
+  headers.push(`--${boundary}--`);
 
   const rawMessage = headers.join('\r\n');
   return Buffer.from(rawMessage).toString('base64url');
@@ -202,6 +218,7 @@ export function createGmailProvider(accessToken) {
       subject: params.subject,
       bodyHtml: params.bodyHtml,
       from,
+      attachments: params.attachments,
     });
 
     const res = await gmail.users.messages.send({
@@ -228,6 +245,7 @@ export function createGmailProvider(accessToken) {
       subject: params.subject,
       bodyHtml: params.bodyHtml,
       from,
+      attachments: params.attachments,
     });
 
     const res = await gmail.users.drafts.create({

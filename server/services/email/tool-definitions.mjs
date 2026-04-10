@@ -41,6 +41,18 @@ export const emailToolDefinitions = [
           },
           description: 'CC recipients (optional)',
         },
+        bcc: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              email: { type: 'string' },
+            },
+            required: ['email'],
+          },
+          description: 'BCC recipients (optional)',
+        },
         subject: {
           type: 'string',
           description: 'Email subject line',
@@ -53,6 +65,24 @@ export const emailToolDefinitions = [
           type: 'string',
           enum: ['low', 'normal', 'high'],
           description: 'Email importance level (default: normal)',
+        },
+        attachments: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              source_id: {
+                type: 'string',
+                description: 'Deal Room source UUID — the file will be fetched from storage and attached',
+              },
+              filename: {
+                type: 'string',
+                description: 'Display filename for the attachment (optional — derived from source if omitted)',
+              },
+            },
+            required: ['source_id'],
+          },
+          description: 'Files to attach from Deal Room sources (optional). Use the source UUID from deal room data.',
         },
       },
       required: ['to', 'subject', 'body_html'],

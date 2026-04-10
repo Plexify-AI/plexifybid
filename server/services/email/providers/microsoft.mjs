@@ -115,6 +115,15 @@ export function createMicrosoftProvider(accessToken) {
       message.importance = params.importance;
     }
 
+    if (params.attachments?.length) {
+      message.attachments = params.attachments.map(att => ({
+        '@odata.type': '#microsoft.graph.fileAttachment',
+        name: att.filename,
+        contentType: att.contentType || 'application/octet-stream',
+        contentBytes: att.contentBase64,
+      }));
+    }
+
     // POST /me/sendMail — sends immediately, no draft created
     await client.api('/me/sendMail').post({ message, saveToSentItems: true });
 
@@ -153,6 +162,15 @@ export function createMicrosoftProvider(accessToken) {
 
     if (params.importance && params.importance !== 'normal') {
       message.importance = params.importance;
+    }
+
+    if (params.attachments?.length) {
+      message.attachments = params.attachments.map(att => ({
+        '@odata.type': '#microsoft.graph.fileAttachment',
+        name: att.filename,
+        contentType: att.contentType || 'application/octet-stream',
+        contentBytes: att.contentBase64,
+      }));
     }
 
     // POST /me/messages — creates in Drafts folder, does NOT send

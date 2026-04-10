@@ -8,11 +8,54 @@
  * All actions are logged to email_audit_log.
  */
 
-import { getSupabase } from '../../lib/supabase.js';
+import { getSupabase, downloadFile } from '../../lib/supabase.js';
 import { getActiveAccount, createProvider, touchLastUsed } from './index.mjs';
 import { ensureFreshToken } from './token-refresh.mjs';
 import { logEmailAudit } from './audit.mjs';
 import { wrapEmailHtml } from '../../lib/email-html.js';
+
+/**
+ * Resolve attachment source_ids into { filename, contentType, contentBase64 } objects.
+ * Fetches files from Supabase Storage via deal_room_sources table.
+ */
+async function resolveAttachments(attachmentInputs, tenantId) {
+  if (!attachmentInputs || attachmentInputs.length === 0) return [];
+
+  const supabase = getSupabase();
+  const resolved = [];
+
+  for (const att of attachmentInputs) {
+    try {
+      // Look up the source record
+      const { data: source, error } = await supabase
+        .from('deal_room_sources')
+        .select('id, file_name, content_type, storage_path')
+        .eq('id', att.source_id)
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (error || !source || !source.storage_path) {
+        console.warn(`[email/attachments] Source not found: ${att.source_id}`);
+        continue;
+      }
+
+      // Download from Supabase Storage
+      const blob = await downloadFile(source.storage_path);
+      const buffer = Buffer.from(await blob.arrayBuffer());
+      const contentBase64 = buffer.toString('base64');
+
+      resolved.push({
+        filename: att.filename || source.file_name,
+        contentType: source.content_type || 'application/octet-stream',
+        contentBase64,
+      });
+    } catch (err) {
+      console.error(`[email/attachments] Failed to resolve ${att.source_id}:`, err.message);
+    }
+  }
+
+  return resolved;
+}
 
 // ---------------------------------------------------------------------------
 // Tool executors — one per tool name
@@ -41,8 +84,9 @@ export async function executeEmailTool(toolName, toolInput, tenantId) {
     const result = await ensureFreshToken(account.id);
     accessToken = result.accessToken;
   } catch (err) {
+    const provider = account.provider === 'microsoft' ? 'Outlook' : 'Gmail';
     return {
-      error: `Email authentication failed: ${err.message}. The user may need to reconnect from Settings.`,
+      error: `Your ${provider} connection has expired. Go to Settings > Email and click "Reconnect ${provider}" to re-authorize.`,
     };
   }
 
@@ -88,13 +132,41 @@ export async function executeEmailTool(toolName, toolInput, tenantId) {
 // Send — stores draft server-side, returns pending_approval
 // ---------------------------------------------------------------------------
 
+/**
+ * Basic email format validation.
+ * Returns null if valid, or an error string if invalid.
+ */
+function validateEmailAddresses(recipients, fieldName) {
+  if (!recipients || recipients.length === 0) return null;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  for (const r of recipients) {
+    if (!r.email || !emailRegex.test(r.email)) {
+      return `Invalid email address in ${fieldName}: "${r.email || '(empty)'}". Please fix and try again.`;
+    }
+  }
+  return null;
+}
+
 async function handleSendEmail(input, tenantId, account, _provider) {
+  // Validate email addresses
+  const toErr = validateEmailAddresses(input.to, 'To');
+  if (toErr) return { error: toErr };
+  const ccErr = validateEmailAddresses(input.cc, 'CC');
+  if (ccErr) return { error: ccErr };
+  const bccErr = validateEmailAddresses(input.bcc, 'BCC');
+  if (bccErr) return { error: bccErr };
+
+  // Resolve attachments from Deal Room sources
+  const attachments = await resolveAttachments(input.attachments, tenantId);
+
   const draft = {
     to: input.to,
     cc: input.cc || [],
+    bcc: input.bcc || [],
     subject: input.subject,
     bodyHtml: input.body_html,
     importance: input.importance || 'normal',
+    attachments,
   };
 
   // Store draft server-side (Flag 1: never trust frontend with draft payload)
@@ -121,7 +193,7 @@ async function handleSendEmail(input, tenantId, account, _provider) {
     emailAccountId: account.id,
     actionType: 'send',
     success: true,
-    recipientsCount: (input.to?.length || 0) + (input.cc?.length || 0),
+    recipientsCount: (input.to?.length || 0) + (input.cc?.length || 0) + (input.bcc?.length || 0),
     subject: input.subject,
     metadata: { status: 'pending_approval', draft_id: draftRow.id },
   });
@@ -133,10 +205,12 @@ async function handleSendEmail(input, tenantId, account, _provider) {
     draft: {
       to: draft.to,
       cc: draft.cc,
+      bcc: draft.bcc,
       subject: draft.subject,
       body_html: draft.bodyHtml,
       importance: draft.importance,
       from: account.email_address,
+      attachments: (draft.attachments || []).map(a => ({ filename: a.filename, content_type: a.contentType })),
     },
   };
 }
@@ -342,15 +416,6 @@ export async function confirmSend(draftId, tenantId) {
     return { success: false, error: 'Draft has expired. Please ask Plexi to draft the email again.' };
   }
 
-  // Get fresh token
-  let accessToken;
-  try {
-    const result = await ensureFreshToken(draft.email_account_id);
-    accessToken = result.accessToken;
-  } catch (err) {
-    return { success: false, error: `Authentication failed: ${err.message}` };
-  }
-
   // Load account for provider info
   const { data: account } = await supabase
     .from('email_accounts')
@@ -362,6 +427,16 @@ export async function confirmSend(draftId, tenantId) {
     return { success: false, error: 'Email account not found.' };
   }
 
+  // Get fresh token
+  let accessToken;
+  try {
+    const result = await ensureFreshToken(draft.email_account_id);
+    accessToken = result.accessToken;
+  } catch (err) {
+    const providerName = account.provider === 'microsoft' ? 'Outlook' : 'Gmail';
+    return { success: false, error: `Your ${providerName} connection has expired. Go to Settings > Email and click "Reconnect ${providerName}" to re-authorize.` };
+  }
+
   const provider = createProvider(account.provider, accessToken);
   const payload = draft.draft_payload;
 
@@ -370,9 +445,11 @@ export async function confirmSend(draftId, tenantId) {
       await provider.sendEmail({
         to: payload.to,
         cc: payload.cc,
+        bcc: payload.bcc,
         subject: payload.subject,
         bodyHtml: payload.bodyHtml,
         importance: payload.importance,
+        attachments: payload.attachments,
       });
     } else if (draft.tool_name === 'reply_to_email') {
       await provider.replyToMessage({
@@ -393,7 +470,7 @@ export async function confirmSend(draftId, tenantId) {
       userId: account.user_id,
       emailAccountId: draft.email_account_id,
       actionType: draft.tool_name === 'reply_to_email' ? 'reply' : 'send',
-      recipientsCount: (payload.to?.length || 0) + (payload.cc?.length || 0),
+      recipientsCount: (payload.to?.length || 0) + (payload.cc?.length || 0) + (payload.bcc?.length || 0),
       subject: payload.subject || payload.originalSubject,
       metadata: { draft_id: draftId, confirmed: true },
     });
@@ -540,7 +617,8 @@ export async function saveDraftDirect(tenantId, email) {
     const result = await ensureFreshToken(account.id);
     accessToken = result.accessToken;
   } catch (err) {
-    return { success: false, error: `Authentication failed: ${err.message}. Reconnect your email in Settings > Email.` };
+    const providerName = account.provider === 'microsoft' ? 'Outlook' : 'Gmail';
+    return { success: false, error: `Your ${providerName} connection has expired. Go to Settings > Email and click "Reconnect ${providerName}" to re-authorize.` };
   }
 
   const provider = createProvider(account.provider, accessToken);
@@ -563,6 +641,8 @@ export async function saveDraftDirect(tenantId, email) {
 
     const result = await provider.saveDraft({
       to: toFormatted,
+      cc: email.cc || [],
+      bcc: email.bcc || [],
       subject: email.subject,
       bodyHtml: wrappedHtml,
     });
