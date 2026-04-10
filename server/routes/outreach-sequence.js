@@ -58,6 +58,8 @@ export async function handleGenerateSequence(req, res, body) {
     else if (hasLinkedIn) primaryChannel = 'LinkedIn';
     else primaryChannel = 'Email'; // default
 
+    const prefs = tenant.preferences || {};
+
     // Build adaptive system prompt
     let relationshipContext;
     if (isWarm) {
@@ -99,6 +101,8 @@ ${relationshipContext}
 PRIMARY CHANNEL: ${primaryChannel}
 ${hasEmail && hasLinkedIn ? 'Both email and LinkedIn are available. Mix channels across touches.' : ''}
 
+SENDER: You are writing as ${tenant.name} from ${tenant.company}.
+
 RULES:
 - Use the contact's REAL name and company — no placeholders
 - Each touch should be self-contained (they might not see previous touches)
@@ -106,6 +110,7 @@ RULES:
 - Keep each message under 150 words
 - Space touches evenly across ${duration_days} days
 - Never use: leverage, seamless, transformative, delve
+- Do NOT include a signature block — it is appended automatically by the system${prefs.include_closing !== false && prefs.default_closing ? `\n- End every email/message with EXACTLY: "${prefs.default_closing}" followed by "${tenant.name}"` : ''}
 
 Return ONLY valid JSON (no markdown, no code fences) matching this schema:
 [

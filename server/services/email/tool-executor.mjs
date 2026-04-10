@@ -12,6 +12,7 @@ import { getSupabase } from '../../lib/supabase.js';
 import { getActiveAccount, createProvider, touchLastUsed } from './index.mjs';
 import { ensureFreshToken } from './token-refresh.mjs';
 import { logEmailAudit } from './audit.mjs';
+import { wrapEmailHtml } from '../../lib/email-html.js';
 
 // ---------------------------------------------------------------------------
 // Tool executors — one per tool name
@@ -475,12 +476,15 @@ export async function saveDraftToProvider(draftId, tenantId) {
   }
 
   try {
+    // Wrap body in email template with signature + readable colors
+    const wrappedHtml = await wrapEmailHtml(payload.bodyHtml, tenantId);
+
     const result = await provider.saveDraft({
       to: payload.to,
       cc: payload.cc,
       bcc: payload.bcc,
       subject: payload.subject,
-      bodyHtml: payload.bodyHtml,
+      bodyHtml: wrappedHtml,
     });
 
     // Mark draft as saved (not sent — user can still send from Gmail)
@@ -553,10 +557,14 @@ export async function saveDraftDirect(tenantId, email) {
   });
 
   try {
+    // Wrap body in email template with signature + readable colors
+    const rawBody = email.bodyHtml || `<p>${(email.body || '').replace(/\n/g, '<br/>')}</p>`;
+    const wrappedHtml = await wrapEmailHtml(rawBody, tenantId);
+
     const result = await provider.saveDraft({
       to: toFormatted,
       subject: email.subject,
-      bodyHtml: email.bodyHtml || `<p>${(email.body || '').replace(/\n/g, '<br/>')}</p>`,
+      bodyHtml: wrappedHtml,
     });
 
     logEmailAudit({

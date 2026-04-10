@@ -182,6 +182,31 @@ async function buildSystemPrompt(tenant, powerflowLevel) {
   const oppSummary = await buildOpportunitySummary(tenant.id);
   if (oppSummary) layers.push(oppSummary);
 
+  // Layer 5: Email preferences (closing, signature suppression, price list)
+  const prefs = tenant?.preferences || {};
+  const emailPrefParts = [];
+  emailPrefParts.push('EMAIL FORMATTING RULES:');
+  emailPrefParts.push('- Do NOT include a signature block in any email you draft. The signature is appended automatically by the system.');
+
+  if (prefs.include_closing !== false && prefs.default_closing) {
+    emailPrefParts.push(`- End every email with EXACTLY: "${prefs.default_closing}" followed by "${userName}" on the next line.`);
+  }
+
+  if (prefs.price_list && prefs.price_list.length > 0) {
+    const col = prefs.default_price_column === 'msrp' ? 'msrp' : 'map';
+    const colLabel = col === 'msrp' ? 'MSRP' : 'MAP';
+    emailPrefParts.push('');
+    emailPrefParts.push(`PRODUCT PRICING — Use ${colLabel} prices unless the user explicitly requests otherwise.`);
+    if (prefs.price_note) emailPrefParts.push(prefs.price_note);
+    for (const item of prefs.price_list) {
+      const price = item[col] || item.map || item.msrp || '';
+      emailPrefParts.push(`  ${item.product} (${item.sku}): ${price}`);
+    }
+    emailPrefParts.push('Never estimate or round prices — use exact values from this list.');
+  }
+
+  layers.push(emailPrefParts.join('\n'));
+
   return layers.join('\n\n');
 }
 

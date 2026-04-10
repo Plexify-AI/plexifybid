@@ -8,7 +8,7 @@
  *   - Cold leads without email: LinkedIn connection request
  */
 
-import { getOpportunityById } from '../lib/supabase.js';
+import { getOpportunityById, getTenantById } from '../lib/supabase.js';
 
 export const definition = {
   name: 'draft_opportunity_outreach',
@@ -133,6 +133,19 @@ export async function execute(input, tenantId) {
         'No generic marketing speak. Specific value proposition. Under 150 words.';
   }
 
+  // Fetch tenant for sender name + email preferences
+  let tenant;
+  try { tenant = await getTenantById(tenantId); } catch { tenant = null; }
+  const prefs = tenant?.preferences || {};
+  const senderName = tenant?.name || '';
+
+  let closingInstruction = '';
+  if (prefs.include_closing !== false && prefs.default_closing && senderName) {
+    closingInstruction = `End the email with EXACTLY: "${prefs.default_closing}" followed by "${senderName}" on the next line. `;
+  } else if (senderName) {
+    closingInstruction = `Sign the email as ${senderName}. `;
+  }
+
   return {
     outreach_context: outreachContext,
     instructions:
@@ -140,6 +153,8 @@ export async function execute(input, tenantId) {
       `Use the contact's real name (${opportunity.contact_name || opportunity.account_name}). ` +
       'Reference their company and role. ' +
       (ed.industry ? `Their industry is ${ed.industry}. ` : '') +
-      'Make it specific and actionable — no boilerplate.',
+      'Make it specific and actionable — no boilerplate. ' +
+      closingInstruction +
+      'Do NOT include a signature block — it is appended automatically by the system.',
   };
 }
