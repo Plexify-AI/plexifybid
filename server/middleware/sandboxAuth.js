@@ -14,7 +14,7 @@
 import { getSupabase, logUsageEvent } from '../lib/supabase.js';
 
 // Routes that skip auth entirely
-const PUBLIC_PATHS = ['/api/health', '/api/auth/validate', '/api/auth/email/microsoft/callback', '/api/auth/email/gmail/callback'];
+const PUBLIC_PATHS = ['/api/health', '/api/auth/validate', '/api/auth/email/microsoft/callback', '/api/auth/email/gmail/callback', '/api/leads/template'];
 
 /**
  * Extract token from request using priority order
