@@ -366,6 +366,41 @@ app.post('/api/linkedin-import/cancel/:jobId', async (req, res) => {
   await handleCancelPipeline(req, res);
 });
 
+// Lead Import (Excel/CSV)
+import { handleParse as handleLeadParse, handleImport as handleLeadImport, handleTemplate as handleLeadTemplate } from './routes/lead-import.js';
+
+const leadImportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (_req, file, cb) => {
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    const allowedMime = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+      'application/csv',
+      'text/plain',
+    ];
+    if (allowedMime.includes(file.mimetype) || ['xlsx', 'xls', 'csv', 'tsv'].includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only .xlsx, .xls, and .csv files are accepted'));
+    }
+  },
+});
+
+app.get('/api/leads/template', async (req, res) => {
+  await handleLeadTemplate(req, res);
+});
+
+app.post('/api/leads/parse', leadImportUpload.single('file'), async (req, res) => {
+  await handleLeadParse(req, res);
+});
+
+app.post('/api/leads/import', async (req, res) => {
+  await handleLeadImport(req, res);
+});
+
 // Voice DNA
 import {
   handleCreateProfile as handleVoiceDnaCreate,

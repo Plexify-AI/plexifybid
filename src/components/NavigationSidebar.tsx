@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
-  Home, Settings, ChevronLeft, Menu, Link2, User, Brain, Briefcase, Flame, Mail
+  Home, Settings, ChevronLeft, Menu, Link2, User, Brain, Briefcase, Flame, Mail, Upload
 } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
 import { useTenantVocab } from '../hooks/useTenantVocab';
@@ -47,6 +47,7 @@ const NavigationSidebar: React.FC = () => {
           icon: Brain,
           isNew: true
         },
+        { path: '/lead-import', label: 'Import Leads', icon: Upload, isNew: true },
         { path: '/settings/email', label: 'Email', icon: Mail, isNew: true },
         { path: '/settings', label: 'Settings', icon: Settings },
         { path: '/integrations', label: 'Integrations', icon: Link2 }

@@ -25,6 +25,7 @@ import { emailAuthMiddleware } from './src/server/emailAuthApi';
 import { pptxExportMiddleware } from './src/server/pptxApi';
 import { batchEmailMiddleware } from './src/server/batchEmailApi';
 import { preferencesMiddleware } from './src/server/preferencesApi';
+import { leadImportMiddleware } from './src/server/leadImportApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -72,6 +73,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(outreachSequenceMiddleware());
         server.middlewares.use(voiceDnaMiddleware());
         server.middlewares.use(linkedinImportMiddleware());
+        server.middlewares.use(leadImportMiddleware());
       },
     },
   ],
