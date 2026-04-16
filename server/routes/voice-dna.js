@@ -19,7 +19,7 @@ import {
   updateDimensions,
   saveSamples,
 } from '../lib/voice-dna/voice-dna-service.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 
@@ -152,9 +152,9 @@ export async function handleVoiceGenerate(req, res, body) {
       return sendError(res, 404, 'No active Voice DNA profile for this tenant. Create one first.');
     }
 
-    // 2. Build voice-injected system prompt
-    const voiceBlock = await injectVoicePrompt(tenant.id, contentType);
-    const systemPrompt = `${voiceBlock || ''}
+    // 2. Build system prompt with unified user context (factual corrections + Voice DNA + voice corrections)
+    const contextBlock = await buildUserContext(tenant.id, { contentType });
+    const systemPrompt = `${contextBlock || ''}
 
 You are a professional communications specialist. Rewrite the following content to precisely match the Voice DNA profile above. Preserve all factual content — names, dates, numbers, and key information must remain unchanged. Change ONLY voice, tone, vocabulary, and sentence patterns to match the profile.
 

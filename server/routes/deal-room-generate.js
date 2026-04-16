@@ -17,7 +17,7 @@
 import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 import { markPowerflowStage } from './powerflow.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 import {
   getSupabase,
   getDealRoom,
@@ -257,17 +257,15 @@ export async function handleSkillGenerate(req, res, dealRoomId, body) {
     // Build RAG context string
     const ragContext = buildRAGContext(allChunks);
 
-    // 4. Inject Voice DNA
+    // 4. Inject unified user context (factual corrections + Voice DNA + voice corrections)
+    // The {voice_dna_block} token in skill prompts is now the insertion point for
+    // the full user context block — Voice DNA is still included as its middle section.
     let systemPrompt = skill.system_prompt;
     try {
-      const voiceBlock = await injectVoicePrompt(tenant.id, 'general');
-      if (voiceBlock) {
-        systemPrompt = systemPrompt.replace('{voice_dna_block}', voiceBlock);
-      } else {
-        systemPrompt = systemPrompt.replace('{voice_dna_block}', '');
-      }
-    } catch (voiceErr) {
-      console.error('[deal-room-generate] Voice DNA injection failed:', voiceErr.message);
+      const contextBlock = await buildUserContext(tenant.id, { contentType: 'general' });
+      systemPrompt = systemPrompt.replace('{voice_dna_block}', contextBlock || '');
+    } catch (ctxErr) {
+      console.error('[deal-room-generate] User context injection failed:', ctxErr.message);
       systemPrompt = systemPrompt.replace('{voice_dna_block}', '');
     }
 

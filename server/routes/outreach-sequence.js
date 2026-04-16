@@ -14,7 +14,7 @@ import { TASK_TYPES } from '../llm-gateway/types.js';
 import { extractJSON } from '../llm-gateway/response-normalizer.js';
 import { getOpportunityById, logUsageEvent } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 
 // ---------------------------------------------------------------------------
 // Handler
@@ -123,12 +123,14 @@ Return ONLY valid JSON (no markdown, no code fences) matching this schema:
   }
 ]`;
 
-    // Voice DNA injection — prepend voice style block if active profile exists
+    // Unified user context injection — factual corrections + Voice DNA + voice corrections
     try {
-      const voiceBlock = await injectVoicePrompt(tenant.id, isWarm ? 'outreach-warm' : 'outreach-cold');
-      if (voiceBlock) systemPrompt = voiceBlock + '\n\n' + systemPrompt;
+      const contextBlock = await buildUserContext(tenant.id, {
+        contentType: isWarm ? 'outreach-warm' : 'outreach-cold',
+      });
+      if (contextBlock) systemPrompt = contextBlock + '\n\n' + systemPrompt;
     } catch {
-      // Non-fatal — proceed without voice styling
+      // Non-fatal — proceed without context
     }
 
     const result = await sendPrompt({

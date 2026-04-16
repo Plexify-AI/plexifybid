@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 import { markPowerflowStage } from './powerflow.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 import {
   getSupabase,
   getDealRoom,
@@ -552,17 +552,13 @@ export async function handleGenerateDeck(req, res, dealRoomId, body) {
 
     const ragContext = buildRAGContext(allChunks);
 
-    // 3. Inject Voice DNA
+    // 3. Inject unified user context (factual corrections + Voice DNA + voice corrections)
     let systemPrompt = SLIDE_DECK_SYSTEM_PROMPT;
     try {
-      const voiceBlock = await injectVoicePrompt(tenant.id, 'general');
-      if (voiceBlock) {
-        systemPrompt = systemPrompt.replace('{voice_dna_block}', voiceBlock);
-      } else {
-        systemPrompt = systemPrompt.replace('{voice_dna_block}', '');
-      }
-    } catch (voiceErr) {
-      console.error('[export-pptx] Voice DNA injection failed:', voiceErr.message);
+      const contextBlock = await buildUserContext(tenant.id, { contentType: 'general' });
+      systemPrompt = systemPrompt.replace('{voice_dna_block}', contextBlock || '');
+    } catch (ctxErr) {
+      console.error('[export-pptx] User context injection failed:', ctxErr.message);
       systemPrompt = systemPrompt.replace('{voice_dna_block}', '');
     }
 

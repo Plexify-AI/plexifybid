@@ -12,7 +12,7 @@
 import { getSupabase, getOpportunityById } from '../lib/supabase.js';
 import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 import { markPowerflowStage } from './powerflow.js';
 
 // ---------------------------------------------------------------------------
@@ -165,10 +165,10 @@ export async function handleBatchGenerate(req, res, body) {
   }
 
   try {
-    // Load Voice DNA
-    let voiceBlock = '';
+    // Load unified user context (factual corrections + Voice DNA + voice corrections)
+    let contextBlock = '';
     try {
-      voiceBlock = await injectVoicePrompt(tenant.id, 'outreach') || '';
+      contextBlock = (await buildUserContext(tenant.id, { contentType: 'outreach' })) || '';
     } catch {
       // Non-fatal
     }
@@ -190,7 +190,7 @@ export async function handleBatchGenerate(req, res, body) {
     const systemPrompt =
       `You are a business development professional drafting outreach emails. ` +
       `You write as ${tenant.name} from ${tenant.company}. ` +
-      (voiceBlock ? `\n\n${voiceBlock}` : '') +
+      (contextBlock ? `\n\n${contextBlock}` : '') +
       closingInstruction +
       `\n\nDo NOT include a signature block — it is appended automatically by the system.` +
       priceInstruction +

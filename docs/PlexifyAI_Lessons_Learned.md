@@ -300,6 +300,21 @@ After completing any task, Claude Code must:
 
 ---
 
+## 29. Single Injection Point Architecture
+
+*Origin: Sprint B, April 2026. buildUserContext() consolidated three separate context sources — factual corrections, Voice DNA, and voice corrections — into one function called at all 7 LLM call sites.*
+
+Build a single function that assembles all per-user context (facts, style, corrections, preferences) before every LLM call. Benefits proven in Sprint B:
+
+- Factual correction added in Settings immediately applies to AskPlexi, Deal Room generation, outreach, and PPTX export — no per-surface wiring needed
+- Voice correction captured in the Deal Room editor ("Teach Plexify") immediately improves email generation — because the injection point is upstream of all surfaces
+- Adding a new context source (workspace instructions, agent state for PlexiCoS) requires extending one function, not touching 7 route files
+- "Never throws" contract means a broken correction record never takes down an LLM call — the section is suppressed and the rest of the context flows through
+
+The function reads fresh from DB per request (no stale cache) and returns null when all sources are empty (no pointless prompt overhead). This becomes the spine PlexiCoS extends with orchestration context.
+
+---
+
 ## Template: Adding New Lessons
 
 When a new lesson is learned, add it to this document using this format:
