@@ -26,7 +26,7 @@ import {
 } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
 import { POWERFLOW_SYSTEM_PROMPTS } from '../constants/powerflowPrompts.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 import { hasActiveEmailConnection } from '../services/email/index.mjs';
 import { emailToolDefinitions } from '../services/email/tool-definitions.mjs';
 import { executeEmailTool } from '../services/email/tool-executor.mjs';
@@ -161,12 +161,12 @@ async function buildSystemPrompt(tenant, powerflowLevel) {
     // If system_prompt_override is malformed, skip it silently
   }
 
-  // Layer 1.5: Voice DNA (writing style injection)
+  // Layer 1.5: Unified user context (factual corrections + Voice DNA + voice corrections)
   try {
-    const voiceBlock = await injectVoicePrompt(tenant.id, 'general');
-    if (voiceBlock) layers.push(voiceBlock);
+    const contextBlock = await buildUserContext(tenant.id, { contentType: 'general' });
+    if (contextBlock) layers.push(contextBlock);
   } catch {
-    // Non-fatal — agents work normally without Voice DNA
+    // Non-fatal — agents work normally without context
   }
 
   // Layer 2: Capsule system prompt (sales stage context)
@@ -223,7 +223,7 @@ export async function handleChat(req, res, body) {
     return res.end(JSON.stringify({ error: 'Not authenticated' }));
   }
 
-  const { message, conversation_id, history = [], powerflow_level: rawLevel } = body;
+  const { message, conversation_id, history = [], ui_messages, powerflow_level: rawLevel } = body;
   const powerflow_level = rawLevel ? (Number.isInteger(rawLevel) ? rawLevel : parseInt(rawLevel, 10) || null) : null;
 
   if (!message || typeof message !== 'string') {
@@ -293,15 +293,28 @@ export async function handleChat(req, res, body) {
       { role: 'assistant', content: result.content },
     ];
 
+    // Frontend passes the rich PlexiMessage[] it's about to render. We persist
+    // these in ui_messages for full-fidelity reload from the library sidebar
+    // (Sprint B / B3). Strip the client-side welcome message if present — it's
+    // a UI artefact, not part of the conversation.
+    const rawUiMessages = Array.isArray(ui_messages) ? ui_messages : [];
+    const persistedUiMessages = rawUiMessages.filter((m) => m && m.id !== 'welcome');
+
     try {
       if (convId) {
-        await updateConversation(convId, updatedHistory, {
-          last_tool_results: result.toolResults,
-        });
+        await updateConversation(
+          convId,
+          updatedHistory,
+          { last_tool_results: result.toolResults },
+          { uiMessages: persistedUiMessages }
+        );
       } else {
-        const conv = await createConversation(tenantId, updatedHistory, {
-          last_tool_results: result.toolResults,
-        });
+        const conv = await createConversation(
+          tenantId,
+          updatedHistory,
+          { last_tool_results: result.toolResults },
+          { userId: tenantId, uiMessages: persistedUiMessages }
+        );
         convId = conv.id;
       }
     } catch (err) {

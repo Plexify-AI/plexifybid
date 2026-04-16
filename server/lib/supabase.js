@@ -125,20 +125,57 @@ export async function getICPConfig(tenantId) {
   return data;
 }
 
-export async function createConversation(tenantId, messages = [], context = {}) {
+// Title derivation — first 40 chars of first user message, with ellipsis
+const CONVERSATION_TITLE_MAX_CHARS = 40;
+
+export function deriveConversationTitle(messages) {
+  if (!Array.isArray(messages)) return null;
+  const firstUser = messages.find((m) => m?.role === 'user' && typeof m.content === 'string');
+  const raw = (firstUser?.content || '').trim().replace(/\s+/g, ' ');
+  if (!raw) return null;
+  return raw.length <= CONVERSATION_TITLE_MAX_CHARS
+    ? raw
+    : raw.slice(0, CONVERSATION_TITLE_MAX_CHARS - 1) + '…';
+}
+
+/**
+ * Create a conversation row. Derives a title from the first user message
+ * when `title` is not explicitly provided. Stores `ui_messages` (rich
+ * PlexiMessage[]) alongside `messages` (Claude API role/content pairs).
+ *
+ * opts:
+ *   - userId:      Phase 1 defaults to tenantId.
+ *   - uiMessages:  Rich UI shape for full-fidelity reload. Optional.
+ *   - title:       Explicit title override. Optional; otherwise derived.
+ */
+export async function createConversation(tenantId, messages = [], context = {}, opts = {}) {
+  const row = {
+    tenant_id: tenantId,
+    user_id: opts.userId || tenantId,
+    messages,
+    context,
+    ui_messages: Array.isArray(opts.uiMessages) ? opts.uiMessages : [],
+    title: opts.title != null ? opts.title : deriveConversationTitle(messages),
+  };
   const { data, error } = await supabase
     .from('conversations')
-    .insert({ tenant_id: tenantId, messages, context })
+    .insert(row)
     .select()
     .single();
   if (error) throw error;
   return data;
 }
 
-export async function updateConversation(id, messages, context) {
+/**
+ * Update an existing conversation. `uiMessages` is persisted when supplied
+ * so the UI can reload the rich message shape on next visit.
+ * Does NOT overwrite `title` — users can edit titles in the library.
+ */
+export async function updateConversation(id, messages, context, opts = {}) {
   const update = {};
   if (messages !== undefined) update.messages = messages;
   if (context !== undefined) update.context = context;
+  if (Array.isArray(opts.uiMessages)) update.ui_messages = opts.uiMessages;
   const { data, error } = await supabase
     .from('conversations')
     .update(update)
@@ -147,6 +184,102 @@ export async function updateConversation(id, messages, context) {
     .single();
   if (error) throw error;
   return data;
+}
+
+// ---------------------------------------------------------------------------
+// Conversation Library (Sprint B / B3) — list, load, patch, soft-delete
+// ---------------------------------------------------------------------------
+
+/**
+ * List a user's active conversations for the library sidebar.
+ * Pinned-first, then newest-first. Cursor-paginated on updated_at.
+ *
+ * opts:
+ *   - limit:  default 30, max 100
+ *   - cursor: ISO timestamp; only return conversations with updated_at < cursor
+ */
+export async function listConversations(tenantId, userId, opts = {}) {
+  const limit = Math.min(Math.max(Number(opts.limit) || 30, 1), 100);
+
+  let q = supabase
+    .from('conversations')
+    .select('id, title, pinned, messages, ui_messages, updated_at, created_at')
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId || tenantId)
+    .eq('is_archived', false)
+    .order('pinned', { ascending: false })
+    .order('updated_at', { ascending: false })
+    .limit(limit);
+
+  if (opts.cursor) q = q.lt('updated_at', opts.cursor);
+
+  const { data, error } = await q;
+  if (error) throw error;
+
+  // Shape for the sidebar — hide the message bodies (caller uses getConversation
+  // when it actually needs them) but compute message_count + fallback title.
+  return (data || []).map((row) => ({
+    id: row.id,
+    title: row.title || deriveConversationTitle(row.messages) || 'Untitled conversation',
+    pinned: row.pinned,
+    message_count: countUserTurns(row.messages),
+    updated_at: row.updated_at,
+    created_at: row.created_at,
+  }));
+}
+
+function countUserTurns(messages) {
+  if (!Array.isArray(messages)) return 0;
+  return messages.filter((m) => m?.role === 'user').length;
+}
+
+/**
+ * Fetch a single conversation for loading into the chat view.
+ * Returns the full row including messages + ui_messages + context.
+ */
+export async function getConversation(tenantId, userId, id) {
+  const { data, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId || tenantId)
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
+/**
+ * Partial update for library metadata only: title, pinned, is_archived.
+ * Does NOT touch messages / ui_messages / context — those flow through
+ * the Ask Plexi chat endpoint.
+ */
+export async function patchConversationMeta(tenantId, userId, id, patch) {
+  const update = {};
+  if (typeof patch?.title === 'string') update.title = patch.title.trim() || null;
+  if (typeof patch?.pinned === 'boolean') update.pinned = patch.pinned;
+  if (typeof patch?.is_archived === 'boolean') update.is_archived = patch.is_archived;
+  if (Object.keys(update).length === 0) {
+    throw new Error('No supported fields in patch (expected: title, pinned, is_archived)');
+  }
+  const { data, error } = await supabase
+    .from('conversations')
+    .update(update)
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId || tenantId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Soft-delete — sets is_archived=true. Row is preserved for potential undo
+ * / recovery; the list endpoint filters these out.
+ */
+export async function archiveConversation(tenantId, userId, id) {
+  return patchConversationMeta(tenantId, userId, id, { is_archived: true });
 }
 
 export async function createOutreachDraft(tenantId, { prospectId, subject, body, tone }) {
@@ -625,6 +758,104 @@ export async function getTenantTabConfig(tenantId) {
     return null;
   }
   return data && data.length > 0 ? data : null;
+}
+
+// ---------------------------------------------------------------------------
+// User Preferences (Sprint B / B1) — per-user JSONB store, category-scoped.
+// Legacy tenant-level preferences live on tenants.preferences (migration
+// 20260410) and are NOT read or written by these helpers.
+// ---------------------------------------------------------------------------
+
+export const USER_PREF_CATEGORIES = Object.freeze([
+  'general',
+  'voice_corrections',
+  'factual_corrections',
+]);
+
+export function isValidUserPrefCategory(category) {
+  return USER_PREF_CATEGORIES.includes(category);
+}
+
+/**
+ * Return the JSONB preferences blob for a single category.
+ * Returns {} when no row exists — callers never have to handle null.
+ */
+export async function getUserPreferences(tenantId, userId, category) {
+  const { data, error } = await getSupabase()
+    .from('user_preferences')
+    .select('preferences')
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId)
+    .eq('category', category)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.preferences || {};
+}
+
+/**
+ * Return every category's preferences for a (tenant, user), keyed by category.
+ * Missing categories are returned as {} so the frontend can render all tabs.
+ */
+export async function getAllUserPreferences(tenantId, userId) {
+  const { data, error } = await getSupabase()
+    .from('user_preferences')
+    .select('category, preferences')
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId);
+  if (error) throw error;
+
+  const result = {};
+  for (const cat of USER_PREF_CATEGORIES) result[cat] = {};
+  for (const row of data || []) {
+    if (isValidUserPrefCategory(row.category)) {
+      result[row.category] = row.preferences || {};
+    }
+  }
+  return result;
+}
+
+/**
+ * Shallow-merge `patch` into the existing preferences for (tenant, user, category)
+ * and upsert the row. Mirrors the shallow-merge semantics of PUT /api/preferences
+ * so callers never wipe sibling keys by omission.
+ */
+export async function upsertUserPreferences(tenantId, userId, category, patch) {
+  if (!isValidUserPrefCategory(category)) {
+    throw new Error(`Invalid user preferences category: ${category}`);
+  }
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+    throw new Error('Preferences patch must be a JSON object');
+  }
+
+  const supabaseClient = getSupabase();
+
+  // Read existing row (may not exist yet).
+  const { data: existing, error: readErr } = await supabaseClient
+    .from('user_preferences')
+    .select('preferences')
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId)
+    .eq('category', category)
+    .maybeSingle();
+  if (readErr) throw readErr;
+
+  const merged = { ...(existing?.preferences || {}), ...patch };
+
+  const { data, error: writeErr } = await supabaseClient
+    .from('user_preferences')
+    .upsert(
+      {
+        tenant_id: tenantId,
+        user_id: userId,
+        category,
+        preferences: merged,
+      },
+      { onConflict: 'tenant_id,user_id,category' }
+    )
+    .select('preferences')
+    .single();
+  if (writeErr) throw writeErr;
+  return data.preferences;
 }
 
 // ---------------------------------------------------------------------------

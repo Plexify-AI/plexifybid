@@ -305,6 +305,57 @@ app.put('/api/preferences', async (req, res) => {
   await handleUpdatePreferences(req, res, req.body);
 });
 
+// User Preferences (Sprint B / B1 — per-user store, separate from tenant prefs)
+import {
+  handleGetAllUserPreferences,
+  handleGetUserPreferences,
+  handleUpdateUserPreferences,
+} from './routes/user-preferences.js';
+
+app.get('/api/user-preferences', async (req, res) => {
+  await handleGetAllUserPreferences(req, res);
+});
+
+app.get('/api/user-preferences/:category', async (req, res) => {
+  await handleGetUserPreferences(req, res, req.params.category);
+});
+
+app.put('/api/user-preferences/:category', async (req, res) => {
+  await handleUpdateUserPreferences(req, res, req.params.category, req.body);
+});
+
+// Voice Corrections Capture (Sprint B / B2 — diff AI-generated vs user-edited,
+// append to voice_corrections with FIFO cap)
+import { handleCapture as handleVoiceCorrectionsCapture } from './routes/voice-corrections.js';
+
+app.post('/api/voice-corrections/capture', async (req, res) => {
+  await handleVoiceCorrectionsCapture(req, res, req.body);
+});
+
+// AskPlexi Conversation Library (Sprint B / B3 — list/load/pin/archive past chats)
+import {
+  handleList as handleAskPlexiConvList,
+  handleGet as handleAskPlexiConvGet,
+  handlePatch as handleAskPlexiConvPatch,
+  handleDelete as handleAskPlexiConvDelete,
+} from './routes/askplexi-conversations.js';
+
+app.get('/api/askplexi/conversations', async (req, res) => {
+  await handleAskPlexiConvList(req, res);
+});
+
+app.get('/api/askplexi/conversations/:id', async (req, res) => {
+  await handleAskPlexiConvGet(req, res, req.params.id);
+});
+
+app.put('/api/askplexi/conversations/:id', async (req, res) => {
+  await handleAskPlexiConvPatch(req, res, req.params.id, req.body);
+});
+
+app.delete('/api/askplexi/conversations/:id', async (req, res) => {
+  await handleAskPlexiConvDelete(req, res, req.params.id);
+});
+
 // Batch Email Generation
 import { handleBatchGenerate } from './routes/batch-email.js';
 

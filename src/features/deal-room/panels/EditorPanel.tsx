@@ -8,13 +8,14 @@ import Underline from '@tiptap/extension-underline';
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
   AlignLeft, AlignCenter, AlignRight, Quote, Code, Undo, Redo,
-  Sparkles, Info, Upload,
+  Sparkles, Info, Upload, BookOpen,
 } from 'lucide-react';
 import type { DealRoomTab, DealRoomArtifact } from '../../../types/dealRoom';
 import { DEAL_ROOM_TAB_LABELS } from '../../../types/dealRoom';
 import ArtifactRenderer from '../../../components/artifacts/ArtifactRenderer';
 import { boardBriefToHtml } from '../../../components/BoardBriefRenderer';
 import { ozrfSectionToHtml } from '../../../components/OZRFSectionRenderer';
+import { useSandbox } from '../../../contexts/SandboxContext';
 
 /**
  * Convert artifact JSON to TipTap-compatible HTML.
@@ -247,6 +248,15 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<EditorSubTab>('editor');
   const [localWordCount, setLocalWordCount] = useState(0);
 
+  // Sprint B / B2 — Voice correction capture
+  const { token } = useSandbox();
+  // Snapshot of the AI-generated HTML per tab, taken at the moment the
+  // artifact is first loaded into an empty editor. This is the baseline
+  // that Teach Plexify diffs against when the user clicks the button.
+  const aiOriginalHtmlByTabRef = useRef<Record<string, string>>({});
+  const [voiceCaptureStatus, setVoiceCaptureStatus] = useState<'idle' | 'capturing' | 'captured' | 'no-changes' | 'error'>('idle');
+  const [voiceCaptureMessage, setVoiceCaptureMessage] = useState<string>('');
+
   // Switch to Artifacts sub-tab when parent explicitly requests it (infographic, etc.)
   useEffect(() => {
     if (showArtifactsView) {
@@ -350,9 +360,77 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
     editor.commands.setContent(html);
     setLocalWordCount(calcWordCount(editor.getText()));
     isUpdatingRef.current = false;
+
+    // Snapshot the AI-generated HTML as this tab's "original" baseline for
+    // voice correction capture (Sprint B / B2). Only taken the first time
+    // the editor is freshly populated — not overwritten by subsequent edits.
+    if (!aiOriginalHtmlByTabRef.current[activeTab]) {
+      aiOriginalHtmlByTabRef.current[activeTab] = html;
+    }
+
     // Save so it persists — use setTimeout to avoid sync re-render cascade
     setTimeout(() => onContentChange(activeTab, html), 0);
   }, [editor, activeArtifact, activeTab]);
+
+  // Sprint B / B2 — explicit Teach Plexify capture
+  const handleTeachPlexify = useCallback(async () => {
+    if (!editor || !token) return;
+    const originalHtml = aiOriginalHtmlByTabRef.current[activeTab];
+    if (!originalHtml) {
+      setVoiceCaptureStatus('no-changes');
+      setVoiceCaptureMessage('No AI baseline — generate first, then edit.');
+      setTimeout(() => setVoiceCaptureStatus('idle'), 3000);
+      return;
+    }
+    const editedHtml = editor.getHTML();
+    if (originalHtml === editedHtml) {
+      setVoiceCaptureStatus('no-changes');
+      setVoiceCaptureMessage('No edits to capture yet.');
+      setTimeout(() => setVoiceCaptureStatus('idle'), 3000);
+      return;
+    }
+
+    setVoiceCaptureStatus('capturing');
+    setVoiceCaptureMessage('');
+
+    try {
+      const res = await fetch('/api/voice-corrections/capture', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          original_text: originalHtml,
+          edited_text: editedHtml,
+          context: `deal-room-artifact:${activeArtifact?.artifact_type || activeTab}`,
+        }),
+      });
+
+      if (res.status === 204) {
+        setVoiceCaptureStatus('no-changes');
+        setVoiceCaptureMessage('Changes were too small to learn from.');
+      } else if (res.ok) {
+        const data = await res.json();
+        setVoiceCaptureStatus('captured');
+        setVoiceCaptureMessage(
+          data.added === 1
+            ? '1 style correction learned.'
+            : `${data.added} style corrections learned.`
+        );
+        // Update the baseline so repeated clicks don't re-capture the same edits
+        aiOriginalHtmlByTabRef.current[activeTab] = editedHtml;
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch (err) {
+      console.error('[voice-corrections] capture failed:', err);
+      setVoiceCaptureStatus('error');
+      setVoiceCaptureMessage('Capture failed.');
+    } finally {
+      setTimeout(() => setVoiceCaptureStatus('idle'), 3000);
+    }
+  }, [editor, token, activeTab, activeArtifact]);
 
   // Cleanup debounce timer
   useEffect(() => {
@@ -486,6 +564,23 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
             <ToolbarBtn onClick={() => editor.chain().focus().redo().run()} title="Redo">
               <Redo size={16} />
             </ToolbarBtn>
+
+            {/* Teach Plexify — explicit voice-correction capture (Sprint B / B2) */}
+            {aiOriginalHtmlByTabRef.current[activeTab] && (
+              <>
+                <div className="w-px h-5 bg-white/10 mx-1" />
+                <button
+                  onClick={handleTeachPlexify}
+                  disabled={voiceCaptureStatus === 'capturing'}
+                  title="Save your edits as style corrections for Plexify to learn from"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/25 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <BookOpen size={12} />
+                  {voiceCaptureStatus === 'capturing' ? 'Teaching…' : 'Teach Plexify'}
+                </button>
+              </>
+            )}
+
             {/* Generate button — inline in toolbar when no content and no artifact */}
             {!content && !activeArtifact?.content && onGenerateSkill && (
               <>
@@ -512,7 +607,20 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
           {/* Footer */}
           <div className="flex items-center justify-between px-4 py-2 border-t border-white/10 text-xs text-white/40">
             <span>{localWordCount} words</span>
-            <span>
+            <span className="flex items-center gap-3">
+              {voiceCaptureStatus !== 'idle' && voiceCaptureMessage && (
+                <span
+                  className={
+                    voiceCaptureStatus === 'captured'
+                      ? 'text-purple-300'
+                      : voiceCaptureStatus === 'error'
+                      ? 'text-red-300'
+                      : 'text-white/50'
+                  }
+                >
+                  {voiceCaptureMessage}
+                </span>
+              )}
               {saving ? (
                 <span className="text-amber-300">Saving...</span>
               ) : lastSaved ? (

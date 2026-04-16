@@ -23,7 +23,7 @@ import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 import { extractJSON } from '../llm-gateway/response-normalizer.js';
 import { markPowerflowStage } from './powerflow.js';
-import { injectVoicePrompt } from '../lib/voice-dna/inject-voice-prompt.js';
+import { buildUserContext } from '../lib/user-context.js';
 // pdf-parse is lazy-imported inside extractText() to avoid its startup bug
 // (it tries to load a test PDF at import time which crashes in production)
 import mammoth from 'mammoth';
@@ -485,12 +485,12 @@ export async function handleDealRoomChat(req, res, dealRoomId, body) {
       ? DEAL_ROOM_SYSTEM_PROMPT + '\n' + opportunityContext
       : DEAL_ROOM_SYSTEM_PROMPT;
 
-    // Voice DNA injection — prepend voice style block if active profile exists
+    // Unified user context injection — factual corrections + Voice DNA + voice corrections
     try {
-      const voiceBlock = await injectVoicePrompt(tenant.id, 'meeting-brief');
-      if (voiceBlock) systemPrompt = voiceBlock + '\n\n' + systemPrompt;
+      const contextBlock = await buildUserContext(tenant.id, { contentType: 'meeting-brief' });
+      if (contextBlock) systemPrompt = contextBlock + '\n\n' + systemPrompt;
     } catch {
-      // Non-fatal — proceed without voice styling
+      // Non-fatal — proceed without context
     }
 
     // 6. Build messages for Claude

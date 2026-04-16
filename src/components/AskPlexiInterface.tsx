@@ -12,6 +12,7 @@ import PipelineAnalysis from './PipelineAnalysis';
 import { POWERFLOW_LEFT_PROMPTS } from '../constants/powerflowLeftPyramidPrompts';
 import EmailPreviewModal from './email/EmailPreviewModal';
 import BatchEmailPanel from './BatchEmailPanel';
+import ConversationLibrary from './ConversationLibrary';
 
 // Structured tool result from the API
 interface ToolResult {
@@ -104,6 +105,8 @@ const AskPlexiInterface: React.FC = () => {
   const [prefillApplied, setPrefillApplied] = useState(false);
   const [showNewChatConfirm, setShowNewChatConfirm] = useState(false);
   const [showBatchEmail, setShowBatchEmail] = useState(false);
+  // Bumped after each exchange to tell ConversationLibrary to refetch the list.
+  const [libraryRefreshKey, setLibraryRefreshKey] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const loadingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -268,6 +271,15 @@ const AskPlexiInterface: React.FC = () => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 60_000); // 60s timeout
 
+      // ui_messages carries the rich PlexiMessage[] shape (tool results,
+      // prospect cards, email drafts, etc.) so the backend can persist it
+      // alongside the plain-text messages. Strip the client-side welcome
+      // — it's a UI artefact, not part of the conversation.
+      const uiMessagesForPersist = [
+        ...messages.filter((m) => m.id !== 'welcome'),
+        userMessage,
+      ];
+
       const response = await fetch('/api/ask-plexi/chat', {
         method: 'POST',
         headers: {
@@ -278,6 +290,7 @@ const AskPlexiInterface: React.FC = () => {
           message: query,
           conversation_id: conversationId,
           history: chatHistory,
+          ui_messages: uiMessagesForPersist,
           ...(powerflowLevel ? { powerflow_level: powerflowLevel } : {}),
         }),
         signal: controller.signal,
@@ -322,6 +335,8 @@ const AskPlexiInterface: React.FC = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+      // Bump library so newest conversation surfaces at the top
+      setLibraryRefreshKey((k) => k + 1);
 
       // Check for email draft pending approval
       const pendingDraft = toolResults.find(
@@ -458,8 +473,17 @@ const AskPlexiInterface: React.FC = () => {
     });
   };
 
+  const handleLibraryNewChat = () => {
+    clearChat();
+    setCurrentQuery('');
+    setShowNewChatConfirm(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
+    <div className="h-screen flex flex-row bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
+      <ConversationLibrary refreshKey={libraryRefreshKey} onNewChat={handleLibraryNewChat} />
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
       {/* Header */}
       <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -751,6 +775,7 @@ const AskPlexiInterface: React.FC = () => {
           }}
         />
       )}
+      </div>
     </div>
   );
 };

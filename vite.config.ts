@@ -25,6 +25,9 @@ import { emailAuthMiddleware } from './src/server/emailAuthApi';
 import { pptxExportMiddleware } from './src/server/pptxApi';
 import { batchEmailMiddleware } from './src/server/batchEmailApi';
 import { preferencesMiddleware } from './src/server/preferencesApi';
+import { userPreferencesMiddleware } from './src/server/userPreferencesApi';
+import { voiceCorrectionsMiddleware } from './src/server/voiceCorrectionsApi';
+import { askplexiConversationsMiddleware } from './src/server/askplexiConversationsApi';
 import { leadImportMiddleware } from './src/server/leadImportApi';
 
 // https://vitejs.dev/config/
@@ -59,6 +62,9 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(pptxExportMiddleware());
         server.middlewares.use(batchEmailMiddleware());
         server.middlewares.use(preferencesMiddleware());
+        server.middlewares.use(userPreferencesMiddleware());
+        server.middlewares.use(voiceCorrectionsMiddleware());
+        server.middlewares.use(askplexiConversationsMiddleware());
         server.middlewares.use(healthMiddleware());
         server.middlewares.use(agentManagementMiddleware());
         server.middlewares.use(askPlexiMiddleware());
