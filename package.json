@@ -49,6 +49,7 @@
         "@types/uuid": "^10.0.0",
         "@vitejs/plugin-react": "^4.2.1",
         "adm-zip": "^0.5.16",
+        "ajv": "^8.18.0",
         "autoprefixer": "^10.4.21",
         "axios": "^1.12.2",
         "cors": "^2.8.5",

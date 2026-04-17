@@ -392,6 +392,17 @@ app.post('/api/powerflow/complete', async (req, res) => {
   await handleCompleteStage(req, res, req.body);
 });
 
+// PlexiCoS Skills (Sprint E / E2 — prospect-backed strategy skills)
+import { handleRunSkill, handleListSkills } from './routes/skills.js';
+
+app.post('/api/skills/run', async (req, res) => {
+  await handleRunSkill(req, res, req.body);
+});
+
+app.get('/api/skills', async (req, res) => {
+  await handleListSkills(req, res);
+});
+
 // PlexiCoS Jobs (Sprint E / E1 — runtime abstraction for inline + Managed Agent work)
 import {
   handleStartJob,
@@ -604,4 +615,9 @@ app.listen(PORT, () => {
   cleanupZombieJobs().catch(err => {
     console.error('Failed to cleanup zombie LinkedIn import jobs:', err.message);
   });
+
+  // Sprint E / E2 — Seed global strategy skills (upsert from file definitions)
+  import('./skills/seed.mjs')
+    .then((m) => m.seedSkills())
+    .catch((err) => console.error('[skill-seed] startup seed failed:', err.message));
 });

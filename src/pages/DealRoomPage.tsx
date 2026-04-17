@@ -34,6 +34,7 @@ import CompetitiveAnalysisRenderer from '../components/artifacts/CompetitiveAnal
 import MeetingPrepRenderer from '../components/artifacts/MeetingPrepRenderer';
 import { downloadArtifactPDF } from '../components/artifacts/ArtifactPDFDocument';
 import AudioBriefingPlayer, { type AudioRecord } from '../components/AudioBriefingPlayer';
+import StrategySection from '../components/StrategySection';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,6 +46,7 @@ interface DealRoom {
   description?: string;
   status: string;
   created_at: string;
+  opportunity_id?: string | null;
 }
 
 interface Citation {
@@ -539,6 +541,13 @@ const DealRoomPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Strategy skills (Sprint E / E2) — prospect-backed, no sources required */}
+      <StrategySection
+        dealRoomId={dealRoomId || ''}
+        defaultOpportunityId={room?.opportunity_id || null}
+        onArtifactCreated={(a) => setArtifacts((prev) => [a, ...prev])}
+      />
 
       {/* Error bar */}
       {error && (
