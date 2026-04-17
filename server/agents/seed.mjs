@@ -54,7 +54,7 @@ export async function seedAgents() {
       });
 
       const { error } = await supabase
-        .from('agents')
+        .from('managed_agents')
         .upsert(
           {
             agent_key: def.agent_key,
@@ -80,7 +80,7 @@ export async function seedAgents() {
 // Helper: look up cached agent_id by key.
 export async function getAgentIdByKey(agentKey) {
   const { data, error } = await getSupabase()
-    .from('agents')
+    .from('managed_agents')
     .select('agent_id, version, metadata')
     .eq('agent_key', agentKey)
     .maybeSingle();

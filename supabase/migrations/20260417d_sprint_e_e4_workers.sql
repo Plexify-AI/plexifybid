@@ -7,8 +7,11 @@
 --   union, matches memory: always rebuild from latest).
 -- ============================================================================
 
--- 1) Cached agent registry (Anthropic-issued IDs per local agent_key)
-CREATE TABLE IF NOT EXISTS public.agents (
+-- 1) Cached Managed Agent registry (Anthropic-issued IDs per local agent_key).
+-- Distinct from the pre-existing `agents` table (the older Plexify internal
+-- agent registry with name/display_name/capabilities shape). Naming: this
+-- table tracks remote Managed Agents identities only.
+CREATE TABLE IF NOT EXISTS public.managed_agents (
   agent_key TEXT PRIMARY KEY,
   agent_id TEXT NOT NULL,
   version INT NOT NULL,
@@ -17,8 +20,8 @@ CREATE TABLE IF NOT EXISTS public.agents (
   metadata JSONB DEFAULT '{}'::jsonb
 );
 
-COMMENT ON TABLE public.agents IS
-  'Cache of Anthropic Managed Agent IDs keyed on local agent_key. Populated by server/agents/seed.mjs on startup. Truth lives in server/agents/definitions/*.mjs.';
+COMMENT ON TABLE public.managed_agents IS
+  'Cache of Anthropic Managed Agent IDs keyed on local agent_key. Populated by server/agents/seed.mjs on startup. Truth lives in server/agents/definitions/*.mjs. Separate from the pre-Sprint-E agents table.';
 
 -- 2) Extend deal_room_artifacts.artifact_type CHECK — full union
 ALTER TABLE public.deal_room_artifacts
