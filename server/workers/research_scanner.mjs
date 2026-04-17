@@ -67,7 +67,7 @@ export async function assertWithinCap(tenantId) {
 // Main worker
 // ---------------------------------------------------------------------------
 
-export async function runResearchScanner({ tenantId, userId, query, maxSearches = 5, context }) {
+export async function runResearchScanner({ tenantId, userId, query, maxSearches = 5, context, dealRoomId = null }) {
   if (!query || typeof query !== 'string') throw new Error('runResearchScanner: query required');
 
   // Pre-check
@@ -151,12 +151,8 @@ export async function runResearchScanner({ tenantId, userId, query, maxSearches 
 
   const memo = extractAgentJson(agentMessages);
 
-  // Persist as deal_room_artifact (scan_memo type). Needs a deal room to
-  // anchor to — for standalone scans we find-or-create a "Market Scans"
-  // housekeeping room. For E4, require the caller to pass dealRoomId if they
-  // want persistence; otherwise just return the memo + research_notes row.
-  let artifactId = null;
-  // Write research_notes row (always)
+  // Always write a research_notes row — scan results persist regardless of
+  // origin (Home-initiated scans don't have a deal_room_id).
   const { data: noteRow } = await supabase
     .from('research_notes')
     .insert({
@@ -164,19 +160,41 @@ export async function runResearchScanner({ tenantId, userId, query, maxSearches 
       query,
       content: memo ? JSON.stringify(memo) : '',
       citations: memo?.findings || [],
-      tokens_used: 0, // populated below
+      tokens_used: 0,
     })
     .select()
     .single();
 
   const costCents = estimateCostCents((await fetchSessionUsage(session.id)) || null);
 
-  // Update note with token estimate
-  if (noteRow?.id) {
-    await supabase
-      .from('research_notes')
-      .update({ tokens_used: 0 })
-      .eq('id', noteRow.id);
+  // When the scan was initiated from a Deal Room, also persist a scan_memo
+  // artifact anchored to that room so it appears in the Generated Artifacts
+  // panel alongside Deal Summary / Competitive Analysis / etc.
+  let artifactId = null;
+  if (dealRoomId && memo) {
+    const title = memo?.summary
+      ? `Market Scan — ${String(memo.summary).slice(0, 80)}`
+      : `Market Scan — ${String(query).slice(0, 80)}`;
+    const { data: artRow, error: artErr } = await supabase
+      .from('deal_room_artifacts')
+      .insert({
+        tenant_id: tenantId,
+        deal_room_id: dealRoomId,
+        user_id: userId,
+        artifact_type: 'scan_memo',
+        title,
+        status: 'ready',
+        content: { query, ...memo },
+        model_used: 'claude-sonnet-4-5',
+        skill_version: '1',
+        token_count_in: 0,
+        token_count_out: 0,
+        provenance_json: memo?.findings || [],
+      })
+      .select()
+      .single();
+    if (artErr) console.error('[research_scanner] artifact insert failed:', artErr.message);
+    else artifactId = artRow?.id || null;
   }
 
   logUsage({

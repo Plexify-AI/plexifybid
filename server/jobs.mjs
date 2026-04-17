@@ -75,6 +75,7 @@ const KIND_REGISTRY = {
         query: input?.query,
         maxSearches: input?.max_searches,
         context: input?.context,
+        dealRoomId: input?.deal_room_id || null,
       });
       return {
         output: {

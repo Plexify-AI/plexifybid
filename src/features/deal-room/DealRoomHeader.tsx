@@ -56,7 +56,12 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           kind: 'research_scanner',
-          input: { query: query.trim(), max_searches: 5, context: `Deal Room: ${room.name}` },
+          input: {
+            query: query.trim(),
+            max_searches: 5,
+            context: `Deal Room: ${room.name}`,
+            deal_room_id: room.id,
+          },
         }),
       });
       const data = await res.json();
