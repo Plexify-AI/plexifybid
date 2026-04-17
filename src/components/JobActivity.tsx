@@ -1,18 +1,14 @@
 /**
- * JobActivity — PlexiCoS Activity feed (Sprint E / E1)
+ * JobActivity — PlexiCoS Activity feed (Sprint E / E4)
  *
- * Polls /api/jobs?limit=10 every 30 seconds and renders the last 10 jobs
- * with status pills. SSE replaces polling in Task E4.
+ * E1 polled /api/jobs every 30s. E4 subscribes to SSE at /api/jobs/events
+ * for live updates (token passed in query string; EventSource can't set
+ * auth headers). A single REST GET on mount seeds recent history.
  *
- * Status pill colors follow Sprint E brand map:
- *   queued     -> Royal Purple   #6B2FD9
- *   running    -> Signal Teal    #10B981 (pulsing)
- *   succeeded  -> Signal Teal    #10B981 (solid)
- *   failed     -> Warm Amber     #F59E0B
- *   cancelled  -> gray
+ * Status pill colors follow Sprint E brand map.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSandbox } from '../contexts/SandboxContext';
 
 type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
@@ -31,8 +27,6 @@ interface Job {
   ended_at: string | null;
   created_at: string;
 }
-
-const POLL_MS = 30_000;
 
 const STATUS_STYLES: Record<JobStatus, { bg: string; text: string; label: string; pulse: boolean }> = {
   queued:    { bg: '#6B2FD9', text: '#FFFFFF', label: 'Queued',    pulse: false },
@@ -70,38 +64,74 @@ const JobActivity: React.FC = () => {
   const { token } = useSandbox();
   const [jobs, setJobs] = useState<Job[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rescoring, setRescoring] = useState(false);
+  const esRef = useRef<EventSource | null>(null);
 
+  // Seed history once
   useEffect(() => {
     if (!token) return;
-
     let cancelled = false;
-
-    const fetchJobs = async () => {
-      try {
-        const res = await fetch('/api/jobs?limit=10', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
+    fetch('/api/jobs?limit=10', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((d) => {
         if (cancelled) return;
-        if (!res.ok) {
-          setError(data?.error || `HTTP ${res.status}`);
-          return;
-        }
-        setJobs(Array.isArray(data.jobs) ? data.jobs : []);
+        setJobs(Array.isArray(d.jobs) ? d.jobs : []);
         setError(null);
-      } catch (err: any) {
-        if (!cancelled) setError(err?.message || 'fetch failed');
-      }
-    };
-
-    fetchJobs();
-    const interval = setInterval(fetchJobs, POLL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
+      })
+      .catch((err) => { if (!cancelled) setError(err?.message || 'fetch failed'); });
+    return () => { cancelled = true; };
   }, [token]);
+
+  // SSE live updates
+  useEffect(() => {
+    if (!token) return;
+    if (esRef.current) { esRef.current.close(); esRef.current = null; }
+
+    const es = new EventSource(`/api/jobs/events?token=${encodeURIComponent(token)}`);
+    esRef.current = es;
+
+    const handle = (raw: MessageEvent) => {
+      try {
+        const payload = JSON.parse(raw.data);
+        const job: Job | undefined = payload.job;
+        if (!job || !job.id) return;
+        setJobs((prev) => {
+          const arr = prev ? [...prev] : [];
+          const idx = arr.findIndex((j) => j.id === job.id);
+          if (idx === -1) arr.unshift(job);
+          else arr[idx] = { ...arr[idx], ...job };
+          return arr.slice(0, 20);
+        });
+      } catch {}
+    };
+
+    for (const t of ['job.queued', 'job.running', 'job.succeeded', 'job.failed']) {
+      es.addEventListener(t, handle as EventListener);
+    }
+    es.onerror = () => {
+      // Browser will auto-reconnect. Flag briefly; no user-facing error unless persistent.
+    };
+
+    return () => { es.close(); esRef.current = null; };
+  }, [token]);
+
+  async function handleRescore() {
+    if (!token || rescoring) return;
+    setRescoring(true);
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'pipeline_analyst', input: { mode: 'on_demand' } }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data?.error || `Rescore failed (${res.status})`);
+    } catch (err: any) {
+      setError(err?.message || 'rescore failed');
+    } finally {
+      setRescoring(false);
+    }
+  }
 
   if (!token) return null;
 
@@ -115,14 +145,22 @@ const JobActivity: React.FC = () => {
             <path d="m8 17 4 4 4-4" />
           </svg>
           <h3 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">PlexiCoS Activity</h3>
+          <span className="text-[10px] text-gray-600">live</span>
         </div>
-        <span className="text-[10px] text-gray-500">Refresh 30s</span>
+        <button
+          onClick={handleRescore}
+          disabled={rescoring}
+          className="text-[11px] font-medium px-2.5 py-1 rounded bg-purple-700/40 hover:bg-purple-700/60 text-purple-100 border border-purple-500/40 disabled:opacity-50"
+          title="Rescore pipeline now"
+        >
+          {rescoring ? 'Queueing…' : 'Rescore pipeline'}
+        </button>
       </div>
 
       <div>
         {error && (
           <div className="p-3 text-sm text-amber-300 bg-amber-900/20 border border-amber-700/40 rounded">
-            Activity feed unavailable: {error}
+            {error}
           </div>
         )}
 
@@ -145,9 +183,7 @@ const JobActivity: React.FC = () => {
                 <li key={job.id} className="py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-100 truncate">
-                        {humanKind(job.kind)}
-                      </span>
+                      <span className="text-sm font-medium text-gray-100 truncate">{humanKind(job.kind)}</span>
                       {job.revenue_loop_stage && stageColor && (
                         <span
                           className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded text-white"
@@ -164,7 +200,6 @@ const JobActivity: React.FC = () => {
                       {job.error ? <span className="ml-2 text-amber-400">{job.error}</span> : null}
                     </div>
                   </div>
-
                   <span
                     className="text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
                     style={{

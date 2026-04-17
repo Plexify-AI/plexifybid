@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Share2, Clipboard, FileDown, Presentation } from 'lucide-react';
+import { ArrowLeft, Share2, Clipboard, FileDown, Presentation, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSandbox } from '../../contexts/SandboxContext';
 import type { DealRoom, DealRoomTab } from '../../types/dealRoom';
@@ -36,6 +36,42 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
   const { token } = useSandbox();
   const [exporting, setExporting] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanNote, setScanNote] = useState<string | null>(null);
+
+  const handleScanMarket = async () => {
+    if (!token || scanning) return;
+    const query = window.prompt(
+      'Scan this market — what question do you want answered?\n\n' +
+        'Example: "Recent BID RFPs in Suffolk County Q1 2026" or\n' +
+        '"Active reality-capture RFPs in DC commercial construction."',
+      `Market signals relevant to ${room.name}`
+    );
+    if (!query?.trim()) return;
+    setScanning(true);
+    setScanNote(null);
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind: 'research_scanner',
+          input: { query: query.trim(), max_searches: 5, context: `Deal Room: ${room.name}` },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setScanNote(data?.error || `Scan failed (${res.status})`);
+      } else {
+        setScanNote('Scan queued — follow progress in the Home Activity feed.');
+      }
+    } catch (err: any) {
+      setScanNote(err?.message || 'scan failed');
+    } finally {
+      setScanning(false);
+      setTimeout(() => setScanNote(null), 6000);
+    }
+  };
 
   const handleExportDocx = async () => {
     if (!editorContent?.trim() || !token) return;
@@ -150,6 +186,15 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
           {room.source_count} sources · {room.message_count} messages · {formatDate(room.created_at)}
         </div>
         <button
+          onClick={handleScanMarket}
+          disabled={scanning}
+          title="Kick off Research Scanner on this market (Home Activity feed shows progress)"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-200 hover:bg-purple-500/25 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Search size={14} />
+          {scanning ? 'Queueing…' : 'Scan this market'}
+        </button>
+        <button
           onClick={handleExportDocx}
           disabled={exporting || !editorContent?.trim()}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
@@ -170,6 +215,11 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
           Share Room
         </button>
       </div>
+      {scanNote && (
+        <div className="absolute top-20 right-6 text-xs px-3 py-1.5 rounded bg-purple-900/80 border border-purple-500/60 text-purple-100 shadow-lg">
+          {scanNote}
+        </div>
+      )}
     </div>
   );
 };

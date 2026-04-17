@@ -147,6 +147,24 @@ export async function handleCreateDealRoom(req, res, body) {
 
     logUsageEvent(tenant.id, 'deal_room_created', { deal_room_id: room.id, name }).catch(() => {});
 
+    // Sprint E / E4 — auto-fire War Room Prep in the background. Idempotency
+    // check lives in the worker's preflight, so repeated creations on the same
+    // deal_room_id are safe.
+    (async () => {
+      try {
+        const { startJob } = await import('../jobs.mjs');
+        await startJob({
+          tenantId: tenant.id,
+          userId: tenant.id,
+          kind: 'war_room_prep',
+          input: { deal_room_id: room.id, opportunity_id: opportunity_id || null },
+        });
+      } catch (err) {
+        // War Room Prep failures must not block Deal Room creation.
+        console.log(`[deal-rooms] war_room_prep enqueue skipped: ${err.message}`);
+      }
+    })();
+
     return sendJSON(res, 201, room);
   } catch (err) {
     console.error('[deal-rooms] Create error:', err);

@@ -19,25 +19,100 @@
  */
 
 import { getSupabase } from './lib/supabase.js';
+import { jobEvents } from './events/jobEvents.mjs';
 
 // ---------------------------------------------------------------------------
 // Kind registry — maps job.kind to (runtime, handler)
-// Add new kinds here as Sprint E evolves. Keep shape minimal in E1.
+// Workers lazy-load to avoid pulling Managed Agents imports at module parse
+// time when ANTHROPIC_API_KEY isn't set.
 // ---------------------------------------------------------------------------
 
 const KIND_REGISTRY = {
   test_inline_echo: {
     runtime: 'inline',
     revenueLoopStage: 'identify',
-    async handler({ input, tenantId, userId }) {
+    async handler({ input }) {
       const message = input?.message || '';
-      // Structured echo — proves runtime plumbing without calling Claude.
-      // Switch to a real Claude call once E2's runSkill exists.
       return {
         output: { echo: message, ran_at: new Date().toISOString() },
         costCents: 0,
-        tokensIn: 0,
-        tokensOut: 0,
+      };
+    },
+  },
+
+  pipeline_analyst: {
+    runtime: 'managed_agent',
+    revenueLoopStage: 'identify',
+    async preflight({ tenantId }) {
+      const { canRun } = await import('./workers/pipeline_analyst.mjs');
+      if (!(await canRun(tenantId))) {
+        throw new Error('Pipeline Analyst rate-limited: 1 run per tenant per hour.');
+      }
+    },
+    async handler({ input, tenantId, userId }) {
+      const { runPipelineAnalyst } = await import('./workers/pipeline_analyst.mjs');
+      const r = await runPipelineAnalyst({ tenantId, userId, mode: input?.mode || 'on_demand' });
+      return {
+        output: { applied: r.applied, summary: r.summary, top_movers: r.topMovers, session_id: r.sessionId },
+        externalId: r.sessionId,
+        costCents: r.costCents,
+      };
+    },
+  },
+
+  research_scanner: {
+    runtime: 'managed_agent',
+    revenueLoopStage: 'identify',
+    async preflight({ tenantId }) {
+      const { assertWithinCap } = await import('./workers/research_scanner.mjs');
+      await assertWithinCap(tenantId);
+    },
+    async handler({ input, tenantId, userId }) {
+      const { runResearchScanner } = await import('./workers/research_scanner.mjs');
+      const r = await runResearchScanner({
+        tenantId,
+        userId,
+        query: input?.query,
+        maxSearches: input?.max_searches,
+        context: input?.context,
+      });
+      return {
+        output: {
+          memo: r.memo,
+          cap: r.cap,
+          cap_hit: r.capHit,
+          known: r.known ?? true,
+          reason: r.reason || null,
+          session_id: r.sessionId,
+          note_id: r.noteId,
+        },
+        externalId: r.sessionId,
+        costCents: r.costCents,
+      };
+    },
+  },
+
+  war_room_prep: {
+    runtime: 'managed_agent',
+    revenueLoopStage: 'enrich',
+    async preflight({ tenantId, input }) {
+      const { alreadyRanForRoom } = await import('./workers/war_room_prep.mjs');
+      if (input?.deal_room_id && await alreadyRanForRoom(tenantId, input.deal_room_id)) {
+        throw new Error('War Room Prep already ran (or is running) for this deal room.');
+      }
+    },
+    async handler({ input, tenantId, userId }) {
+      const { runWarRoomPrep } = await import('./workers/war_room_prep.mjs');
+      const r = await runWarRoomPrep({
+        tenantId,
+        userId,
+        dealRoomId: input?.deal_room_id,
+        opportunityId: input?.opportunity_id,
+      });
+      return {
+        output: { artifact_id: r.artifactId, session_id: r.sessionId },
+        externalId: r.sessionId,
+        costCents: r.costCents,
       };
     },
   },
@@ -61,7 +136,12 @@ export async function startJob({ userId, tenantId, kind, input, dependsOn = null
   const spec = getKindSpec(kind);
   const supabase = getSupabase();
 
-  // Insert queued row
+  // Run preflight BEFORE inserting the job row so rate-limit / cap rejections
+  // surface as 4xx at the API layer rather than leaving a "failed" row.
+  if (spec.preflight) {
+    await spec.preflight({ tenantId, userId, input });
+  }
+
   const { data: job, error: insertErr } = await supabase
     .from('jobs')
     .insert({
@@ -79,7 +159,8 @@ export async function startJob({ userId, tenantId, kind, input, dependsOn = null
 
   if (insertErr) throw new Error(`jobs insert failed: ${insertErr.message}`);
 
-  // Fire-and-forget execution; caller gets the queued row back immediately.
+  jobEvents.emit(tenantId, { type: 'job.queued', job });
+
   executeJob(job.id, spec, { input, tenantId, userId }).catch((err) => {
     console.error(`[jobs] executeJob ${job.id} unhandled:`, err.message);
   });
@@ -89,36 +170,38 @@ export async function startJob({ userId, tenantId, kind, input, dependsOn = null
 
 async function executeJob(jobId, spec, ctx) {
   const supabase = getSupabase();
+  const { tenantId } = ctx;
 
-  await supabase
-    .from('jobs')
-    .update({ status: 'running', started_at: new Date().toISOString() })
-    .eq('id', jobId);
+  const runningRow = { status: 'running', started_at: new Date().toISOString() };
+  const { data: runningJob } = await supabase
+    .from('jobs').update(runningRow).eq('id', jobId).select().single();
+  jobEvents.emit(tenantId, { type: 'job.running', job: runningJob });
 
   try {
     const result = await spec.handler(ctx);
 
-    await supabase
-      .from('jobs')
-      .update({
-        status: 'succeeded',
-        ended_at: new Date().toISOString(),
-        output: result.output ?? null,
-        cost_cents: result.costCents ?? 0,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId);
+    const update = {
+      status: 'succeeded',
+      ended_at: new Date().toISOString(),
+      output: result.output ?? null,
+      cost_cents: result.costCents ?? 0,
+      updated_at: new Date().toISOString(),
+    };
+    if (result.externalId) update.external_id = result.externalId;
+
+    const { data: succeededJob } = await supabase
+      .from('jobs').update(update).eq('id', jobId).select().single();
+    jobEvents.emit(tenantId, { type: 'job.succeeded', job: succeededJob });
   } catch (err) {
     console.error(`[jobs] ${jobId} failed:`, err.message);
-    await supabase
-      .from('jobs')
-      .update({
+    const { data: failedJob } = await supabase
+      .from('jobs').update({
         status: 'failed',
         ended_at: new Date().toISOString(),
         error: err.message || String(err),
         updated_at: new Date().toISOString(),
-      })
-      .eq('id', jobId);
+      }).eq('id', jobId).select().single();
+    jobEvents.emit(tenantId, { type: 'job.failed', job: failedJob });
   }
 }
 

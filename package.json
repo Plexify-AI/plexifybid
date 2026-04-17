@@ -67,6 +67,7 @@
         "mammoth": "^1.11.0",
         "mapbox-gl": "^3.18.1",
         "multer": "^2.0.2",
+        "node-cron": "^4.2.1",
         "node-fetch": "^3.3.2",
         "openai": "^6.15.0",
         "papaparse": "^5.5.3",

@@ -430,6 +430,15 @@ import {
   handleListJobs,
   handleUsageSummary,
 } from './jobs.mjs';
+import { handleMultiplexStream, handleSingleJobStream } from './routes/job-events-sse.js';
+
+app.get('/api/jobs/events', async (req, res) => {
+  await handleMultiplexStream(req, res);
+});
+
+app.get('/api/jobs/:id/events', async (req, res) => {
+  await handleSingleJobStream(req, res, req.params.id);
+});
 
 app.post('/api/jobs', async (req, res) => {
   await handleStartJob(req, res, req.body);
@@ -639,4 +648,17 @@ app.listen(PORT, () => {
   import('./skills/seed.mjs')
     .then((m) => m.seedSkills())
     .catch((err) => console.error('[skill-seed] startup seed failed:', err.message));
+
+  // Sprint E / E4 — Sync Managed Agents + start crons
+  import('./agents/seed.mjs')
+    .then((m) => m.seedAgents())
+    .catch((err) => console.error('[agent-seed] startup seed failed:', err.message));
+
+  import('./cron/reconcile_jobs.mjs')
+    .then((m) => m.startReconciler())
+    .catch((err) => console.error('[reconciler] startup failed:', err.message));
+
+  import('./cron/pipeline_analyst_cron.mjs')
+    .then((m) => m.startPipelineAnalystCron())
+    .catch((err) => console.error('[pipeline-cron] startup failed:', err.message));
 });

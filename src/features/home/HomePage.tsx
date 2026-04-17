@@ -14,6 +14,7 @@ import ActivityFeed from './ActivityFeed';
 import HomeOpportunityCards from './HomeOpportunityCards';
 import LegacyProjectCards from './LegacyProjectCards';
 import JobActivity from '../../components/JobActivity';
+import UsageWidget from '../../components/UsageWidget';
 
 const HomePage: React.FC = () => {
   return (
@@ -27,8 +28,11 @@ const HomePage: React.FC = () => {
           <ActivityFeed />
         </div>
 
-        {/* PlexiCoS Activity (Sprint E / E1 — polling; SSE in E4) */}
+        {/* PlexiCoS Activity (live via SSE since E4) */}
         <JobActivity />
+
+        {/* Usage widget — per-worker spend with Research Scanner cap bar */}
+        <UsageWidget />
 
         {/* Hot Opportunity Cards — promoted + warm */}
         <div>

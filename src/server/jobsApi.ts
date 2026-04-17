@@ -12,6 +12,10 @@ let handleGetJobFn: any = null;
 let handleCancelJobFn: any = null;
 let handleListJobsFn: any = null;
 let handleUsageSummaryFn: any = null;
+let handleMultiplexStreamFn: any = null;
+let handleSingleJobStreamFn: any = null;
+let cronsStarted = false;
+let agentsSeeded = false;
 
 async function getHandlers() {
   if (!handleStartJobFn) {
@@ -21,13 +25,36 @@ async function getHandlers() {
     handleCancelJobFn = mod.handleCancelJob;
     handleListJobsFn = mod.handleListJobs;
     handleUsageSummaryFn = mod.handleUsageSummary;
+
+    const sseMod = await import('../../server/routes/job-events-sse.js');
+    handleMultiplexStreamFn = sseMod.handleMultiplexStream;
+    handleSingleJobStreamFn = sseMod.handleSingleJobStream;
   }
+
+  if (!agentsSeeded) {
+    agentsSeeded = true;
+    import('../../server/agents/seed.mjs')
+      .then((m: any) => m.seedAgents())
+      .catch((err: any) => console.error('[agent-seed] dev seed failed:', err?.message));
+  }
+  if (!cronsStarted) {
+    cronsStarted = true;
+    import('../../server/cron/reconcile_jobs.mjs')
+      .then((m: any) => m.startReconciler())
+      .catch((err: any) => console.error('[reconciler] dev start failed:', err?.message));
+    import('../../server/cron/pipeline_analyst_cron.mjs')
+      .then((m: any) => m.startPipelineAnalystCron())
+      .catch((err: any) => console.error('[pipeline-cron] dev start failed:', err?.message));
+  }
+
   return {
     handleStartJobFn,
     handleGetJobFn,
     handleCancelJobFn,
     handleListJobsFn,
     handleUsageSummaryFn,
+    handleMultiplexStreamFn,
+    handleSingleJobStreamFn,
   };
 }
 
@@ -74,7 +101,17 @@ export function jobsMiddleware() {
         return;
       }
 
-      // /api/jobs/:id or /api/jobs/:id/cancel
+      if (url === '/api/jobs/events' && req.method === 'GET') {
+        await handlers.handleMultiplexStreamFn(req, res);
+        return;
+      }
+
+      const eventsMatch = url.match(/^\/api\/jobs\/([^/]+)\/events$/);
+      if (eventsMatch && req.method === 'GET') {
+        await handlers.handleSingleJobStreamFn(req, res, eventsMatch[1]);
+        return;
+      }
+
       const idMatch = url.match(/^\/api\/jobs\/([^/]+)(\/cancel)?$/);
       if (idMatch) {
         const jobId = idMatch[1];
