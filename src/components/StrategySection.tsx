@@ -269,13 +269,25 @@ const StrategySection: React.FC<Props> = ({ dealRoomId, defaultOpportunityId, on
         })}
       </div>
 
-      {/* Expanded result panel below the cards */}
+      {/* Expanded result panel below the cards. Caps at 50vh with internal
+          scroll so the editor + assistant panels below stay reachable. */}
       {expanded && results[expanded] && (
-        <div className="px-4 pb-4 border-t border-gray-700/30 pt-3">
-          <StrategyArtifactRenderer
-            artifactType={expanded}
-            content={results[expanded]?.content}
-          />
+        <div className="border-t border-gray-700/30 bg-gray-900/20">
+          <div className="flex items-center justify-between px-4 py-2">
+            <span className="text-[10px] uppercase tracking-wider text-gray-500">Output</span>
+            <button
+              onClick={() => setExpanded(null)}
+              className="text-[11px] text-gray-400 hover:text-white"
+            >
+              Close
+            </button>
+          </div>
+          <div className="px-4 pb-4 max-h-[50vh] overflow-y-auto">
+            <StrategyArtifactRenderer
+              artifactType={expanded}
+              content={results[expanded]?.content}
+            />
+          </div>
         </div>
       )}
     </div>
