@@ -106,47 +106,46 @@ const JobActivity: React.FC = () => {
   if (!token) return null;
 
   return (
-    <div className="mb-6">
+    <div className="bg-gray-800/30 border border-gray-700/30 rounded-xl p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B2FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
             <path d="M12 12v9" />
             <path d="m8 17 4 4 4-4" />
           </svg>
-          <h2 className="text-lg font-semibold text-gray-900">Activity</h2>
-          <span className="text-xs text-gray-500">Autonomous work by PlexiCoS</span>
+          <h3 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">PlexiCoS Activity</h3>
         </div>
-        <span className="text-xs text-gray-400">Refreshes every 30s</span>
+        <span className="text-[10px] text-gray-500">Refresh 30s</span>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+      <div>
         {error && (
-          <div className="p-4 text-sm text-amber-700 bg-amber-50 border-b border-amber-200">
+          <div className="p-3 text-sm text-amber-300 bg-amber-900/20 border border-amber-700/40 rounded">
             Activity feed unavailable: {error}
           </div>
         )}
 
         {jobs === null && !error && (
-          <div className="p-4 text-sm text-gray-500">Loading activity…</div>
+          <div className="py-3 text-sm text-gray-500">Loading activity…</div>
         )}
 
         {jobs && jobs.length === 0 && (
-          <div className="p-6 text-center text-sm text-gray-500">
+          <div className="py-4 text-sm text-gray-500">
             No autonomous work yet. Jobs kicked off by PlexiCoS will appear here.
           </div>
         )}
 
         {jobs && jobs.length > 0 && (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-gray-700/40">
             {jobs.map((job) => {
               const s = STATUS_STYLES[job.status] || STATUS_STYLES.queued;
               const stageColor = job.revenue_loop_stage ? STAGE_COLORS[job.revenue_loop_stage] : null;
               return (
-                <li key={job.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                <li key={job.id} className="py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900 truncate">
+                      <span className="text-sm font-medium text-gray-100 truncate">
                         {humanKind(job.kind)}
                       </span>
                       {job.revenue_loop_stage && stageColor && (
@@ -158,16 +157,16 @@ const JobActivity: React.FC = () => {
                           {job.revenue_loop_stage}
                         </span>
                       )}
-                      <span className="text-xs text-gray-400">{job.runtime}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-gray-500">{job.runtime}</span>
                     </div>
                     <div className="text-xs text-gray-500 mt-0.5">
                       {formatAge(job.created_at)}
-                      {job.error ? <span className="ml-2 text-amber-700">{job.error}</span> : null}
+                      {job.error ? <span className="ml-2 text-amber-400">{job.error}</span> : null}
                     </div>
                   </div>
 
                   <span
-                    className="text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
+                    className="text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap"
                     style={{
                       backgroundColor: s.bg,
                       color: s.text,

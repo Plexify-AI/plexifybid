@@ -11,7 +11,6 @@ import { OpportunityCard } from '../home/components/OpportunityCard';
 import { useSandbox } from '../../contexts/SandboxContext';
 import PowerflowPyramid from '../../components/PowerflowPyramid';
 import PowerflowMorningPyramid from '../../components/PowerflowMorningPyramid';
-import JobActivity from '../../components/JobActivity';
 import { useTenantVocab } from '../../hooks/useTenantVocab';
 /**
  * ExecutiveFeed Component
@@ -295,9 +294,6 @@ const ExecutiveFeed: React.FC = () => {
           <PowerflowMorningPyramid />
         </div>
       )}
-
-      {/* PlexiCoS Activity (Sprint E / E1 — polling; SSE in E4) */}
-      {tenant && <JobActivity />}
 
       {showNewProjectModal && (
         <div

@@ -13,6 +13,7 @@ import CommandBar from './CommandBar';
 import ActivityFeed from './ActivityFeed';
 import HomeOpportunityCards from './HomeOpportunityCards';
 import LegacyProjectCards from './LegacyProjectCards';
+import JobActivity from '../../components/JobActivity';
 
 const HomePage: React.FC = () => {
   return (
@@ -25,6 +26,9 @@ const HomePage: React.FC = () => {
         <div className="bg-gray-800/30 border border-gray-700/30 rounded-xl p-5">
           <ActivityFeed />
         </div>
+
+        {/* PlexiCoS Activity (Sprint E / E1 — polling; SSE in E4) */}
+        <JobActivity />
 
         {/* Hot Opportunity Cards — promoted + warm */}
         <div>
