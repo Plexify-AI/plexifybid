@@ -248,6 +248,10 @@ export async function runSkill({
         messages: [{ role: 'user', content: JSON.stringify(userPayload) + reminder }],
         systemPrompt,
         tenantId,
+        // Strategy skill output_schemas can produce deep JSON (esp.
+        // growth_plan_generator with its strategic-initiatives array).
+        // LLM Gateway default is 1024 — truncates mid-JSON and the parse fails.
+        maxTokens: 4096,
       });
       rawResp = resp?.content || '';
       tokensIn = resp?.usage?.input_tokens ?? tokensIn;
