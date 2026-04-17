@@ -14,11 +14,19 @@ import { getSupabase } from '../lib/supabase.js';
 import { definition as pursuitGoNoGo } from './definitions/pursuit_go_no_go.mjs';
 import { definition as feeStrategyArchitect } from './definitions/fee_strategy_architect.mjs';
 import { definition as competitorTeardown } from './definitions/competitor_teardown.mjs';
+import { definition as acquisitionPlaybook } from './definitions/acquisition_playbook.mjs';
+import { definition as growthPlanGenerator } from './definitions/growth_plan_generator.mjs';
+import { definition as bidOzOpportunityBrief } from './definitions/bid_oz_opportunity_brief.mjs';
+import { definition as stakeholderEntryMap } from './definitions/stakeholder_entry_map.mjs';
 
 const DEFINITIONS = [
   pursuitGoNoGo,
   feeStrategyArchitect,
   competitorTeardown,
+  acquisitionPlaybook,
+  growthPlanGenerator,
+  bidOzOpportunityBrief,
+  stakeholderEntryMap,
 ];
 
 export async function seedSkills() {

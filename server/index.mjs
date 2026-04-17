@@ -403,6 +403,25 @@ app.get('/api/skills', async (req, res) => {
   await handleListSkills(req, res);
 });
 
+// PlexiCoS Public data (Sprint E / E3 — OZ + Census ACS)
+import {
+  handleGetOzTract,
+  handleOzLookup,
+  handleTractDemographics,
+} from './routes/data.js';
+
+app.get('/api/data/oz-tract/:tractId', async (req, res) => {
+  await handleGetOzTract(req, res, req.params.tractId);
+});
+
+app.get('/api/data/oz-lookup', async (req, res) => {
+  await handleOzLookup(req, res);
+});
+
+app.get('/api/data/tract-demographics/:tractId', async (req, res) => {
+  await handleTractDemographics(req, res, req.params.tractId);
+});
+
 // PlexiCoS Jobs (Sprint E / E1 — runtime abstraction for inline + Managed Agent work)
 import {
   handleStartJob,

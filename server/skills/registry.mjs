@@ -25,6 +25,8 @@ import {
   updateDealRoomArtifact,
   getOpportunityById,
 } from '../lib/supabase.js';
+import { isOzDesignated, lookupByAddress } from '../data/oz_tracts.mjs';
+import { getTractDemographics } from '../data/acs.mjs';
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 
@@ -92,19 +94,28 @@ async function loadProspectContext(tenantId, prospectId) {
   try {
     const opp = await getOpportunityById(tenantId, prospectId);
     if (!opp) return null;
-    // Whitelist — everything else is noise for strategy reasoning
+    // Whitelist — everything else is noise for strategy reasoning.
+    // Canonical opportunity fields (fingerprinted 2026-04-17):
+    //   account_name | contact_name | contact_title | contact_email | stage |
+    //   warmth_score | industry | deal_hypothesis | promotion_reason |
+    //   source_type | source_campaign | lifecycle_stage | mql_date | state |
+    //   enrichment_data (jsonb).
     const ed = opp.enrichment_data || {};
     return {
       id: opp.id,
-      name: opp.name || opp.company_name,
-      company: opp.company_name,
-      stage: opp.stage,
-      source: opp.source,
-      warmth_score: opp.warmth_score,
+      account_name: opp.account_name,
       contact_name: opp.contact_name,
       contact_title: opp.contact_title,
       contact_email: opp.contact_email,
-      industry: ed.industry || null,
+      stage: opp.stage,
+      lifecycle_stage: opp.lifecycle_stage,
+      warmth_score: opp.warmth_score,
+      industry: opp.industry || ed.industry || null,
+      state: opp.state,
+      deal_hypothesis: opp.deal_hypothesis,
+      promotion_reason: opp.promotion_reason,
+      source_type: opp.source_type,
+      source_campaign: opp.source_campaign,
       linkedin_url: ed.linkedin_url || null,
       last_message_at: ed.last_message_at || null,
       message_count: ed.message_count || 0,
@@ -142,7 +153,7 @@ function extractJSON(raw) {
 // ---------------------------------------------------------------------------
 
 function buildArtifactTitle(skill, input, prospect) {
-  const prospectName = prospect?.name || prospect?.company || null;
+  const prospectName = prospect?.account_name || prospect?.contact_name || null;
   const skillLabel = skill.skill_name.replace(/^\[TEST\]\s*/i, '');
   if (prospectName) return `${skillLabel} — ${prospectName}`;
   return skillLabel;
@@ -189,6 +200,11 @@ export async function runSkill({
     throw new Error(`prospect not found: ${input.prospectId}`);
   }
 
+  // Skill-specific enrichment — e.g. bid_oz_opportunity_brief expects the
+  // runtime to pre-resolve IRS OZ verification + Census ACS demographics so
+  // the model does not call tools inside the prompt.
+  const enrichment = await enrichForSkill(skill.skill_key, input);
+
   // Stack context onto system prompt
   const userContext = await buildUserContext(tenantId, { userId, contentType });
   const systemPrompt = [userContext, skill.system_prompt].filter(Boolean).join('\n\n');
@@ -197,6 +213,7 @@ export async function runSkill({
   const userPayload = {
     input,
     prospect,
+    ...enrichment,
     output_schema: skill.output_schema,
     instruction: 'Return a single JSON object that strictly matches output_schema. No commentary outside the JSON.',
   };
@@ -334,6 +351,28 @@ export async function listSkills(tenantId) {
       is_tenant_override: row.tenant_id !== null,
     });
   }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// Per-skill enrichment — resolves external data before the model sees it.
+// ---------------------------------------------------------------------------
+
+async function enrichForSkill(skillKey, input) {
+  if (skillKey !== 'bid_oz_opportunity_brief') return {};
+  const out = {};
+
+  const locType = input?.locationType;
+  const locId = input?.locationId;
+
+  if (locType === 'oz_tract' && locId) {
+    out.verification = await isOzDesignated(locId);
+    out.demographics = await getTractDemographics(locId);
+  } else if (locType === 'bid' && locId) {
+    out.verification = { known: false, reason: 'bid-directory-not-implemented-until-sprint-f', locationId: locId };
+    out.demographics = { known: false, reason: 'need-tract-id-from-bid-address-lookup' };
+  }
+
   return out;
 }
 

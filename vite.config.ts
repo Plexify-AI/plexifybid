@@ -31,6 +31,7 @@ import { askplexiConversationsMiddleware } from './src/server/askplexiConversati
 import { leadImportMiddleware } from './src/server/leadImportApi';
 import { jobsMiddleware } from './src/server/jobsApi';
 import { skillsMiddleware } from './src/server/skillsApi';
+import { dataMiddleware } from './src/server/dataApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -84,6 +85,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(leadImportMiddleware());
         server.middlewares.use(jobsMiddleware());
         server.middlewares.use(skillsMiddleware());
+        server.middlewares.use(dataMiddleware());
       },
     },
   ],
