@@ -50,20 +50,22 @@ export async function handleSystemStatus(req, res) {
         .eq('status', 'sent')
         .gte('sent_at', `${today}T00:00:00Z`),
 
-      // Jobs pending
-      supabase.from('jobs')
+      // Jobs pending (legacy opportunity pipeline queue — renamed from `jobs`
+      // in Sprint E. New PlexiCoS orchestration jobs live in `jobs` and use a
+      // different status vocabulary: queued/running/succeeded/failed/cancelled.)
+      supabase.from('legacy_jobs')
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', tenantId)
         .eq('status', 'pending'),
 
       // Jobs running
-      supabase.from('jobs')
+      supabase.from('legacy_jobs')
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', tenantId)
         .eq('status', 'running'),
 
       // Dead letter jobs (last 24h)
-      supabase.from('jobs')
+      supabase.from('legacy_jobs')
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', tenantId)
         .eq('status', 'dead_letter')

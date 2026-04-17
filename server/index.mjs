@@ -392,6 +392,35 @@ app.post('/api/powerflow/complete', async (req, res) => {
   await handleCompleteStage(req, res, req.body);
 });
 
+// PlexiCoS Jobs (Sprint E / E1 — runtime abstraction for inline + Managed Agent work)
+import {
+  handleStartJob,
+  handleGetJob,
+  handleCancelJob,
+  handleListJobs,
+  handleUsageSummary,
+} from './jobs.mjs';
+
+app.post('/api/jobs', async (req, res) => {
+  await handleStartJob(req, res, req.body);
+});
+
+app.get('/api/jobs', async (req, res) => {
+  await handleListJobs(req, res);
+});
+
+app.get('/api/jobs/:id', async (req, res) => {
+  await handleGetJob(req, res, req.params.id);
+});
+
+app.post('/api/jobs/:id/cancel', async (req, res) => {
+  await handleCancelJob(req, res, req.params.id);
+});
+
+app.get('/api/tenant-usage/summary', async (req, res) => {
+  await handleUsageSummary(req, res);
+});
+
 // LinkedIn Import
 import { handleUploadLinkedInExport, handleStartPipeline, handleGetStatus, handleCancelPipeline } from './routes/linkedin-import.js';
 import { cleanupZombieJobs } from './services/linkedin-pipeline.mjs';
