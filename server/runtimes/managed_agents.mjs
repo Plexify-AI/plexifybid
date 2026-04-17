@@ -212,12 +212,15 @@ export async function streamEvents(sessionId, handlers = {}, options = {}) {
   const controller = new AbortController();
   const { signal } = controller;
 
+  // Stream endpoint sits on an older beta API surface. It rejects the
+  // 'managed-agents-*' header but demands 'agent-api-2026-03-01'. Mixing
+  // both is also rejected. So we send ONLY the older beta for the stream.
   const resp = await fetch(`${BASE}/v1/sessions/${sessionId}/stream?beta=true`, {
     method: 'GET',
     headers: {
       'x-api-key': apiKey(),
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': BETA_HEADER,
+      'anthropic-beta': 'agent-api-2026-03-01',
       'accept': 'text/event-stream',
     },
     signal,
@@ -256,13 +259,20 @@ export async function streamEvents(sessionId, handlers = {}, options = {}) {
           if (!evt) continue;
 
           if (onEvent) onEvent(evt);
+          // Real event types from /v1/sessions/:id/stream are NOT namespaced
+          // (no "agent." / "session." prefix). They arrive as:
+          //   status_running, status_idle, status_terminated, status_rescheduling
+          //   user, agent, thinking
+          //   model_request_start, model_request_end
+          //   tool_use, tool_result (for agent tools)
+          //   mcp_tool_use, mcp_tool_result
+          //   custom_tool_use, custom_tool_result
           const t = evt.type || '';
-          if (t === 'agent.message' && onAgentMessage) onAgentMessage(evt);
-          else if ((t === 'agent.tool_use' || t === 'agent.mcp_tool_use') && onToolUse) onToolUse(evt);
-          else if (t.startsWith('session.status_') && onStatus) onStatus(evt);
+          if (t === 'agent' && onAgentMessage) onAgentMessage(evt);
+          else if ((t === 'tool_use' || t === 'mcp_tool_use' || t === 'custom_tool_use') && onToolUse) onToolUse(evt);
+          else if (t.startsWith('status_') && onStatus) onStatus(evt);
 
-          // Terminal conditions — resolve done and stop reading.
-          if (t === 'session.status_idle' || t === 'session.status_terminated') {
+          if (t === 'status_idle' || t === 'status_terminated') {
             clearTimeout(timer);
             controller.abort();
             resolveDone(evt);
@@ -271,10 +281,10 @@ export async function streamEvents(sessionId, handlers = {}, options = {}) {
         }
       }
       clearTimeout(timer);
-      resolveDone(null); // stream ended without explicit status
+      resolveDone(null);
     } catch (err) {
       clearTimeout(timer);
-      if (err.name === 'AbortError') return; // we aborted intentionally
+      if (err.name === 'AbortError') return;
       if (onError) onError(err);
       rejectDone(err);
     }
