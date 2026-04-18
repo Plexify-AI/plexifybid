@@ -26,7 +26,7 @@ import {
   getOpportunityById,
 } from '../lib/supabase.js';
 import { isOzDesignated, lookupByAddress } from '../data/oz_tracts.mjs';
-import { getTractDemographics } from '../data/acs.mjs';
+import { getTractDemographics, getTractDemographicsWithFallback } from '../data/acs.mjs';
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 
@@ -371,7 +371,10 @@ async function enrichForSkill(skillKey, input) {
 
   if (locType === 'oz_tract' && locId) {
     out.verification = await isOzDesignated(locId);
-    out.demographics = await getTractDemographics(locId);
+    // Use fallback fetch — some jurisdictions (CT) have 2018-designated
+    // tracts without current-year ACS data due to post-2020 redistricting.
+    // Fallback returns the most-recent real year rather than fabricating.
+    out.demographics = await getTractDemographicsWithFallback(locId);
   } else if (locType === 'bid' && locId) {
     out.verification = { known: false, reason: 'bid-directory-not-implemented-until-sprint-f', locationId: locId };
     out.demographics = { known: false, reason: 'need-tract-id-from-bid-address-lookup' };
