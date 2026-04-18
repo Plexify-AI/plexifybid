@@ -36,7 +36,16 @@ const ACS_VARS = {
   medianGrossRent: 'B25064_001E',
 };
 
-const DEFAULT_YEAR = 2023;
+// Census ACS 5-year estimates for 2020-2024 released 2026-01-29 and became
+// authoritative for OZ 2.0 tract eligibility. Default to 2024 (end-year of
+// the 5-year window). Callers can override per-request.
+// Some jurisdictions (notably Connecticut post-2020 redistricting) have
+// tracts whose 2018 OZ designations reference pre-redistricting boundaries
+// that don't appear in newer ACS releases. We handle this by falling back
+// to the most-recently-cached year for the tract — the returned year field
+// always reflects the real source, never a relabel.
+const DEFAULT_YEAR = 2024;
+const FALLBACK_YEARS = [2023, 2022, 2021];
 
 /**
  * Get demographics for a single tract GEOID. Returns a normalized object on
@@ -138,4 +147,19 @@ export async function getTractDemographics(tractId, year = DEFAULT_YEAR) {
     console.error('[acs] upstream fetch failed:', err.message);
     return { known: false, reason: `census-api-error: ${err.message}` };
   }
+}
+
+/**
+ * Fetch with transparent fallback to older ACS years.
+ * Tries DEFAULT_YEAR first, falls back through FALLBACK_YEARS. The returned
+ * year field is always the real source year — no relabeling.
+ */
+export async function getTractDemographicsWithFallback(tractId) {
+  const primary = await getTractDemographics(tractId);
+  if (primary.known) return primary;
+  for (const yr of FALLBACK_YEARS) {
+    const result = await getTractDemographics(tractId, yr);
+    if (result.known) return result;
+  }
+  return primary; // return the original not-known result
 }
