@@ -392,6 +392,98 @@ app.post('/api/powerflow/complete', async (req, res) => {
   await handleCompleteStage(req, res, req.body);
 });
 
+// PlexiCoS Skills (Sprint E / E2 — prospect-backed strategy skills)
+import { handleRunSkill, handleListSkills } from './routes/skills.js';
+
+app.post('/api/skills/run', async (req, res) => {
+  await handleRunSkill(req, res, req.body);
+});
+
+app.get('/api/skills', async (req, res) => {
+  await handleListSkills(req, res);
+});
+
+// PlexiCoS Gates (Sprint E / E5 — Factual Auditor + Compliance Guard)
+import {
+  handleAudit,
+  handleCompliance,
+  handleCreateOverride,
+  handleListOverrides,
+} from './routes/gates.js';
+
+app.post('/api/gates/audit', async (req, res) => {
+  await handleAudit(req, res, req.body);
+});
+
+app.post('/api/gates/compliance', async (req, res) => {
+  await handleCompliance(req, res, req.body);
+});
+
+app.post('/api/gate-overrides', async (req, res) => {
+  await handleCreateOverride(req, res, req.body);
+});
+
+app.get('/api/gate-overrides', async (req, res) => {
+  await handleListOverrides(req, res);
+});
+
+// PlexiCoS Public data (Sprint E / E3 — OZ + Census ACS)
+import {
+  handleGetOzTract,
+  handleOzLookup,
+  handleTractDemographics,
+} from './routes/data.js';
+
+app.get('/api/data/oz-tract/:tractId', async (req, res) => {
+  await handleGetOzTract(req, res, req.params.tractId);
+});
+
+app.get('/api/data/oz-lookup', async (req, res) => {
+  await handleOzLookup(req, res);
+});
+
+app.get('/api/data/tract-demographics/:tractId', async (req, res) => {
+  await handleTractDemographics(req, res, req.params.tractId);
+});
+
+// PlexiCoS Jobs (Sprint E / E1 — runtime abstraction for inline + Managed Agent work)
+import {
+  handleStartJob,
+  handleGetJob,
+  handleCancelJob,
+  handleListJobs,
+  handleUsageSummary,
+} from './jobs.mjs';
+import { handleMultiplexStream, handleSingleJobStream } from './routes/job-events-sse.js';
+
+app.get('/api/jobs/events', async (req, res) => {
+  await handleMultiplexStream(req, res);
+});
+
+app.get('/api/jobs/:id/events', async (req, res) => {
+  await handleSingleJobStream(req, res, req.params.id);
+});
+
+app.post('/api/jobs', async (req, res) => {
+  await handleStartJob(req, res, req.body);
+});
+
+app.get('/api/jobs', async (req, res) => {
+  await handleListJobs(req, res);
+});
+
+app.get('/api/jobs/:id', async (req, res) => {
+  await handleGetJob(req, res, req.params.id);
+});
+
+app.post('/api/jobs/:id/cancel', async (req, res) => {
+  await handleCancelJob(req, res, req.params.id);
+});
+
+app.get('/api/tenant-usage/summary', async (req, res) => {
+  await handleUsageSummary(req, res);
+});
+
 // LinkedIn Import
 import { handleUploadLinkedInExport, handleStartPipeline, handleGetStatus, handleCancelPipeline } from './routes/linkedin-import.js';
 import { cleanupZombieJobs } from './services/linkedin-pipeline.mjs';
@@ -575,4 +667,22 @@ app.listen(PORT, () => {
   cleanupZombieJobs().catch(err => {
     console.error('Failed to cleanup zombie LinkedIn import jobs:', err.message);
   });
+
+  // Sprint E / E2 — Seed global strategy skills (upsert from file definitions)
+  import('./skills/seed.mjs')
+    .then((m) => m.seedSkills())
+    .catch((err) => console.error('[skill-seed] startup seed failed:', err.message));
+
+  // Sprint E / E4 — Sync Managed Agents + start crons
+  import('./agents/seed.mjs')
+    .then((m) => m.seedAgents())
+    .catch((err) => console.error('[agent-seed] startup seed failed:', err.message));
+
+  import('./cron/reconcile_jobs.mjs')
+    .then((m) => m.startReconciler())
+    .catch((err) => console.error('[reconciler] startup failed:', err.message));
+
+  import('./cron/pipeline_analyst_cron.mjs')
+    .then((m) => m.startPipelineAnalystCron())
+    .catch((err) => console.error('[pipeline-cron] startup failed:', err.message));
 });

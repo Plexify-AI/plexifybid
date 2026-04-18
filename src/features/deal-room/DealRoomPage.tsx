@@ -9,6 +9,7 @@ import DealRoomLayout from './DealRoomLayout';
 import SourcesPanel from './panels/SourcesPanel';
 import EditorPanel from './panels/EditorPanel';
 import AssistantPanel from './panels/AssistantPanel';
+import StrategySection from '../../components/StrategySection';
 import { useSandbox } from '../../contexts/SandboxContext';
 import type { DealRoomMessage, DealRoomTab, DealRoomArtifact } from '../../types/dealRoom';
 import { GOLDEN_TRIANGLE_ROOM_ID, DEAL_ROOM_TABS } from '../../types/dealRoom';
@@ -494,8 +495,19 @@ const DealRoomPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#0B1120]">
-      <DealRoomHeader room={room} activeTab={activeTab} editorContent={currentContent} />
+      <DealRoomHeader
+        room={room}
+        activeTab={activeTab}
+        editorContent={currentContent}
+        activeArtifactId={(viewingArtifact || artifactsByType.get(activeTab))?.id || null}
+      />
       <DealRoomTabs activeTab={activeTab} onTabChange={handleTabChange} tabConfig={tabConfig} />
+      {/* Sprint E / E2 — Strategy skills (prospect-backed, no sources required) */}
+      <StrategySection
+        dealRoomId={id || ''}
+        defaultOpportunityId={(room as any)?.opportunity_id || null}
+        onArtifactCreated={(a) => addArtifact(a)}
+      />
       <DealRoomLayout
         leftPanel={
           <SourcesPanel

@@ -13,6 +13,8 @@ import CommandBar from './CommandBar';
 import ActivityFeed from './ActivityFeed';
 import HomeOpportunityCards from './HomeOpportunityCards';
 import LegacyProjectCards from './LegacyProjectCards';
+import JobActivity from '../../components/JobActivity';
+import UsageWidget from '../../components/UsageWidget';
 
 const HomePage: React.FC = () => {
   return (
@@ -25,6 +27,12 @@ const HomePage: React.FC = () => {
         <div className="bg-gray-800/30 border border-gray-700/30 rounded-xl p-5">
           <ActivityFeed />
         </div>
+
+        {/* PlexiCoS Activity (live via SSE since E4) */}
+        <JobActivity />
+
+        {/* Usage widget — per-worker spend with Research Scanner cap bar */}
+        <UsageWidget />
 
         {/* Hot Opportunity Cards — promoted + warm */}
         <div>
