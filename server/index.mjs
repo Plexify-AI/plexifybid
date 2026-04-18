@@ -403,6 +403,30 @@ app.get('/api/skills', async (req, res) => {
   await handleListSkills(req, res);
 });
 
+// PlexiCoS Gates (Sprint E / E5 — Factual Auditor + Compliance Guard)
+import {
+  handleAudit,
+  handleCompliance,
+  handleCreateOverride,
+  handleListOverrides,
+} from './routes/gates.js';
+
+app.post('/api/gates/audit', async (req, res) => {
+  await handleAudit(req, res, req.body);
+});
+
+app.post('/api/gates/compliance', async (req, res) => {
+  await handleCompliance(req, res, req.body);
+});
+
+app.post('/api/gate-overrides', async (req, res) => {
+  await handleCreateOverride(req, res, req.body);
+});
+
+app.get('/api/gate-overrides', async (req, res) => {
+  await handleListOverrides(req, res);
+});
+
 // PlexiCoS Public data (Sprint E / E3 — OZ + Census ACS)
 import {
   handleGetOzTract,

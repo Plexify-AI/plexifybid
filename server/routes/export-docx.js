@@ -286,12 +286,42 @@ async function generateDocx({ boardBrief, editorContent, exportDate }) {
 // ---------------------------------------------------------------------------
 
 export async function handleExportDocx(req, res, body) {
-  const { boardBrief = null, editorContent = null, filename = 'board-report' } = body || {};
+  const { boardBrief = null, editorContent = null, filename = 'board-report', artifact_id = null, override_id = null } = body || {};
   const safeName = (filename || 'board-report').replace(/[^a-zA-Z0-9\-_ ]/g, '-');
 
   if (!boardBrief && !(editorContent && editorContent.trim())) {
     res.status(400).json({ error: 'No content to export' });
     return;
+  }
+
+  // Sprint E / E5 — pre-export gate. Only fires when caller passes
+  // artifact_id (legacy "free" exports without an artifact context bypass).
+  if (artifact_id && req.tenant) {
+    try {
+      const { runExportGates } = await import('./gates.js');
+      const gateResult = await runExportGates({
+        tenantId: req.tenant.id,
+        userId: req.tenant.id,
+        artifactId: artifact_id,
+        overrideIds: override_id ? [override_id] : [],
+      });
+      if (!gateResult.passed) {
+        res.status(409).json({
+          blocked: true,
+          export_format: 'docx',
+          artifact_id,
+          blockers: gateResult.blocked_by,
+          override_endpoint: '/api/gate-overrides',
+          gates_run: gateResult.gates_run,
+        });
+        return;
+      }
+    } catch (err) {
+      console.error('[export-docx] gate error:', err.message);
+      // Gate infrastructure failure: fail closed (do not export).
+      res.status(500).json({ error: `Pre-export gate failed: ${err.message}` });
+      return;
+    }
   }
 
   try {

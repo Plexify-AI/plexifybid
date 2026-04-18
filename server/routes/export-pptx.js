@@ -664,12 +664,40 @@ export async function handleGenerateDeck(req, res, dealRoomId, body) {
 // ---------------------------------------------------------------------------
 
 export async function handleExportPptx(req, res, body) {
-  const { editorContent = null, filename = 'Board-Deck' } = body || {};
+  const { editorContent = null, filename = 'Board-Deck', artifact_id = null, override_id = null } = body || {};
   const safeName = (filename || 'Board-Deck').replace(/[^a-zA-Z0-9\-_ ]/g, '-');
 
   if (!editorContent?.trim()) {
     res.status(400).json({ error: 'No content to export' });
     return;
+  }
+
+  // Sprint E / E5 — pre-export gate
+  if (artifact_id && req.tenant) {
+    try {
+      const { runExportGates } = await import('./gates.js');
+      const gateResult = await runExportGates({
+        tenantId: req.tenant.id,
+        userId: req.tenant.id,
+        artifactId: artifact_id,
+        overrideIds: override_id ? [override_id] : [],
+      });
+      if (!gateResult.passed) {
+        res.status(409).json({
+          blocked: true,
+          export_format: 'pptx',
+          artifact_id,
+          blockers: gateResult.blocked_by,
+          override_endpoint: '/api/gate-overrides',
+          gates_run: gateResult.gates_run,
+        });
+        return;
+      }
+    } catch (err) {
+      console.error('[export-pptx] gate error:', err.message);
+      res.status(500).json({ error: `Pre-export gate failed: ${err.message}` });
+      return;
+    }
   }
 
   try {

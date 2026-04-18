@@ -495,7 +495,12 @@ const DealRoomPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#0B1120]">
-      <DealRoomHeader room={room} activeTab={activeTab} editorContent={currentContent} />
+      <DealRoomHeader
+        room={room}
+        activeTab={activeTab}
+        editorContent={currentContent}
+        activeArtifactId={(viewingArtifact || artifactsByType.get(activeTab))?.id || null}
+      />
       <DealRoomTabs activeTab={activeTab} onTabChange={handleTabChange} tabConfig={tabConfig} />
       {/* Sprint E / E2 — Strategy skills (prospect-backed, no sources required) */}
       <StrategySection
