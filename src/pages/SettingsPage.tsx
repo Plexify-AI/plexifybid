@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Settings, Save, Plus, Trash2, Eye, EyeOff, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
 
-type TabKey = 'general' | 'factual' | 'voice' | 'signature' | 'closing' | 'pricelist';
+type TabKey = 'general' | 'factual' | 'voice' | 'signature' | 'closing' | 'pricelist' | 'branding';
 
 // Category dropdown for factual corrections. Value is the raw `field` string
 // persisted to the DB and consumed by server/lib/user-context.js. Label is
@@ -140,6 +140,16 @@ const SettingsPage: React.FC = () => {
   // Voice corrections state (Sprint B / B2 — auto-captured by Deal Room "Teach Plexify")
   const [voiceCorrections, setVoiceCorrections] = useState<VoiceCorrection[]>([]);
 
+  // Branding state (Brand DNA foundation, email slice v1 — /api/brand/email-images)
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [heroAltText, setHeroAltText] = useState('');
+  const [footerImageUrl, setFooterImageUrl] = useState<string | null>(null);
+  const [footerAltText, setFooterAltText] = useState('');
+  const [brandingBusy, setBrandingBusy] = useState(false);
+  const [brandingError, setBrandingError] = useState<string | null>(null);
+  const heroFileRef = React.useRef<HTMLInputElement>(null);
+  const footerFileRef = React.useRef<HTMLInputElement>(null);
+
   // Load preferences on mount
   useEffect(() => {
     if (!token) return;
@@ -147,6 +157,7 @@ const SettingsPage: React.FC = () => {
     loadGeneralPreferences();
     loadFactualCorrections();
     loadVoiceCorrections();
+    loadBrandingImages();
   }, [token]);
 
   const loadPreferences = async () => {
@@ -361,6 +372,120 @@ const SettingsPage: React.FC = () => {
     persistVoiceCorrections([]);
   };
 
+  // --- Branding (Brand DNA foundation, email slice v1) ---------------------
+
+  const loadBrandingImages = async () => {
+    try {
+      const res = await fetch('/api/brand/email-images', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setHeroImageUrl(data.hero_image_url || null);
+      setHeroAltText(typeof data.hero_alt_text === 'string' ? data.hero_alt_text : '');
+      setFooterImageUrl(data.footer_image_url || null);
+      setFooterAltText(typeof data.footer_alt_text === 'string' ? data.footer_alt_text : '');
+    } catch (err) {
+      console.error('[settings] Failed to load branding images:', err);
+    }
+  };
+
+  const handleUploadBranding = async () => {
+    const heroFile = heroFileRef.current?.files?.[0] || null;
+    const footerFile = footerFileRef.current?.files?.[0] || null;
+
+    // Require alt text when a new file is selected. (Existing image + new alt
+    // text without a new file is handled further down via alt-only save.)
+    if (heroFile && !heroAltText.trim()) {
+      setBrandingError('Hero alt text is required. Describe what the image shows.');
+      return;
+    }
+    if (footerFile && !footerAltText.trim()) {
+      setBrandingError('Footer alt text is required. Describe what the image shows.');
+      return;
+    }
+    if (!heroFile && !footerFile) {
+      // Allow saving alt-text only when the image already exists.
+      if (!heroImageUrl && !footerImageUrl) {
+        setBrandingError('Pick at least one image to upload.');
+        return;
+      }
+    }
+
+    setBrandingBusy(true);
+    setBrandingError(null);
+    setSaveStatus('idle');
+
+    try {
+      const form = new FormData();
+      if (heroFile) form.append('hero', heroFile);
+      if (footerFile) form.append('footer', footerFile);
+      // Alt text is sent unconditionally — server only applies it to the side
+      // that was uploaded in this request.
+      form.append('hero_alt_text', heroAltText);
+      form.append('footer_alt_text', footerAltText);
+
+      const res = await fetch('/api/brand/email-images', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setHeroImageUrl(data.hero_image_url || heroImageUrl);
+      setFooterImageUrl(data.footer_image_url || footerImageUrl);
+      if (heroFileRef.current) heroFileRef.current.value = '';
+      if (footerFileRef.current) footerFileRef.current.value = '';
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (err: any) {
+      console.error('[settings] Branding upload failed:', err);
+      setBrandingError(err.message || 'Upload failed');
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } finally {
+      setBrandingBusy(false);
+    }
+  };
+
+  const handleDeleteBranding = async (side: 'hero' | 'footer') => {
+    if (!window.confirm(`Remove the ${side} image? This cannot be undone.`)) return;
+    setBrandingBusy(true);
+    setBrandingError(null);
+    setSaveStatus('idle');
+    try {
+      const res = await fetch(`/api/brand/email-images?side=${side}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      if (side === 'hero') {
+        setHeroImageUrl(null);
+        setHeroAltText('');
+        if (heroFileRef.current) heroFileRef.current.value = '';
+      } else {
+        setFooterImageUrl(null);
+        setFooterAltText('');
+        if (footerFileRef.current) footerFileRef.current.value = '';
+      }
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch (err: any) {
+      console.error('[settings] Branding delete failed:', err);
+      setBrandingError(err.message || 'Delete failed');
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    } finally {
+      setBrandingBusy(false);
+    }
+  };
+
   function formatCapturedAt(iso?: string): string {
     if (!iso) return '';
     const d = new Date(iso);
@@ -400,6 +525,7 @@ const SettingsPage: React.FC = () => {
     { key: 'signature', label: 'Email Signature' },
     { key: 'closing', label: 'Closing Message' },
     { key: 'pricelist', label: 'Price List' },
+    { key: 'branding', label: 'Branding' },
   ];
 
   if (loading) {
@@ -1066,6 +1192,154 @@ const SettingsPage: React.FC = () => {
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               Save Price List
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── BRANDING TAB (Brand DNA foundation, email slice v1) ── */}
+      {activeTab === 'branding' && (
+        <div className="space-y-4">
+          <div className="rounded-xl bg-gray-800/40 border border-gray-700/40 p-6">
+            <h3 className="text-sm font-semibold text-gray-300 mb-1 uppercase tracking-wider">Email Branding</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Hero and footer images appended to every AskPlexi email draft. PNG, JPEG, or WEBP.
+              Max 2MB per image. Alt text is required — it's what the recipient sees when their
+              email client disables images (which also reduces spam flags).
+            </p>
+
+            {brandingError && (
+              <div className="mb-4 px-4 py-2 rounded-lg text-sm flex items-center gap-2 bg-red-500/10 border border-red-500/30 text-red-400">
+                <AlertTriangle size={14} />
+                {brandingError}
+              </div>
+            )}
+
+            {/* Hero block */}
+            <div className="mb-6 pb-6 border-b border-gray-700/30">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-200">Hero image</h4>
+                  <p className="text-xs text-gray-500">Appears at the top of every email, above the body.</p>
+                </div>
+                {heroImageUrl && (
+                  <button
+                    onClick={() => handleDeleteBranding('hero')}
+                    disabled={brandingBusy}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 size={12} /> Remove
+                  </button>
+                )}
+              </div>
+
+              {heroImageUrl ? (
+                <div className="mb-3 p-3 rounded-lg bg-gray-900/40 border border-gray-700/30">
+                  <img
+                    src={heroImageUrl}
+                    alt={heroAltText || 'Hero image preview'}
+                    className="max-w-full max-h-40 rounded"
+                  />
+                  <p className="text-xs text-gray-500 mt-2 break-all">{heroImageUrl}</p>
+                </div>
+              ) : (
+                <div className="mb-3 p-6 rounded-lg bg-gray-900/40 border border-dashed border-gray-700/50 text-center text-xs text-gray-500">
+                  No hero image configured.
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs text-gray-400 block">
+                  {heroImageUrl ? 'Replace hero image' : 'Upload hero image'}
+                </label>
+                <input
+                  ref={heroFileRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="block w-full text-sm text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-purple-600/30 file:text-purple-200 hover:file:bg-purple-600/40 file:cursor-pointer"
+                />
+                <label className="text-xs text-gray-400 block mt-3">
+                  Hero alt text <span className="text-red-400">*</span>
+                </label>
+                <input
+                  value={heroAltText}
+                  onChange={e => setHeroAltText(e.target.value)}
+                  placeholder="e.g. SunnAx Technologies — award-winning drawing tablets"
+                  className="w-full bg-gray-900/60 border border-gray-600/40 rounded px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500/50"
+                />
+                <p className="text-xs text-gray-500">
+                  Describe what the image shows for email clients that disable images — reduces spam flags.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer block */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-200">Footer image</h4>
+                  <p className="text-xs text-gray-500">Appears at the bottom of every email, below the signature.</p>
+                </div>
+                {footerImageUrl && (
+                  <button
+                    onClick={() => handleDeleteBranding('footer')}
+                    disabled={brandingBusy}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <Trash2 size={12} /> Remove
+                  </button>
+                )}
+              </div>
+
+              {footerImageUrl ? (
+                <div className="mb-3 p-3 rounded-lg bg-gray-900/40 border border-gray-700/30">
+                  <img
+                    src={footerImageUrl}
+                    alt={footerAltText || 'Footer image preview'}
+                    className="max-w-full max-h-40 rounded"
+                  />
+                  <p className="text-xs text-gray-500 mt-2 break-all">{footerImageUrl}</p>
+                </div>
+              ) : (
+                <div className="mb-3 p-6 rounded-lg bg-gray-900/40 border border-dashed border-gray-700/50 text-center text-xs text-gray-500">
+                  No footer image configured.
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs text-gray-400 block">
+                  {footerImageUrl ? 'Replace footer image' : 'Upload footer image'}
+                </label>
+                <input
+                  ref={footerFileRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="block w-full text-sm text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-purple-600/30 file:text-purple-200 hover:file:bg-purple-600/40 file:cursor-pointer"
+                />
+                <label className="text-xs text-gray-400 block mt-3">
+                  Footer alt text <span className="text-red-400">*</span>
+                </label>
+                <input
+                  value={footerAltText}
+                  onChange={e => setFooterAltText(e.target.value)}
+                  placeholder="e.g. SunnAx — visit sunnax.com to learn more"
+                  className="w-full bg-gray-900/60 border border-gray-600/40 rounded px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500/50"
+                />
+                <p className="text-xs text-gray-500">
+                  Describe what the image shows for email clients that disable images — reduces spam flags.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={handleUploadBranding}
+              disabled={brandingBusy}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-purple-600 hover:bg-purple-500 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {brandingBusy ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              Save Branding
             </button>
           </div>
         </div>

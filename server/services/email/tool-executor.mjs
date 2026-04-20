@@ -441,20 +441,26 @@ export async function confirmSend(draftId, tenantId) {
   const payload = draft.draft_payload;
 
   try {
+    // Wrap body HTML with tenant template (hero/footer images, signature,
+    // readable colors). This is the single chokepoint before anything reaches
+    // the provider — parity with saveDraftToProvider and saveDraftDirect so
+    // sent mail matches saved drafts.
+    const wrappedHtml = await wrapEmailHtml(payload.bodyHtml, tenantId);
+
     if (draft.tool_name === 'send_email') {
       await provider.sendEmail({
         to: payload.to,
         cc: payload.cc,
         bcc: payload.bcc,
         subject: payload.subject,
-        bodyHtml: payload.bodyHtml,
+        bodyHtml: wrappedHtml,
         importance: payload.importance,
         attachments: payload.attachments,
       });
     } else if (draft.tool_name === 'reply_to_email') {
       await provider.replyToMessage({
         messageId: payload.messageId,
-        bodyHtml: payload.bodyHtml,
+        bodyHtml: wrappedHtml,
         replyAll: payload.replyAll,
       });
     }

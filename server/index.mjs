@@ -403,6 +403,43 @@ app.get('/api/skills', async (req, res) => {
   await handleListSkills(req, res);
 });
 
+// Brand Config — email slice (Brand DNA foundation)
+import {
+  handleGetEmailImages,
+  handleUploadEmailImages,
+  handleDeleteEmailImage,
+} from './routes/brand.js';
+
+const brandUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024, files: 2 }, // 2 MB per file, max 2 files
+});
+
+app.get('/api/brand/email-images', async (req, res) => {
+  await handleGetEmailImages(req, res);
+});
+
+app.post(
+  '/api/brand/email-images',
+  brandUpload.fields([
+    { name: 'hero', maxCount: 1 },
+    { name: 'footer', maxCount: 1 },
+  ]),
+  async (req, res) => {
+    // Normalize multer's req.files (fields() returns {fieldname: [file]}) -> flat array
+    const flat = [];
+    for (const [fn, arr] of Object.entries(req.files || {})) {
+      for (const f of arr) flat.push({ ...f, fieldname: fn });
+    }
+    req.files = flat;
+    await handleUploadEmailImages(req, res);
+  }
+);
+
+app.delete('/api/brand/email-images', async (req, res) => {
+  await handleDeleteEmailImage(req, res);
+});
+
 // PlexiCoS Gates (Sprint E / E5 — Factual Auditor + Compliance Guard)
 import {
   handleAudit,

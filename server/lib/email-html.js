@@ -32,6 +32,47 @@ async function getTenantPreferences(tenantId) {
 }
 
 /**
+ * Fetch tenant brand_config (Brand DNA foundation, email slice v1).
+ * Returns {} if unset — callers must treat missing keys as "feature off".
+ */
+async function getTenantBrandConfig(tenantId) {
+  try {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('brand_config')
+      .eq('id', tenantId)
+      .single();
+    if (error || !data) return {};
+    return data.brand_config || {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Escape a string for safe inline inclusion as an HTML attribute value.
+ * Belt-and-suspenders — Supabase Storage URLs are clean, but alt_text comes
+ * from user input and must be escaped.
+ */
+function escapeAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, ' ');
+}
+
+function renderHeroImage(url, altText) {
+  return `<img src="${escapeAttr(url)}" alt="${escapeAttr(altText)}" style="max-width:600px;width:100%;height:auto;display:block;margin:0 auto 16px;" />`;
+}
+
+function renderFooterImage(url, altText) {
+  return `<img src="${escapeAttr(url)}" alt="${escapeAttr(altText)}" style="max-width:600px;width:100%;height:auto;display:block;margin:24px auto 0;" />`;
+}
+
+/**
  * Replace inline color styles that are too light (would be invisible on white bg).
  * Converts any hex color lighter than #999999 to #1a1a1a.
  * Also handles rgb() colors.
@@ -66,19 +107,38 @@ function enforceReadableColors(html) {
  * @returns {Promise<string>} - Full email HTML ready for Gmail/Outlook
  */
 export async function wrapEmailHtml(bodyHtml, tenantId) {
-  const prefs = await getTenantPreferences(tenantId);
+  // Load tenant prefs + brand_config in parallel. Both are best-effort —
+  // missing keys degrade to "feature off", never throw.
+  const [prefs, brand] = await Promise.all([
+    getTenantPreferences(tenantId),
+    getTenantBrandConfig(tenantId),
+  ]);
   const signature = prefs.email_signature || '';
 
   // Enforce readable colors on the body
   const readableBody = enforceReadableColors(bodyHtml || '');
 
-  // Build the full email HTML
-  const parts = [readableBody];
+  // Build the full email HTML.
+  //
+  // Order: hero image -> body -> signature -> footer image.
+  // Rationale: the hero sets visual brand above-the-fold; the footer sits
+  // below the signature so any embedded logo/CTA in the signature still
+  // reads as "from the sender" while the footer reads as "house ad" space.
+  const parts = [];
 
-  // Append signature with separator
+  if (brand.email_hero_image_url) {
+    parts.push(renderHeroImage(brand.email_hero_image_url, brand.email_hero_alt_text));
+  }
+
+  parts.push(readableBody);
+
   if (signature) {
     parts.push('<br/><br/>');
     parts.push(signature);
+  }
+
+  if (brand.email_footer_image_url) {
+    parts.push(renderFooterImage(brand.email_footer_image_url, brand.email_footer_alt_text));
   }
 
   return `<html>
