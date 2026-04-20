@@ -461,6 +461,14 @@ export async function handleImport(req, res) {
     // tenants that toggle their config mid-session don't need a restart.
     const customFields = await loadTenantCustomFields(tenantId);
 
+    // Tenant-specific import guardrails. Some tenants (prosumer / B2C verticals
+    // like SunnAx) have valid leads without a Company Name — individual
+    // artists, freelancers, solo creatives. Default stays strict (required
+    // company) for AEC-style tenants.
+    const { data: tenantCfg } = await supabase
+      .from('tenants').select('preferences').eq('id', tenantId).maybeSingle();
+    const allowContactsWithoutCompany = !!tenantCfg?.preferences?.allow_contacts_without_company;
+
     // 1. Get existing emails for dedup
     const { data: existingOpps } = await supabase
       .from('opportunities')
@@ -533,8 +541,17 @@ export async function handleImport(req, res) {
         accountName = accountName.replace(/^"|"$/g, '').trim();
       }
       if (!accountName) {
-        skippedError++;
-        continue;
+        if (allowContactsWithoutCompany) {
+          // Synthesize a placeholder account_name from contact name. Keeps
+          // the NOT NULL constraint satisfied while preserving the record as
+          // an individual lead. Downstream readers treat the "(Independent)"
+          // suffix as a signal.
+          const baseName = contactName?.trim();
+          accountName = baseName ? `${baseName} (Independent)` : 'Independent Contact';
+        } else {
+          skippedError++;
+          continue;
+        }
       }
 
       let state = getValue('state');
