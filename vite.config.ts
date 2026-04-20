@@ -33,6 +33,7 @@ import { jobsMiddleware } from './src/server/jobsApi';
 import { skillsMiddleware } from './src/server/skillsApi';
 import { dataMiddleware } from './src/server/dataApi';
 import { gatesMiddleware } from './src/server/gatesApi';
+import { brandMiddleware } from './src/server/brandApi';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -88,6 +89,7 @@ export default defineConfig(({ mode }) => {
         server.middlewares.use(skillsMiddleware());
         server.middlewares.use(dataMiddleware());
         server.middlewares.use(gatesMiddleware());
+        server.middlewares.use(brandMiddleware());
       },
     },
   ],
