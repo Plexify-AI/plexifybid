@@ -270,9 +270,15 @@ function collectTractCandidates(artifact) {
 // before schema validation so a "high" / "critical" doesn't fail-safe block
 // the entire export over what is really a recoverable model output choice.
 const SEVERITY_ALIASES = {
-  block: 'block', critical: 'block', high: 'block', error: 'block', fatal: 'block',
-  warn: 'warn', warning: 'warn', medium: 'warn', moderate: 'warn',
+  block: 'block', critical: 'block', high: 'block', error: 'block', fatal: 'block', severe: 'block',
+  warn: 'warn', warning: 'warn', medium: 'warn', moderate: 'warn', caution: 'warn',
   info: 'info', low: 'info', notice: 'info', informational: 'info',
+  // Positive / pass-through findings — model sometimes labels a verified claim
+  // "pass" / "ok" rather than omitting it. Normalize to info so the Auditor
+  // can still surface the verification reasoning without failing schema.
+  pass: 'info', passed: 'info', verified: 'info', ok: 'info', good: 'info',
+  confirmed: 'info', valid: 'info', match: 'info', matched: 'info',
+  none: 'info', na: 'info', 'n/a': 'info',
 };
 const SOURCE_ALIASES = {
   past_performance: 'past_performance',
@@ -286,18 +292,35 @@ const SOURCE_ALIASES = {
   external_unverified: 'external_unverified', external: 'external_unverified', web: 'external_unverified',
 };
 
+const VALID_SEVERITIES = new Set(['block', 'warn', 'info']);
+const VALID_SOURCES = new Set([
+  'past_performance', 'prospect', 'oz_tracts_cache', 'acs_data_cache',
+  'statute', 'user_upload', 'missing_evidence', 'assumption', 'external_unverified',
+]);
+
 function normalizeFindings(parsed) {
   if (!parsed || !Array.isArray(parsed.findings)) return;
+  const kept = [];
   for (const f of parsed.findings) {
-    if (f && typeof f.severity === 'string') {
-      const aliased = SEVERITY_ALIASES[f.severity.toLowerCase().trim()];
+    if (!f || typeof f !== 'object') continue;
+    if (typeof f.severity === 'string') {
+      const k = f.severity.toLowerCase().trim();
+      const aliased = SEVERITY_ALIASES[k];
       if (aliased) f.severity = aliased;
     }
-    if (f && typeof f.source === 'string') {
-      const aliased = SOURCE_ALIASES[f.source.toLowerCase().trim()];
+    if (typeof f.source === 'string') {
+      const k = f.source.toLowerCase().trim();
+      const aliased = SOURCE_ALIASES[k];
       if (aliased) f.source = aliased;
     }
+    // Drop entries that still don't conform — one weird finding shouldn't
+    // fail-safe the whole audit. Unknown source -> coerce to
+    // 'external_unverified' rather than drop (preserves the claim).
+    if (!VALID_SEVERITIES.has(f.severity)) continue;
+    if (!VALID_SOURCES.has(f.source)) f.source = 'external_unverified';
+    kept.push(f);
   }
+  parsed.findings = kept;
 }
 
 function extractJson(text) {

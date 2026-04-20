@@ -253,9 +253,12 @@ function pickRules(artifactType, hints) {
 // Normalize model severity vocabulary to the strict enum (mirrors
 // factual_auditor.mjs).
 const SEVERITY_ALIASES = {
-  block: 'block', critical: 'block', high: 'block', error: 'block', fatal: 'block',
-  warn: 'warn', warning: 'warn', medium: 'warn', moderate: 'warn',
+  block: 'block', critical: 'block', high: 'block', error: 'block', fatal: 'block', severe: 'block',
+  warn: 'warn', warning: 'warn', medium: 'warn', moderate: 'warn', caution: 'warn',
   info: 'info', low: 'info', notice: 'info', informational: 'info',
+  pass: 'info', passed: 'info', verified: 'info', ok: 'info', good: 'info',
+  confirmed: 'info', valid: 'info', match: 'info', matched: 'info',
+  none: 'info', na: 'info', 'n/a': 'info',
 };
 const JURISDICTION_ALIASES = {
   federal: 'federal', us_federal: 'federal', far: 'federal',
@@ -264,18 +267,31 @@ const JURISDICTION_ALIASES = {
   general: 'general', other: 'general',
 };
 
+const VALID_SEVERITIES = new Set(['block', 'warn', 'info']);
+const VALID_JURISDICTIONS = new Set(['federal', 'ny_state', 'qbs', 'general']);
+
 function normalizeFindings(parsed) {
   if (!parsed || !Array.isArray(parsed.findings)) return;
+  const kept = [];
   for (const f of parsed.findings) {
-    if (f && typeof f.severity === 'string') {
-      const aliased = SEVERITY_ALIASES[f.severity.toLowerCase().trim()];
+    if (!f || typeof f !== 'object') continue;
+    if (typeof f.severity === 'string') {
+      const k = f.severity.toLowerCase().trim();
+      const aliased = SEVERITY_ALIASES[k];
       if (aliased) f.severity = aliased;
     }
-    if (f && typeof f.jurisdiction === 'string') {
-      const aliased = JURISDICTION_ALIASES[f.jurisdiction.toLowerCase().trim().replace(/\s+/g, '_')];
+    if (typeof f.jurisdiction === 'string') {
+      const k = f.jurisdiction.toLowerCase().trim().replace(/\s+/g, '_');
+      const aliased = JURISDICTION_ALIASES[k];
       if (aliased) f.jurisdiction = aliased;
     }
+    // Drop findings with unsalvageable severity. Unknown jurisdiction ->
+    // coerce to 'general' rather than drop.
+    if (!VALID_SEVERITIES.has(f.severity)) continue;
+    if (!VALID_JURISDICTIONS.has(f.jurisdiction)) f.jurisdiction = 'general';
+    kept.push(f);
   }
+  parsed.findings = kept;
 }
 
 function extractJson(text) {
