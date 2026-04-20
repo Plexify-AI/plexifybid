@@ -25,6 +25,9 @@ interface ParseResponse {
   totalRows: number;
   suggestedMapping: Record<string, string>;
   mappingSource?: 'keyword' | 'ai' | 'error';
+  customMapping?: Record<string, string>;
+  customNamespace?: string | null;
+  unmapped?: string[];
   allData: Record<string, unknown>[] | null;
   truncated: boolean;
 }
@@ -40,8 +43,10 @@ interface ImportResponse {
   message?: string;
 }
 
-// Target fields for column mapping dropdown
-const TARGET_FIELDS = [
+// Target fields for column mapping dropdown. Bucket 1 universal entries
+// (city/country/phone) are static; Bucket 2 tenant-specific entries are
+// appended at parse time from parseResult.customMapping.
+const STATIC_TARGET_FIELDS = [
   { value: 'skip', label: '(Skip this column)' },
   { value: 'contact_first_name', label: 'First Name', required: true },
   { value: 'contact_last_name', label: 'Last Name', required: true },
@@ -51,6 +56,9 @@ const TARGET_FIELDS = [
   { value: 'company_name', label: 'Company Name', required: true },
   { value: 'industry', label: 'Industry' },
   { value: 'state', label: 'State / Region' },
+  { value: 'city', label: 'City' },
+  { value: 'country', label: 'Country' },
+  { value: 'phone', label: 'Phone' },
   { value: 'source_campaign', label: 'Source Campaign' },
   { value: 'lifecycle_stage', label: 'Lifecycle Stage' },
   { value: 'mql_date', label: 'MQL Date' },
@@ -58,6 +66,22 @@ const TARGET_FIELDS = [
   { value: 'email_domain', label: 'Email Domain' },
   { value: 'notes', label: 'Notes' },
 ];
+
+function buildTargetFields(customMapping: Record<string, string> | undefined) {
+  const base = [...STATIC_TARGET_FIELDS];
+  if (!customMapping) return base;
+  const seen = new Set(base.map(f => f.value));
+  for (const field of Object.values(customMapping)) {
+    if (!seen.has(field)) {
+      // Field label: split snake_case into words + capitalize. Keeps the
+      // dropdown consistent without a "via tenant config" badge (silent UX).
+      const label = field.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      base.push({ value: field, label });
+      seen.add(field);
+    }
+  }
+  return base;
+}
 
 type Step = 'upload' | 'mapping' | 'importing' | 'results';
 
@@ -129,7 +153,15 @@ export default function LeadImportPage() {
       }
 
       setParseResult(data);
-      setColumnMapping(data.suggestedMapping || {});
+      // Merge standard + tenant-specific custom mappings so the Map & Preview
+      // view shows custom-mapped columns as mapped. The server-side import
+      // separates them again via loadTenantCustomFields + applyCustomMapping,
+      // routing custom-matched headers into enrichment_data[namespace][field].
+      const merged: Record<string, string> = {
+        ...(data.suggestedMapping || {}),
+        ...(data.customMapping || {}),
+      };
+      setColumnMapping(merged);
       setMappingSource(data.mappingSource || 'keyword');
       // Default source type from filename (strip extension, replace spaces/underscores)
       const baseName = file.name.replace(/\.[^.]+$/, '').replace(/[\s]+/g, '_').toLowerCase();
@@ -392,7 +424,7 @@ export default function LeadImportPage() {
                       onChange={(e) => updateMapping(header, e.target.value)}
                       className="flex-1 bg-gray-800 text-sm text-gray-200 rounded-md px-2 py-1.5 border border-gray-600/40 focus:border-purple-500 focus:outline-none"
                     >
-                      {TARGET_FIELDS.map(f => (
+                      {buildTargetFields(parseResult.customMapping).map(f => (
                         <option key={f.value} value={f.value}>
                           {f.label}{f.required ? ' *' : ''}{f.recommended ? ' (recommended)' : ''}
                         </option>
@@ -417,7 +449,7 @@ export default function LeadImportPage() {
                   <thead>
                     <tr className="bg-gray-800/60">
                       {getMappedTargets().map(t => {
-                        const field = TARGET_FIELDS.find(f => f.value === t);
+                        const field = buildTargetFields(parseResult.customMapping).find(f => f.value === t);
                         return (
                           <th key={t} className="px-3 py-2 text-left text-gray-400 font-medium whitespace-nowrap">
                             {field?.label || t}
