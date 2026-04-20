@@ -3,6 +3,7 @@ import { ArrowLeft, Share2, Clipboard, FileDown, Presentation, Search } from 'lu
 import { useNavigate } from 'react-router-dom';
 import { useSandbox } from '../../contexts/SandboxContext';
 import GateBlockedDialog from '../../components/GateBlockedDialog';
+import ScanMarketDialog from '../../components/ScanMarketDialog';
 import type { DealRoom, DealRoomTab } from '../../types/dealRoom';
 
 interface DealRoomHeaderProps {
@@ -40,18 +41,12 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
   const [exportingPptx, setExportingPptx] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanNote, setScanNote] = useState<string | null>(null);
+  const [scanDialogOpen, setScanDialogOpen] = useState(false);
   const [gateBlock, setGateBlock] = useState<{ blockers: any[]; format: 'docx' | 'pptx' } | null>(null);
   const [pendingExport, setPendingExport] = useState<null | (() => void)>(null);
 
-  const handleScanMarket = async () => {
-    if (!token || scanning) return;
-    const query = window.prompt(
-      'Scan this market — what question do you want answered?\n\n' +
-        'Example: "Recent BID RFPs in Suffolk County Q1 2026" or\n' +
-        '"Active reality-capture RFPs in DC commercial construction."',
-      `Market signals relevant to ${room.name}`
-    );
-    if (!query?.trim()) return;
+  async function submitScan(query: string) {
+    if (!token) return;
     setScanning(true);
     setScanNote(null);
     try {
@@ -61,7 +56,7 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
         body: JSON.stringify({
           kind: 'research_scanner',
           input: {
-            query: query.trim(),
+            query,
             max_searches: 5,
             context: `Deal Room: ${room.name}`,
             deal_room_id: room.id,
@@ -78,8 +73,14 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
       setScanNote(err?.message || 'scan failed');
     } finally {
       setScanning(false);
+      setScanDialogOpen(false);
       setTimeout(() => setScanNote(null), 6000);
     }
+  }
+
+  const handleScanMarket = () => {
+    if (!token || scanning) return;
+    setScanDialogOpen(true);
   };
 
   const handleExportDocx = async () => {
@@ -247,6 +248,15 @@ const DealRoomHeader: React.FC<DealRoomHeaderProps> = ({ room, activeTab, editor
         <div className="absolute top-20 right-6 text-xs px-3 py-1.5 rounded bg-purple-900/80 border border-purple-500/60 text-purple-100 shadow-lg">
           {scanNote}
         </div>
+      )}
+      {scanDialogOpen && (
+        <ScanMarketDialog
+          roomName={room.name}
+          defaultQuery={`Market signals relevant to ${room.name}`}
+          submitting={scanning}
+          onSubmit={(q) => { submitScan(q); }}
+          onClose={() => { if (!scanning) setScanDialogOpen(false); }}
+        />
       )}
       {gateBlock && activeArtifactId && (
         <GateBlockedDialog
