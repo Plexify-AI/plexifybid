@@ -469,6 +469,92 @@ export async function handleImport(req, res) {
       .from('tenants').select('preferences').eq('id', tenantId).maybeSingle();
     const allowContactsWithoutCompany = !!tenantCfg?.preferences?.allow_contacts_without_company;
 
+    // Build reverse mapping up-front (target -> header) so the collision
+    // pre-flight below can read source_campaign values without duplicating
+    // the lookup logic in the insert loop.
+    const reverseMapEarly = {};
+    for (const [header, target] of Object.entries(mapping || {})) {
+      if (target && target !== 'skip') {
+        reverseMapEarly[target] = header;
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Campaign-collision pre-flight (2026-04-20)
+    // ------------------------------------------------------------------
+    // Ben surfaced: two Animation Yall batches landed with the same
+    // source_campaign tag, making "new leads from today" queries in AskPlexi
+    // pull pre-show leads. Prevent the same collision for any future import
+    // (any tenant): before committing, check if any incoming source_campaign
+    // value already has >24h-old rows under the same tenant. Surface to the
+    // UI; client confirms with collisionAck = 'keep' | 'suffix' | 'skip'.
+    const campaignHeader = reverseMapEarly.source_campaign;
+    const distinctIncomingCampaigns = new Set();
+    if (campaignHeader) {
+      for (const r of rows) {
+        const raw = r[campaignHeader];
+        if (raw === null || raw === undefined || raw === '') continue;
+        const v = options.trimWhitespace ? String(raw).trim() : String(raw);
+        if (v) distinctIncomingCampaigns.add(v);
+      }
+    }
+
+    // Determine the suffix once so client and server agree.
+    const now = new Date();
+    const suggestedSuffix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    // Only run the check when the caller hasn't already acknowledged.
+    const collisionAck = options.collisionAck; // 'keep' | 'suffix' | undefined
+    let collidingCampaigns = new Set(
+      Array.isArray(options.collidingCampaigns) ? options.collidingCampaigns : []
+    );
+
+    if (!collisionAck && distinctIncomingCampaigns.size > 0) {
+      const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const collisions = [];
+      for (const campaign of distinctIncomingCampaigns) {
+        const { count: existingCount } = await supabase
+          .from('opportunities')
+          .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('source_campaign', campaign)
+          .lt('created_at', cutoff);
+        if (!existingCount) continue;
+        const { data: oldest } = await supabase
+          .from('opportunities')
+          .select('created_at')
+          .eq('tenant_id', tenantId)
+          .eq('source_campaign', campaign)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        const { data: newest } = await supabase
+          .from('opportunities')
+          .select('created_at')
+          .eq('tenant_id', tenantId)
+          .eq('source_campaign', campaign)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        collisions.push({
+          campaign,
+          existingCount,
+          oldestCreated: oldest?.created_at || null,
+          newestCreated: newest?.created_at || null,
+          suggestedRename: `${campaign} ${suggestedSuffix}`,
+        });
+      }
+      if (collisions.length > 0) {
+        return sendJson(res, 200, {
+          success: false,
+          collision: true,
+          collisions,
+          suggestedSuffix,
+          message: `${collisions.length} campaign tag(s) already exist on this tenant with rows older than 24 hours. Pick how to handle.`,
+        });
+      }
+    }
+
     // 1. Get existing emails for dedup — paginated. PostgREST caps a single
     // .select() at 1000 rows by default, so a large tenant's dedup silently
     // broke for everything past row 1000 (discovered 2026-04-20 when Ben's
@@ -498,12 +584,9 @@ export async function handleImport(req, res) {
     const errors = [];
 
     // 2. Build insert rows with reverse mapping
-    const reverseMap = {};
-    for (const [header, target] of Object.entries(mapping)) {
-      if (target && target !== 'skip') {
-        reverseMap[target] = header;
-      }
-    }
+    // (reverseMap computed above as reverseMapEarly for collision pre-flight;
+    //  alias here to keep the existing local name in the loop stable.)
+    const reverseMap = reverseMapEarly;
 
     const toInsert = [];
 
@@ -603,6 +686,18 @@ export async function handleImport(req, res) {
         }
       }
 
+      // Apply campaign-collision remediation selected by the user.
+      // 'suffix' → rewrite only campaigns the server flagged as colliding,
+      // leaving non-colliding campaign values in the same batch untouched.
+      let resolvedCampaign = getValue('source_campaign');
+      if (
+        collisionAck === 'suffix' &&
+        resolvedCampaign &&
+        collidingCampaigns.has(resolvedCampaign)
+      ) {
+        resolvedCampaign = `${resolvedCampaign} ${suggestedSuffix}`;
+      }
+
       toInsert.push({
         tenant_id: tenantId,
         account_name: accountName,
@@ -615,7 +710,7 @@ export async function handleImport(req, res) {
         country: country,
         phone: phone,
         source_type: sourceType || null,
-        source_campaign: getValue('source_campaign'),
+        source_campaign: resolvedCampaign,
         lifecycle_stage: getValue('lifecycle_stage'),
         mql_date: mqlDate,
         school_type: getValue('school_type'),

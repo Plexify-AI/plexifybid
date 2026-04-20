@@ -43,6 +43,25 @@ interface ImportResponse {
   message?: string;
 }
 
+// Server pre-flight response when an incoming batch's source_campaign
+// value already has rows older than 24 hours on the same tenant.
+// User must choose how to resolve before the insert proceeds.
+interface CampaignCollision {
+  campaign: string;
+  existingCount: number;
+  oldestCreated: string | null;
+  newestCreated: string | null;
+  suggestedRename: string;
+}
+
+interface CollisionResponse {
+  success: false;
+  collision: true;
+  collisions: CampaignCollision[];
+  suggestedSuffix: string;
+  message?: string;
+}
+
 // Target fields for column mapping dropdown. Bucket 1 universal entries
 // (city/country/phone) are static; Bucket 2 tenant-specific entries are
 // appended at parse time from parseResult.customMapping.
@@ -117,6 +136,11 @@ export default function LeadImportPage() {
   // Import state
   const [importResult, setImportResult] = useState<ImportResponse | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+
+  // Campaign-collision state — surfaced when the server pre-flight finds that
+  // an incoming source_campaign tag already exists on this tenant with rows
+  // older than 24 hours. User picks keep-tag / auto-suffix / cancel.
+  const [collisionReport, setCollisionReport] = useState<CollisionResponse | null>(null);
 
   // ---------------------------------------------------------------------------
   // File upload + parse
@@ -222,7 +246,13 @@ export default function LeadImportPage() {
   // Import
   // ---------------------------------------------------------------------------
 
-  const handleImport = async () => {
+  // Shared import call — used by both the initial attempt and the
+  // "confirm after collision" retries. collisionAck is undefined on the
+  // first pass so the server's collision pre-flight can fire.
+  const runImport = async (
+    collisionAck?: 'keep' | 'suffix',
+    collidingCampaigns?: string[]
+  ) => {
     if (!parseResult?.allData) return;
     setStep('importing');
     setImportError(null);
@@ -243,6 +273,7 @@ export default function LeadImportPage() {
             normalizeStates,
             skipNoEmail,
             skipDuplicates,
+            ...(collisionAck ? { collisionAck, collidingCampaigns } : {}),
           },
         }),
       });
@@ -252,12 +283,33 @@ export default function LeadImportPage() {
         throw new Error(data.error || 'Import failed');
       }
 
+      // Collision pre-flight: server says to prompt the user before proceeding.
+      if (data.collision) {
+        setCollisionReport(data as CollisionResponse);
+        setStep('mapping'); // Stay on mapping step; modal renders on top.
+        return;
+      }
+
+      setCollisionReport(null);
       setImportResult(data);
       setStep('results');
     } catch (err: unknown) {
       setImportError(err instanceof Error ? err.message : 'Import failed');
       setStep('mapping'); // Go back so user can retry
     }
+  };
+
+  const handleImport = () => runImport();
+
+  const handleCollisionResolve = (choice: 'keep' | 'suffix') => {
+    const colliding = collisionReport?.collisions.map(c => c.campaign) || [];
+    setCollisionReport(null);
+    runImport(choice, colliding);
+  };
+
+  const handleCollisionCancel = () => {
+    setCollisionReport(null);
+    setStep('mapping');
   };
 
   // Reset to start
@@ -576,6 +628,19 @@ export default function LeadImportPage() {
           )}
         </div>
       </div>
+
+      {/* Campaign-collision modal. Surfaced when the server pre-flight
+          detects an incoming source_campaign tag that already has rows
+          older than 24 hours on this tenant. Prevents the Animation Yall
+          TN overlap Ben hit on 2026-04-20. */}
+      {collisionReport && (
+        <CampaignCollisionModal
+          report={collisionReport}
+          onKeep={() => handleCollisionResolve('keep')}
+          onSuffix={() => handleCollisionResolve('suffix')}
+          onCancel={handleCollisionCancel}
+        />
+      )}
     </div>
   );
 }
@@ -612,6 +677,85 @@ function CheckOption({ label, checked, onChange }: { label: string; checked: boo
       />
       <span className="text-sm text-gray-300">{label}</span>
     </label>
+  );
+}
+
+// Campaign-collision modal. Auto-suffix (option b) is the default focus —
+// it's the safest choice for a human who doesn't want to reason about it.
+function CampaignCollisionModal({
+  report,
+  onKeep,
+  onSuffix,
+  onCancel,
+}: {
+  report: CollisionResponse;
+  onKeep: () => void;
+  onSuffix: () => void;
+  onCancel: () => void;
+}) {
+  const { collisions, suggestedSuffix } = report;
+  const fmtDate = (iso: string | null) => {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch { return iso; }
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-amber-500/30 bg-gray-900 p-6 shadow-2xl">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+            <AlertCircle className="h-5 w-5 text-amber-400" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Campaign tag already in use</h2>
+            <p className="text-sm text-gray-400 mt-1">
+              The campaign tag{collisions.length > 1 ? 's' : ''} below already {collisions.length > 1 ? 'have' : 'has'} leads on this tenant older than 24 hours. Re-using the same tag makes "new leads from today" queries return old leads.
+            </p>
+          </div>
+        </div>
+
+        <div className="mb-5 space-y-2">
+          {collisions.map(c => (
+            <div key={c.campaign} className="rounded-lg border border-gray-700/40 bg-gray-800/40 px-3 py-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-200">{c.campaign}</span>
+                <span className="text-xs text-gray-400">{c.existingCount.toLocaleString()} existing row{c.existingCount === 1 ? '' : 's'}</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                First: {fmtDate(c.oldestCreated)} · Last: {fmtDate(c.newestCreated)}
+              </div>
+              <div className="text-xs text-emerald-300/90 mt-1">
+                Auto-suffix → <span className="font-mono">{c.suggestedRename}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-2">
+          <button
+            onClick={onSuffix}
+            autoFocus
+            className="w-full px-4 py-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors flex items-center justify-between"
+          >
+            <span>Auto-suffix with <span className="font-mono">{suggestedSuffix}</span> (recommended)</span>
+            <ArrowRight className="h-4 w-4" />
+          </button>
+          <button
+            onClick={onKeep}
+            className="w-full px-4 py-3 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700/40 text-gray-200 text-sm font-medium transition-colors"
+          >
+            Keep the same tag anyway
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full px-4 py-3 rounded-lg text-sm text-gray-400 hover:text-gray-200 transition-colors"
+          >
+            Cancel · edit the CSV and re-upload
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
