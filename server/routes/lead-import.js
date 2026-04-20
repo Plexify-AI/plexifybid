@@ -469,16 +469,27 @@ export async function handleImport(req, res) {
       .from('tenants').select('preferences').eq('id', tenantId).maybeSingle();
     const allowContactsWithoutCompany = !!tenantCfg?.preferences?.allow_contacts_without_company;
 
-    // 1. Get existing emails for dedup
-    const { data: existingOpps } = await supabase
-      .from('opportunities')
-      .select('contact_email')
-      .eq('tenant_id', tenantId)
-      .not('contact_email', 'is', null);
-
-    const existingEmails = new Set(
-      (existingOpps || []).map(o => o.contact_email?.toLowerCase().trim())
-    );
+    // 1. Get existing emails for dedup — paginated. PostgREST caps a single
+    // .select() at 1000 rows by default, so a large tenant's dedup silently
+    // broke for everything past row 1000 (discovered 2026-04-20 when Ben's
+    // second upload produced 94 duplicate emails despite skipDuplicates=true).
+    const existingEmails = new Set();
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error: pageErr } = await supabase
+        .from('opportunities')
+        .select('contact_email')
+        .eq('tenant_id', tenantId)
+        .not('contact_email', 'is', null)
+        .range(from, from + PAGE - 1);
+      if (pageErr) throw pageErr;
+      if (!page || page.length === 0) break;
+      for (const r of page) {
+        const em = r.contact_email?.toLowerCase().trim();
+        if (em) existingEmails.add(em);
+      }
+      if (page.length < PAGE) break;
+    }
 
     let imported = 0;
     let skippedNoEmail = 0;
