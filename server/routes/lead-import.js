@@ -54,6 +54,97 @@ function normalizeState(state) {
 }
 
 // ---------------------------------------------------------------------------
+// Country normalization — ISO 3166-1 alpha-2
+// ---------------------------------------------------------------------------
+
+const COUNTRY_MAP = {
+  'us': 'US', 'usa': 'US', 'u.s.': 'US', 'u.s.a.': 'US',
+  'united states': 'US', 'united states of america': 'US', 'america': 'US',
+  'ca': 'CA', 'canada': 'CA',
+  'mx': 'MX', 'mexico': 'MX',
+  'uk': 'GB', 'gb': 'GB', 'united kingdom': 'GB', 'great britain': 'GB', 'britain': 'GB', 'england': 'GB',
+  'au': 'AU', 'australia': 'AU',
+  'de': 'DE', 'germany': 'DE',
+  'fr': 'FR', 'france': 'FR',
+  'jp': 'JP', 'japan': 'JP',
+  'cn': 'CN', 'china': 'CN',
+  'in': 'IN', 'india': 'IN',
+};
+
+function normalizeCountry(country) {
+  if (!country) return null;
+  const trimmed = String(country).trim();
+  if (/^[A-Z]{2}$/.test(trimmed)) return trimmed;
+  const lookup = COUNTRY_MAP[trimmed.toLowerCase().replace(/\./g, '.').replace(/\s+/g, ' ')];
+  return lookup || trimmed;
+}
+
+function cleanPhone(phone) {
+  if (!phone) return null;
+  const trimmed = String(phone).trim();
+  return trimmed || null;
+}
+
+// ---------------------------------------------------------------------------
+// Tenant-specific custom-field pattern (Bucket 2)
+//
+// Schema: tenants.preferences.custom_lead_fields = {
+//   namespace: "xencelabs_icp_signals",
+//   mappings: [
+//     { field: "software_used",   header_patterns: ["softwareused", "software", ...] },
+//     { field: "pen_tablet_used", header_patterns: ["pentabletdisplayused", "tablet", ...] }
+//   ]
+// }
+//
+// Matched columns route to opportunities.enrichment_data[namespace][field].
+// Single namespace per tenant (v1 design — array shape deferred until needed).
+// ---------------------------------------------------------------------------
+
+async function loadTenantCustomFields(tenantId) {
+  if (!tenantId) return null;
+  try {
+    const { data, error } = await getSupabase()
+      .from('tenants')
+      .select('preferences')
+      .eq('id', tenantId)
+      .maybeSingle();
+    if (error) throw error;
+    const cfg = data?.preferences?.custom_lead_fields;
+    if (!cfg || !cfg.namespace || !Array.isArray(cfg.mappings) || cfg.mappings.length === 0) {
+      return null;
+    }
+    return cfg;
+  } catch (err) {
+    console.error('[lead-import] loadTenantCustomFields failed:', err.message);
+    return null;
+  }
+}
+
+// Returns { byHeader: {header -> customFieldName}, matchedFields: [...] }.
+// The parse preview uses this to show the custom-mapped bucket; the import
+// uses it to route values into enrichment_data[namespace].
+function applyCustomMapping(headers, customFields) {
+  const byHeader = {};
+  const matchedFields = [];
+  if (!customFields?.mappings?.length) return { byHeader, matchedFields };
+
+  const normalizedHeaders = headers.map(h => ({
+    raw: h,
+    norm: String(h || '').toLowerCase().replace(/[^a-z0-9]/g, ''),
+  }));
+
+  for (const m of customFields.mappings) {
+    const patterns = (m.header_patterns || []).map(p => String(p).toLowerCase().replace(/[^a-z0-9]/g, ''));
+    const hit = normalizedHeaders.find(h => patterns.includes(h.norm));
+    if (hit) {
+      byHeader[hit.raw] = m.field;
+      matchedFields.push(m.field);
+    }
+  }
+  return { byHeader, matchedFields };
+}
+
+// ---------------------------------------------------------------------------
 // Auto column mapping (keyword-based)
 // ---------------------------------------------------------------------------
 
@@ -70,12 +161,16 @@ function autoMapColumns(headers) {
     { target: 'company_name', patterns: ['companyname', 'company', 'companies', 'organization', 'org', 'account', 'accountname'] },
     { target: 'industry', patterns: ['industry', 'vertical', 'sector'] },
     { target: 'state', patterns: ['stateregion', 'state', 'region', 'province'] },
-    { target: 'source_campaign', patterns: ['campaign', 'leadsource', 'tradeshowattended', '2025tradeshowattended'] },
+    { target: 'source_campaign', patterns: ['campaign', 'sourcecampaign', 'leadsource', 'tradeshowattended', '2025tradeshowattended'] },
     { target: 'lifecycle_stage', patterns: ['lifecyclestage', 'stage', 'status', 'leadstatus'] },
     { target: 'school_type', patterns: ['schooltype', 'zspaceschooltype', 'institutiontype'] },
     { target: 'email_domain', patterns: ['emaildomain', 'domain'] },
     { target: 'mql_date', patterns: ['mqldate', 'createdat', 'createddate', 'date', 'becameamarketingqualifiedleaddate'] },
     { target: 'notes', patterns: ['notes', 'comments', 'description'] },
+    // Universal Bucket 1 (added 2026-04-20) — city/country/phone first-class
+    { target: 'city', patterns: ['city', 'town', 'municipality', 'locality'] },
+    { target: 'country', patterns: ['country', 'nation', 'countrycode', 'countryregion'] },
+    { target: 'phone', patterns: ['phone', 'phonenumber', 'tel', 'telephone', 'mobile', 'contactphone', 'cell'] },
   ];
 
   for (const rule of rules) {
@@ -132,6 +227,9 @@ Available Plexify fields (pick exactly one per column):
 - email — email address
 - job_title — role, position, title, designation
 - state — US state, region, province, geographic location
+- city — city, town, municipality
+- country — country name or ISO code
+- phone — phone number (any format)
 - industry — business vertical, sector, market segment
 - source_campaign — lead source, campaign name, event, trade show, how they were acquired
 - notes — any freeform text, comments, conversation notes
@@ -161,6 +259,9 @@ Example: {"First Name": "first_name", "Company": "company_name", "Internal ID": 
       'email': 'contact_email',
       'job_title': 'contact_title',
       'state': 'state',
+      'city': 'city',
+      'country': 'country',
+      'phone': 'phone',
       'industry': 'industry',
       'source_campaign': 'source_campaign',
       'notes': 'notes',
@@ -282,7 +383,7 @@ export async function handleParse(req, res) {
     const previewRows = allRows.slice(0, 10);
     const totalRows = allRows.length;
 
-    // Auto-detect column mapping — keyword first, LLM fallback
+    // Auto-detect standard column mapping — keyword first, LLM fallback
     let suggestedMapping = autoMapColumns(headers);
     let mappingSource = 'keyword';
 
@@ -300,6 +401,17 @@ export async function handleParse(req, res) {
       }
     }
 
+    // Tenant-specific custom fields (Bucket 2). Silent — no UX badge per plan.
+    const customFields = await loadTenantCustomFields(req.tenant?.id);
+    const { byHeader: customMapping } = applyCustomMapping(headers, customFields);
+
+    // Unmapped bucket = any header not in standard OR custom mapping.
+    const mappedHeaders = new Set([
+      ...Object.entries(suggestedMapping).filter(([, v]) => v).map(([h]) => h),
+      ...Object.keys(customMapping),
+    ]);
+    const unmapped = headers.filter(h => !mappedHeaders.has(h));
+
     return sendJson(res, 200, {
       success: true,
       filename: req.file.originalname,
@@ -309,6 +421,9 @@ export async function handleParse(req, res) {
       totalRows,
       suggestedMapping,
       mappingSource,
+      customMapping,
+      customNamespace: customFields?.namespace || null,
+      unmapped,
       allData: totalRows <= 5000 ? allRows : null,
       truncated: totalRows > 5000,
     });
@@ -341,6 +456,10 @@ export async function handleImport(req, res) {
     }
 
     const supabase = getSupabase();
+
+    // Tenant-specific custom fields (Bucket 2) — resolved per-request so
+    // tenants that toggle their config mid-session don't need a restart.
+    const customFields = await loadTenantCustomFields(tenantId);
 
     // 1. Get existing emails for dedup
     const { data: existingOpps } = await supabase
@@ -431,6 +550,31 @@ export async function handleImport(req, res) {
         mqlDate = isNaN(parsed.getTime()) ? null : parsed.toISOString();
       }
 
+      // Universal Bucket 1 (added 2026-04-20) — normalized city/country/phone.
+      const city = getValue('city') || null;
+      const country = normalizeCountry(getValue('country'));
+      const phone = cleanPhone(getValue('phone'));
+
+      // Tenant-specific custom fields (Bucket 2) → enrichment_data[namespace].
+      // Silent: if config is present AND any configured field has a value,
+      // we write under a single namespaced key. Empty values are omitted so
+      // downstream readers can .has() check safely.
+      let enrichmentData = null;
+      if (customFields?.namespace && customFields?.mappings?.length) {
+        const bucket = {};
+        const { byHeader } = applyCustomMapping(Object.keys(rawRow), customFields);
+        // byHeader is {rawHeader -> fieldName}. Use rawRow directly since
+        // handleImport receives rows keyed by original headers.
+        for (const [rawHeader, fieldName] of Object.entries(byHeader)) {
+          const raw = rawRow[rawHeader];
+          const val = (raw === null || raw === undefined) ? null : String(raw).trim();
+          if (val) bucket[fieldName] = val;
+        }
+        if (Object.keys(bucket).length > 0) {
+          enrichmentData = { [customFields.namespace]: bucket };
+        }
+      }
+
       toInsert.push({
         tenant_id: tenantId,
         account_name: accountName,
@@ -439,6 +583,9 @@ export async function handleImport(req, res) {
         contact_title: title,
         industry: getValue('industry'),
         state: state,
+        city: city,
+        country: country,
+        phone: phone,
         source_type: sourceType || null,
         source_campaign: getValue('source_campaign'),
         lifecycle_stage: getValue('lifecycle_stage'),
@@ -446,6 +593,7 @@ export async function handleImport(req, res) {
         school_type: getValue('school_type'),
         warmth_score: 0,
         stage: 'imported',
+        ...(enrichmentData ? { enrichment_data: enrichmentData } : {}),
       });
 
       if (email) existingEmails.add(email);

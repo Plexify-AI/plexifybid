@@ -64,7 +64,18 @@ Then drop the app-layer `alreadyRanForRoom()` guard and catch the unique-violati
 
 Separate task — not a handoff, but flagging that E5 depends on all of the above being stable. Do not ship E5 until E4 has run clean for at least one pilot week.
 
-## 10. Cross-platform env var loading
+## 10. Tenant-specific behavior now lives in three places
+
+**Sprint E shape:** per-tenant customization accumulated across three different storage surfaces:
+- `tenants.preferences` JSONB — email signature, price list, price_note, default_closing, and now `custom_lead_fields` (Ben's Xencelabs ICP mappings)
+- `tenants.metro_tier` + `tenants.default_skill_set` — E1 additions for star_hub/emerging_center/regional tiering and skill scoping (logic unshipped, schema-only)
+- `deal_room_skills` with `tenant_id IS NOT NULL` — tenant-override skills (E2-registry pattern, none shipped yet but the lookup path exists)
+
+**Not a problem today.** All three are real uses with real boundaries. The risk is fragmentation: a fourth need lands, someone picks a fourth surface, and six months later nobody remembers where to look.
+
+**Sprint F consolidation candidate.** Once another tenant-specific need appears, pick the two dominant surfaces and migrate the third. Likely winners: `tenants.preferences` for per-tenant config-as-code, `deal_room_skills` for per-tenant prompt/schema overrides. `metro_tier` stays as top-level columns since they're filter-critical.
+
+## 11. Cross-platform env var loading
 
 **Sprint E discovery:** on Windows + Vite, non-VITE_-prefixed env vars aren't always populated reliably. Agent seed + Managed Agents runtime both fall back to `VITE_ANTHROPIC_API_KEY` and trim trailing `\r` from CRLF line endings. Codified in both `server/agents/seed.mjs` and `server/runtimes/managed_agents.mjs`.
 
