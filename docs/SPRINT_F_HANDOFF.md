@@ -75,7 +75,53 @@ Separate task — not a handoff, but flagging that E5 depends on all of the abov
 
 **Sprint F consolidation candidate.** Once another tenant-specific need appears, pick the two dominant surfaces and migrate the third. Likely winners: `tenants.preferences` for per-tenant config-as-code, `deal_room_skills` for per-tenant prompt/schema overrides. `metro_tier` stays as top-level columns since they're filter-critical.
 
-## 11. Cross-platform env var loading
+## 11. Data Cleanup Candidates (Ben's Tenant)
+
+Surfaced 2026-04-20 while investigating the Animation Y'all campaign-tag collision (spec fixed the collision via retag + import-collision guard; see commit `feat(leads): date-suffix collision guard + retag Ben's today batch as 'Animation Yall TN 2026-04'`). These are data-quality issues in Ben's `opportunities` rows that need **user input before any cleanup** — do not touch without Ben confirming.
+
+Tenant: `Ben D'Amprisi Jr.` / `d49d21b2-d7a6-476e-b309-a23aec73ff7b`.
+
+### 11a. `source_campaign = 'Yes'` (1,167 rows)
+
+**Shape:** 1,167 rows have `source_campaign = 'Yes'`. Almost certainly a CSV column-mapping bug — a yes/no column (probably an opt-in or attendance flag) got mapped into `source_campaign` during a prior import. The real campaign name was lost in that mapping.
+
+**Blocker:** can't recover the original campaign tag without the source CSV. Need Ben to:
+1. Identify which import run produced these rows (cross-reference `created_at` clusters + `source_type` values).
+2. Re-upload the original CSV if available, or supply the intended campaign tag.
+
+**Not urgent** — these rows still count as leads, just mis-tagged. Won't affect AskPlexi queries unless Ben filters by `source_campaign = 'Yes'`.
+
+### 11b. 2026-03-18 legacy batch — 1,585 rows with NULL source_campaign + NULL source_type
+
+**Shape:** 1,585 rows imported on 2026-03-18 with both `source_campaign` and `source_type` as NULL. Ben's original bulk import before the lead-import template existed.
+
+**Blocker:** zero metadata to distinguish these from each other — could be one batch, could be five concatenated batches. Need Ben to:
+1. Confirm whether this was a single import or multiple.
+2. Supply a campaign tag (or tags, with a way to partition) before any retag UPDATE.
+
+**Risk if touched without input:** tagging all 1,585 under one umbrella like `'Legacy 2026-03'` would lose whatever distinctions existed in Ben's head. Safer to leave NULL until he weighs in.
+
+### Query used to surface both issues
+
+```sql
+-- Per-tenant source_campaign distribution (paginated to beat PostgREST's 1000-row limit)
+SELECT source_campaign, COUNT(*) AS rows
+FROM opportunities
+WHERE tenant_id = 'd49d21b2-d7a6-476e-b309-a23aec73ff7b'
+GROUP BY source_campaign
+ORDER BY rows DESC;
+```
+
+**Result (post-retag):**
+| source_campaign | rows |
+|----------------|------|
+| `(null)` | 2,103 (includes the 2026-03-18 batch + smaller stragglers) |
+| `'Yes'` | 1,167 |
+| `'Animation Yall TN 2026-04-pre-show'` | 160 (retagged today) |
+| `'Animation Yall TN 2026-04'` | 122 (retagged today) |
+| Total | 3,552 |
+
+## 12. Cross-platform env var loading
 
 **Sprint E discovery:** on Windows + Vite, non-VITE_-prefixed env vars aren't always populated reliably. Agent seed + Managed Agents runtime both fall back to `VITE_ANTHROPIC_API_KEY` and trim trailing `\r` from CRLF line endings. Codified in both `server/agents/seed.mjs` and `server/runtimes/managed_agents.mjs`.
 
