@@ -637,33 +637,50 @@ export async function getOpportunities(tenantId, { limit = 200, orderBy = 'warmt
 /**
  * Aggregate opportunities by source_campaign for a tenant.
  * Returns sorted descending by count: [[campaign_name, count], ...].
- * Filters: skips null campaigns, applies minLeads threshold, truncates to topN.
+ * Filters: applies minLeads threshold, truncates to topN.
  * Skips campaign names containing single quotes or backticks (prompt-safety).
+ *
+ * Options:
+ *   - minLeads (default 5): skip campaigns below this count
+ *   - topN (default 10): truncate to top N by count
+ *   - includeNull (default false): include a 'No campaign' entry for NULL
+ *     source_campaign rows (used by tool-layer breakdowns where the NULL
+ *     bucket is meaningful; not used by the Layer 4 prompt injection)
  */
-export async function getCampaignCounts(tenantId, { minLeads = 5, topN = 10 } = {}) {
+export async function getCampaignCounts(tenantId, { minLeads = 5, topN = 10, includeNull = false } = {}) {
   // Paginate via .range() — Supabase silently caps select() at 1000 rows otherwise.
   // Ben's tenant has ~3.5k+ opportunities; the cap would undercount campaigns.
   const PAGE = 1000;
   const tally = {};
+  let nullCount = 0;
   let from = 0;
   while (true) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('opportunities')
       .select('source_campaign')
       .eq('tenant_id', tenantId)
-      .not('source_campaign', 'is', null)
-      .not('stage', 'eq', 'ejected')
-      .range(from, from + PAGE - 1);
+      .not('stage', 'eq', 'ejected');
+    if (!includeNull) {
+      query = query.not('source_campaign', 'is', null);
+    }
+    const { data, error } = await query.range(from, from + PAGE - 1);
     if (error) throw error;
     if (!data || data.length === 0) break;
     for (const row of data) {
       const name = row.source_campaign;
-      if (!name) continue;
+      if (!name) {
+        if (includeNull) nullCount++;
+        continue;
+      }
       if (name.includes("'") || name.includes('`')) continue;
       tally[name] = (tally[name] || 0) + 1;
     }
     if (data.length < PAGE) break;
     from += PAGE;
+  }
+
+  if (includeNull && nullCount > 0) {
+    tally['No campaign'] = nullCount;
   }
 
   return Object.entries(tally)
