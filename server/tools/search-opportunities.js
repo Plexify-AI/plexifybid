@@ -15,7 +15,8 @@ export const definition = {
     'Works across all data types: warm LinkedIn contacts (with message counts), ' +
     'cold leads (with email + industry), and company-only records. ' +
     'Use this when the user asks about opportunities, contacts, leads, accounts, ' +
-    'or wants to find people by industry, region, warm status, or company name.',
+    'or wants to find people by industry, region, warm status, company name, ' +
+    'or campaign (e.g., trade show lead batches, import cohorts).',
   input_schema: {
     type: 'object',
     properties: {
@@ -53,6 +54,10 @@ export const definition = {
             type: 'string',
             description: 'Data source filter, e.g. "linkedingraph_agent", "sunnax_import"',
           },
+          source_campaign: {
+            type: 'string',
+            description: 'Filter by the exact campaign name the lead was imported under. Use this when the user references a specific campaign by name (e.g., "Animation Yall TN 2026-04", "xencelabs_ga_leads"). Must be an exact string match.',
+          },
         },
       },
       sort_by: {
@@ -72,7 +77,12 @@ export const definition = {
 export async function execute(input, tenantId) {
   const { query, filters = {}, sort_by = 'warmth', limit = 15 } = input;
 
-  let opportunities = await getOpportunities(tenantId, { limit: 500 });
+  // source_campaign pushes into SQL WHERE before LIMIT (unlike other filters
+  // which remain post-fetch — that broader refactor is Sprint F).
+  let opportunities = await getOpportunities(tenantId, {
+    limit: 500,
+    source_campaign: filters.source_campaign || null,
+  });
 
   // Apply filters
   if (filters.industry) {
@@ -180,6 +190,7 @@ export async function execute(input, tenantId) {
       stage: o.stage,
       warmth_score: o.warmth_score,
       deal_hypothesis: o.deal_hypothesis,
+      source_campaign: o.source_campaign || null,
       // Enrichment highlights
       source: ed.source || 'unknown',
       industry: ed.industry || null,
