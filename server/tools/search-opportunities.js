@@ -126,8 +126,23 @@ export async function execute(input, tenantId) {
     });
   }
 
-  // Text search across key fields
-  if (query) {
+  // Text search across key fields — skip when any structured filter is set.
+  // Keyword narrowing composes as AND with structured filters, which intersects
+  // instead of refining: e.g. filters.source_campaign='Animation Yall TN 2026-04'
+  // + query='animation yall' keeps only the 13 of 122 rows whose text fields
+  // contain 'animation'. Explicit filters are authoritative; keyword search is
+  // a fallback when the user hasn't said what they want.
+  const hasStructuredFilter = !!(
+    filters.source_campaign ||
+    filters.industry ||
+    filters.region ||
+    filters.stage ||
+    filters.warm_status ||
+    filters.source ||
+    filters.has_email !== undefined
+  );
+
+  if (query && !hasStructuredFilter) {
     const q = query.toLowerCase();
     const stopWords = new Set([
       'top', 'best', 'show', 'find', 'get', 'my', 'me', 'the', 'all',
