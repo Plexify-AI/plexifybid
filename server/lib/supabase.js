@@ -618,14 +618,18 @@ export async function updatePowerflowStage(tenantId, localDate, stageNumber) {
 // Opportunity query helpers (Sprint 0 — opportunities table)
 // ---------------------------------------------------------------------------
 
-export async function getOpportunities(tenantId, { limit = 200, orderBy = 'warmth_score', ascending = false } = {}) {
-  const { data, error } = await supabase
+export async function getOpportunities(tenantId, { limit = 200, orderBy = 'warmth_score', ascending = false, source_campaign = null } = {}) {
+  let query = supabase
     .from('opportunities')
     .select('*')
     .eq('tenant_id', tenantId)
-    .not('stage', 'eq', 'ejected')
-    .order(orderBy, { ascending })
-    .limit(limit);
+    .not('stage', 'eq', 'ejected');
+  // Push source_campaign into SQL WHERE before .limit() so the 500-row slice
+  // comes from campaign-matching rows, not from the global warmth-sorted set.
+  if (source_campaign) {
+    query = query.eq('source_campaign', source_campaign);
+  }
+  const { data, error } = await query.order(orderBy, { ascending }).limit(limit);
   if (error) throw error;
   return data;
 }

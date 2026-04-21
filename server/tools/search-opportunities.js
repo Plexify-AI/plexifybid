@@ -77,7 +77,12 @@ export const definition = {
 export async function execute(input, tenantId) {
   const { query, filters = {}, sort_by = 'warmth', limit = 15 } = input;
 
-  let opportunities = await getOpportunities(tenantId, { limit: 500 });
+  // source_campaign pushes into SQL WHERE before LIMIT (unlike other filters
+  // which remain post-fetch — that broader refactor is Sprint F).
+  let opportunities = await getOpportunities(tenantId, {
+    limit: 500,
+    source_campaign: filters.source_campaign || null,
+  });
 
   // Apply filters
   if (filters.industry) {
@@ -185,6 +190,7 @@ export async function execute(input, tenantId) {
       stage: o.stage,
       warmth_score: o.warmth_score,
       deal_hypothesis: o.deal_hypothesis,
+      source_campaign: o.source_campaign || null,
       // Enrichment highlights
       source: ed.source || 'unknown',
       industry: ed.industry || null,
