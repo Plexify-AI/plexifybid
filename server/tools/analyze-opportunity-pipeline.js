@@ -14,14 +14,24 @@ export const definition = {
     'Adapts to data shape: warm contacts with LinkedIn history get relationship-based advice, ' +
     'cold leads with email get outreach-sequence advice. ' +
     'Use when the user asks about pipeline health, lead counts, industry breakdown, ' +
+    'campaign breakdowns (via group_by="campaign"), ' +
     'or wants strategic recommendations on who to pursue.',
   input_schema: {
     type: 'object',
     properties: {
       group_by: {
         type: 'string',
-        description: 'Group results by: "stage", "industry", "region", "source", "lead_type"',
-        enum: ['stage', 'industry', 'region', 'source', 'lead_type'],
+        description:
+          'Group results by one of: ' +
+          '"stage" (pipeline stage), ' +
+          '"industry" (enrichment_data.industry), ' +
+          '"region" (enrichment_data.region), ' +
+          '"source" (enrichment_data.source — the import batch identifier, e.g., "sunnax_import", "linkedingraph_agent"), ' +
+          '"campaign" (the source_campaign column — the user-facing campaign name, e.g., "Animation Yall TN 2026-04"), ' +
+          '"lead_type" (warm vs. cold). ' +
+          'Use "campaign" when the user asks about campaigns they have leads from. ' +
+          'Use "source" only when they ask about import batches or data provenance.',
+        enum: ['stage', 'industry', 'region', 'source', 'campaign', 'lead_type'],
       },
     },
   },
@@ -46,6 +56,9 @@ export async function execute(input, tenantId) {
         break;
       case 'source':
         key = ed.source || 'unknown';
+        break;
+      case 'campaign':
+        key = o.source_campaign || 'No campaign';
         break;
       case 'lead_type':
         key = ed.lead_type || (ed.warm_status === 'Y' ? 'warm' : 'cold');
