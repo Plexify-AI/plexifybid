@@ -5,7 +5,7 @@
  * Adapts analysis based on data shape: warm LinkedIn data vs cold lead lists.
  */
 
-import { getOpportunities } from '../lib/supabase.js';
+import { getOpportunities, getCampaignCounts } from '../lib/supabase.js';
 
 export const definition = {
   name: 'analyze_opportunity_pipeline',
@@ -77,6 +77,32 @@ export async function execute(input, tenantId) {
   }
   for (const key of Object.keys(groups)) {
     groups[key].avg_warmth = Math.round(groups[key].avg_warmth / groups[key].count);
+  }
+
+  // Campaign grouping: override count with accurate paginated counts.
+  // getOpportunities is capped at 1000 rows (warmth-DESC); zero-warmth campaigns
+  // like freshly-imported cohorts get excluded. Campaign breakdowns need the
+  // full picture. Other fields (with_email/with_linkedin/warm/avg_warmth) stay
+  // best-effort from the capped slice pending Sprint F cap fix.
+  if (group_by === 'campaign') {
+    const accurateCounts = await getCampaignCounts(tenantId, {
+      minLeads: 0,
+      topN: 100,
+      includeNull: true,
+    });
+    for (const [campaignName, accurateCount] of accurateCounts) {
+      if (groups[campaignName]) {
+        groups[campaignName].count = accurateCount;
+      } else {
+        groups[campaignName] = {
+          count: accurateCount,
+          with_email: 0,
+          with_linkedin: 0,
+          warm: 0,
+          avg_warmth: 0,
+        };
+      }
+    }
   }
 
   // ── Data shape analysis ──
