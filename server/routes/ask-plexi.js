@@ -23,6 +23,7 @@ import {
   updateConversation,
   logUsageEvent,
   getOpportunities,
+  getCampaignCounts,
 } from '../lib/supabase.js';
 import { markPowerflowStage } from './powerflow.js';
 import { POWERFLOW_SYSTEM_PROMPTS } from '../constants/powerflowPrompts.js';
@@ -57,7 +58,7 @@ Never use these words: leverage, seamless, transformative, delve.`;
  * Build a brief pipeline summary from the opportunities table.
  * Injected into the system prompt so Claude has context without a tool call.
  */
-async function buildOpportunitySummary(tenantId) {
+export async function buildOpportunitySummary(tenantId) {
   try {
     const opps = await getOpportunities(tenantId, { limit: 2000 });
     if (!opps || opps.length === 0) return '';
@@ -108,6 +109,22 @@ async function buildOpportunitySummary(tenantId) {
     if (topIndustries) summary += `Top industries: ${topIndustries}\n`;
     if (topWarm) summary += `Warmest contacts: ${topWarm}\n`;
     if (totalMessages > 0) summary += `Total LinkedIn messages across warm contacts: ${totalMessages}\n`;
+
+    // Campaign breakdown — non-essential enhancement, failure must not break prompt
+    let campaignBlock = '';
+    try {
+      const topCampaigns = await getCampaignCounts(tenantId, { minLeads: 5, topN: 10 });
+      if (topCampaigns.length > 0) {
+        const lines = topCampaigns.map(([name, count]) => `- ${name} (${count} leads)`).join('\n');
+        campaignBlock = `\nACTIVE CAMPAIGNS (top 10 by lead count, tenant-scoped):\n${lines}\n` +
+          `When the user references a campaign by name, pass it to search_opportunities as filters.source_campaign (exact match).\n`;
+      }
+    } catch (err) {
+      console.error('[ask-plexi] campaign summary failed, continuing without:', err.message);
+      // campaignBlock stays empty — AskPlexi still functions
+    }
+    if (campaignBlock) summary += campaignBlock;
+
     summary += `Use the search_opportunities, analyze_opportunity_pipeline, and draft_opportunity_outreach tools to query live data.`;
 
     return summary;
@@ -135,7 +152,7 @@ async function buildOpportunitySummary(tenantId) {
  * Layer 2 is only included when powerflowLevel is provided (1-6).
  * Layer 4 is async — fetched from opportunities table.
  */
-async function buildSystemPrompt(tenant, powerflowLevel) {
+export async function buildSystemPrompt(tenant, powerflowLevel) {
   const layers = [];
 
   // Layer 0: Perspective guardrail (non-negotiable, always first)

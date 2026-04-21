@@ -630,6 +630,44 @@ export async function getOpportunities(tenantId, { limit = 200, orderBy = 'warmt
   return data;
 }
 
+/**
+ * Aggregate opportunities by source_campaign for a tenant.
+ * Returns sorted descending by count: [[campaign_name, count], ...].
+ * Filters: skips null campaigns, applies minLeads threshold, truncates to topN.
+ * Skips campaign names containing single quotes or backticks (prompt-safety).
+ */
+export async function getCampaignCounts(tenantId, { minLeads = 5, topN = 10 } = {}) {
+  // Paginate via .range() — Supabase silently caps select() at 1000 rows otherwise.
+  // Ben's tenant has ~3.5k+ opportunities; the cap would undercount campaigns.
+  const PAGE = 1000;
+  const tally = {};
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('opportunities')
+      .select('source_campaign')
+      .eq('tenant_id', tenantId)
+      .not('source_campaign', 'is', null)
+      .not('stage', 'eq', 'ejected')
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    for (const row of data) {
+      const name = row.source_campaign;
+      if (!name) continue;
+      if (name.includes("'") || name.includes('`')) continue;
+      tally[name] = (tally[name] || 0) + 1;
+    }
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+
+  return Object.entries(tally)
+    .filter(([, count]) => count >= minLeads)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, topN);
+}
+
 export async function getOpportunityById(tenantId, opportunityId) {
   const { data, error } = await supabase
     .from('opportunities')
