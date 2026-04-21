@@ -120,6 +120,22 @@ export async function buildOpportunitySummary(tenantId) {
         const lines = topCampaigns.map(([name, count]) => `- ${name} (${count} leads)`).join('\n');
         campaignBlock = `\nACTIVE CAMPAIGNS (top 10 by lead count, tenant-scoped):\n${lines}\n` +
           `When the user references a campaign by name, pass it to search_opportunities as filters.source_campaign (exact match).\n`;
+
+        // Naming-convention hint — only inject when the tenant actually uses the
+        // -pre-show suffix AND a base-name variant exists for at least one campaign.
+        // Helps disambiguate "post-X" (base name) vs. "pre-X" (-pre-show variant).
+        const names = topCampaigns.map(([n]) => n);
+        const preShowNames = names.filter((n) => n.endsWith('-pre-show'));
+        const pairs = preShowNames.filter((n) => names.includes(n.slice(0, -'-pre-show'.length)));
+        if (pairs.length > 0) {
+          campaignBlock +=
+            `CAMPAIGN NAMING CONVENTION (this tenant):\n` +
+            `- Names ending in "-pre-show" = pre-event lead capture.\n` +
+            `- Names without a "-pre-show" suffix (e.g., the base name) = post-event / post-show capture.\n` +
+            `- When the user says "post-show" or "post-<event>", match the base name.\n` +
+            `- When the user says "pre-show" or "pre-<event>", match the "-pre-show" variant.\n` +
+            `- If the user's intent is ambiguous, prefer the base (post-show) name and surface both counts in the reply.\n`;
+        }
       }
     } catch (err) {
       console.error('[ask-plexi] campaign summary failed, continuing without:', err.message);
