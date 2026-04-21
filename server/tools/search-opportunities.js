@@ -15,7 +15,8 @@ export const definition = {
     'Works across all data types: warm LinkedIn contacts (with message counts), ' +
     'cold leads (with email + industry), and company-only records. ' +
     'Use this when the user asks about opportunities, contacts, leads, accounts, ' +
-    'or wants to find people by industry, region, warm status, or company name.',
+    'or wants to find people by industry, region, warm status, company name, ' +
+    'or campaign (e.g., trade show lead batches, import cohorts).',
   input_schema: {
     type: 'object',
     properties: {
@@ -52,6 +53,10 @@ export const definition = {
           source: {
             type: 'string',
             description: 'Data source filter, e.g. "linkedingraph_agent", "sunnax_import"',
+          },
+          source_campaign: {
+            type: 'string',
+            description: 'Filter by the exact campaign name the lead was imported under. Use this when the user references a specific campaign by name (e.g., "Animation Yall TN 2026-04", "xencelabs_ga_leads"). Must be an exact string match.',
           },
         },
       },
