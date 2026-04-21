@@ -10,27 +10,29 @@ import { getOpportunities, getCampaignCounts } from '../lib/supabase.js';
 export const definition = {
   name: 'analyze_opportunity_pipeline',
   description:
-    'Analyze the opportunity pipeline — stats, breakdowns, and recommendations. ' +
-    'Adapts to data shape: warm contacts with LinkedIn history get relationship-based advice, ' +
-    'cold leads with email get outreach-sequence advice. ' +
-    'Use when the user asks about pipeline health, lead counts, industry breakdown, ' +
-    'campaign breakdowns (via group_by="campaign"), ' +
-    'or wants strategic recommendations on who to pursue.',
+    'Analyze the opportunity pipeline with grouping by stage, industry, region, ' +
+    'source (import batch identifier like "sunnax_import"), campaign (user-facing ' +
+    'campaign name like "Animation Yall TN 2026-04"), or lead_type. ' +
+    'IMPORTANT: For any question about campaigns — including "what campaigns do ' +
+    'I have", "break down by campaign", "campaign stats", "campaign comparison" — ' +
+    'ALWAYS pass group_by="campaign". The "source" grouping returns import batch ' +
+    'identifiers, NOT user-facing campaign names; never use "source" to answer ' +
+    'campaign questions.',
   input_schema: {
     type: 'object',
     properties: {
       group_by: {
         type: 'string',
         description:
-          'Group results by one of: ' +
+          'Group results by: ' +
+          '"campaign" (user-facing campaign name from the source_campaign column — ' +
+          'USE THIS for any question about campaigns), ' +
           '"stage" (pipeline stage), ' +
           '"industry" (enrichment_data.industry), ' +
           '"region" (enrichment_data.region), ' +
-          '"source" (enrichment_data.source — the import batch identifier, e.g., "sunnax_import", "linkedingraph_agent"), ' +
-          '"campaign" (the source_campaign column — the user-facing campaign name, e.g., "Animation Yall TN 2026-04"), ' +
-          '"lead_type" (warm vs. cold). ' +
-          'Use "campaign" when the user asks about campaigns they have leads from. ' +
-          'Use "source" only when they ask about import batches or data provenance.',
+          '"source" (internal import batch identifier from enrichment_data.source — ' +
+          'NOT a user-facing campaign; never use for campaign questions), ' +
+          '"lead_type" (warm vs. cold).',
         enum: ['stage', 'industry', 'region', 'source', 'campaign', 'lead_type'],
       },
     },
