@@ -17,7 +17,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
   Mail, Loader2, Search, Filter, Check, ChevronRight, ChevronLeft,
-  AlertCircle, FileText, Edit3, Sparkles, Wand2,
+  AlertCircle, FileText, Edit3, Sparkles, Wand2, Send, X, RefreshCw, MailX,
 } from 'lucide-react';
 import { useSandbox } from '../contexts/SandboxContext';
 
@@ -65,7 +65,30 @@ interface Draft {
   edited: boolean;
 }
 
+type SendStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'skipped_duplicate';
+
+interface SendResult {
+  status: SendStatus;
+  error_message?: string | null;
+}
+
 type Step = 'select' | 'compose' | 'review';
+
+// crypto.randomUUID is available in modern browsers; fall back to a v4 stub.
+function newUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // ---------------------------------------------------------------------------
 // Merge field substitution
@@ -120,6 +143,12 @@ const BatchEmailPage: React.FC = () => {
   const [generating, setGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ done: 0, total: 0 });
   const [composeError, setComposeError] = useState<string | null>(null);
+
+  // Review/send state
+  const [batchId, setBatchId] = useState<string | null>(null);
+  const [sendStatuses, setSendStatuses] = useState<Map<string, SendResult>>(new Map());
+  const [sending, setSending] = useState(false);
+  const [sendComplete, setSendComplete] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -333,6 +362,111 @@ const BatchEmailPage: React.FC = () => {
     [activeRecipientId]
   );
 
+  // -------------------------------------------------------------------------
+  // Send loop
+  // -------------------------------------------------------------------------
+
+  const sendBatch = useCallback(
+    async (idsToSend: string[]) => {
+      if (!token || idsToSend.length === 0) return;
+
+      // Generate batch_id once on first send; reuse for retries so the
+      // server-side idempotency check matches.
+      let currentBatchId = batchId;
+      if (!currentBatchId) {
+        currentBatchId = newUuid();
+        setBatchId(currentBatchId);
+      }
+
+      setSending(true);
+      setSendComplete(false);
+
+      // Mark targeted rows as sending; preserve any already-sent rows from a
+      // previous run (retry-failed-only path).
+      setSendStatuses(prev => {
+        const next = new Map(prev);
+        for (const id of idsToSend) {
+          next.set(id, { status: 'sending' });
+        }
+        return next;
+      });
+
+      for (let i = 0; i < idsToSend.length; i++) {
+        const oppId = idsToSend[i];
+        const opp = selectedOpps.find(o => o.id === oppId);
+        const draft = drafts.get(oppId);
+
+        if (!opp || !opp.contact_email || !draft) {
+          setSendStatuses(prev => {
+            const next = new Map(prev);
+            next.set(oppId, { status: 'failed', error_message: 'Missing recipient or draft' });
+            return next;
+          });
+          continue;
+        }
+
+        try {
+          const res = await fetch('/api/batch-email/send-one', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              batch_id: currentBatchId,
+              opportunity_id: oppId,
+              to: opp.contact_email,
+              subject: draft.subject,
+              body_html: draft.body_html,
+            }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+            setSendStatuses(prev => {
+              const next = new Map(prev);
+              next.set(oppId, { status: 'failed', error_message: err.error || `HTTP ${res.status}` });
+              return next;
+            });
+          } else {
+            const data = await res.json();
+            setSendStatuses(prev => {
+              const next = new Map(prev);
+              next.set(oppId, {
+                status: data.status as SendStatus,
+                error_message: data.error_message || null,
+              });
+              return next;
+            });
+          }
+        } catch (err: any) {
+          setSendStatuses(prev => {
+            const next = new Map(prev);
+            next.set(oppId, { status: 'failed', error_message: err.message || 'Network error' });
+            return next;
+          });
+        }
+
+        // Spec: 500ms spacing between sends to stay under provider rate limits.
+        if (i < idsToSend.length - 1) {
+          await sleep(500);
+        }
+      }
+
+      setSending(false);
+      setSendComplete(true);
+    },
+    [token, batchId, selectedOpps, drafts]
+  );
+
+  const retryFailed = useCallback(() => {
+    const failedIds: string[] = [];
+    sendStatuses.forEach((result, id) => {
+      if (result.status === 'failed') failedIds.push(id);
+    });
+    if (failedIds.length > 0) sendBatch(failedIds);
+  }, [sendStatuses, sendBatch]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -396,8 +530,14 @@ const BatchEmailPage: React.FC = () => {
         )}
 
         {step === 'review' && (
-          <ReviewStepPlaceholder
-            recipientCount={selectedOpps.length}
+          <ReviewStep
+            selectedOpps={selectedOpps}
+            drafts={drafts}
+            sendStatuses={sendStatuses}
+            sending={sending}
+            sendComplete={sendComplete}
+            onSendAll={() => sendBatch(selectedOpps.map(o => o.id))}
+            onRetryFailed={retryFailed}
             onBack={() => setStep('compose')}
           />
         )}
@@ -837,30 +977,248 @@ const DraftEditor: React.FC<{
 };
 
 // ---------------------------------------------------------------------------
-// Step 3 placeholder (Task 4)
+// Step 3 — Review and Send
 // ---------------------------------------------------------------------------
 
-const ReviewStepPlaceholder: React.FC<{
-  recipientCount: number;
+interface ReviewStepProps {
+  selectedOpps: Opportunity[];
+  drafts: Map<string, Draft>;
+  sendStatuses: Map<string, SendResult>;
+  sending: boolean;
+  sendComplete: boolean;
+  onSendAll: () => void;
+  onRetryFailed: () => void;
   onBack: () => void;
-}> = ({ recipientCount, onBack }) => (
-  <div className="mt-6 bg-gray-800/40 border border-gray-700/40 rounded-2xl p-8 text-center">
-    <div className="text-amber-300 text-sm mb-2">
-      {recipientCount} draft{recipientCount === 1 ? '' : 's'} ready
+}
+
+const ReviewStep: React.FC<ReviewStepProps> = (p) => {
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const sentCount = Array.from(p.sendStatuses.values()).filter(s => s.status === 'sent').length;
+  const failedCount = Array.from(p.sendStatuses.values()).filter(s => s.status === 'failed').length;
+  const skippedCount = Array.from(p.sendStatuses.values()).filter(s => s.status === 'skipped_duplicate').length;
+  const inFlightCount = Array.from(p.sendStatuses.values()).filter(s => s.status === 'sending').length;
+  const total = p.selectedOpps.length;
+  const handled = sentCount + failedCount + skippedCount;
+  const pct = total > 0 ? Math.round((handled / total) * 100) : 0;
+
+  const hasStarted = p.sendStatuses.size > 0;
+
+  return (
+    <div className="mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={p.onBack}
+          disabled={p.sending}
+          className="flex items-center gap-1 text-sm text-white/60 hover:text-white disabled:opacity-30"
+        >
+          <ChevronLeft size={14} />
+          Back to compose
+        </button>
+      </div>
+
+      {/* Summary card */}
+      {!hasStarted && (
+        <div className="bg-gray-800/40 border border-gray-700/40 rounded-2xl p-8 text-center mb-6">
+          <Send size={32} className="text-amber-400 mx-auto mb-3" />
+          <h2 className="text-xl font-semibold text-white mb-1">
+            Send {total} personalized email{total === 1 ? '' : 's'}
+          </h2>
+          <p className="text-sm text-white/50 mb-6">
+            Through your connected email account. {' '}
+            {Array.from(p.drafts.values()).filter(d => d.edited).length} draft
+            {Array.from(p.drafts.values()).filter(d => d.edited).length === 1 ? ' has' : 's have'} per-recipient edits.
+          </p>
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="px-6 py-3 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:bg-amber-500/30 text-sm font-medium"
+          >
+            Send All
+          </button>
+        </div>
+      )}
+
+      {/* Progress + status list */}
+      {hasStarted && (
+        <>
+          <div className="bg-gray-800/40 border border-gray-700/40 rounded-2xl p-5 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm text-white">
+                {p.sending ? `Sending — ${handled} of ${total}` : `Send complete — ${handled} of ${total}`}
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                {sentCount > 0 && (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <Check size={12} /> {sentCount} sent
+                  </span>
+                )}
+                {failedCount > 0 && (
+                  <span className="text-red-400 flex items-center gap-1">
+                    <X size={12} /> {failedCount} failed
+                  </span>
+                )}
+                {skippedCount > 0 && (
+                  <span className="text-blue-400 flex items-center gap-1">
+                    <MailX size={12} /> {skippedCount} skipped (duplicate)
+                  </span>
+                )}
+                {inFlightCount > 0 && (
+                  <span className="text-amber-400 flex items-center gap-1">
+                    <Loader2 size={12} className="animate-spin" /> {inFlightCount} in flight
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 transition-all duration-300"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="bg-gray-800/40 border border-gray-700/40 rounded-2xl overflow-hidden">
+            <ul className="divide-y divide-gray-800 max-h-[55vh] overflow-y-auto">
+              {p.selectedOpps.map(opp => {
+                const result = p.sendStatuses.get(opp.id);
+                return (
+                  <li key={opp.id} className="px-4 py-3 flex items-center gap-3">
+                    <SendStatusIcon status={result?.status} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-white truncate">
+                        {opp.contact_name || opp.account_name}
+                      </div>
+                      <div className="text-xs text-white/40 truncate">
+                        {opp.contact_email}
+                      </div>
+                      {result?.status === 'failed' && result.error_message && (
+                        <div className="text-xs text-red-400 mt-1">{result.error_message}</div>
+                      )}
+                      {result?.status === 'skipped_duplicate' && (
+                        <div className="text-xs text-blue-400 mt-1">
+                          Already sent in this batch — skipped
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          {/* Done banner + retry */}
+          {p.sendComplete && (
+            <div className="mt-4 bg-gray-800/40 border border-gray-700/40 rounded-2xl p-5 flex items-center justify-between">
+              <div>
+                <div className="text-white font-medium">
+                  {sentCount} of {total} sent successfully
+                </div>
+                <div className="text-xs text-white/50 mt-1">
+                  {failedCount > 0
+                    ? `${failedCount} failed — retry only the failed recipients below.`
+                    : 'All emails dispatched. Check your provider Sent folder to confirm.'}
+                </div>
+              </div>
+              {failedCount > 0 && (
+                <button
+                  onClick={p.onRetryFailed}
+                  disabled={p.sending}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/20 border border-blue-500/40 text-blue-300 hover:bg-blue-500/30 text-sm disabled:opacity-30"
+                >
+                  <RefreshCw size={14} />
+                  Retry failed ({failedCount})
+                </button>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Confirm dialog */}
+      {showConfirm && (
+        <ConfirmSendDialog
+          recipientCount={total}
+          onCancel={() => setShowConfirm(false)}
+          onConfirm={() => {
+            setShowConfirm(false);
+            p.onSendAll();
+          }}
+        />
+      )}
     </div>
-    <h2 className="text-lg font-semibold text-white mb-2">
-      Review and Send ships next
-    </h2>
-    <p className="text-sm text-white/50 mb-6">
-      Task 4 wires sequential send via the connected Outlook account, idempotent
-      batch_id de-duplication, per-row status tracking, and retry-failed-only.
-    </p>
-    <button
-      onClick={onBack}
-      className="px-4 py-2 rounded-lg bg-gray-700/50 text-white/70 hover:text-white text-sm"
-    >
-      Back to compose
-    </button>
+  );
+};
+
+const SendStatusIcon: React.FC<{ status: SendStatus | undefined }> = ({ status }) => {
+  if (status === 'sent') {
+    return (
+      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+        <Check size={14} className="text-emerald-400" />
+      </div>
+    );
+  }
+  if (status === 'failed') {
+    return (
+      <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+        <X size={14} className="text-red-400" />
+      </div>
+    );
+  }
+  if (status === 'skipped_duplicate') {
+    return (
+      <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+        <MailX size={14} className="text-blue-400" />
+      </div>
+    );
+  }
+  if (status === 'sending') {
+    return (
+      <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+        <Loader2 size={14} className="text-amber-400 animate-spin" />
+      </div>
+    );
+  }
+  return <div className="w-6 h-6 rounded-full border border-gray-600 flex-shrink-0" />;
+};
+
+const ConfirmSendDialog: React.FC<{
+  recipientCount: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}> = ({ recipientCount, onCancel, onConfirm }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-md w-full mx-4">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+          <AlertCircle size={20} className="text-amber-400" />
+        </div>
+        <div>
+          <h3 className="text-white font-semibold text-base mb-1">
+            Send {recipientCount} email{recipientCount === 1 ? '' : 's'}?
+          </h3>
+          <p className="text-sm text-white/60">
+            This will dispatch {recipientCount} personalized email
+            {recipientCount === 1 ? '' : 's'} immediately through your connected
+            account. Sends are not reversible.
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 rounded-lg bg-gray-700/50 text-white/70 hover:text-white text-sm"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500/30 border border-amber-500/50 text-amber-200 hover:bg-amber-500/40 text-sm font-medium"
+        >
+          <Send size={14} />
+          Send {recipientCount}
+        </button>
+      </div>
+    </div>
   </div>
 );
 

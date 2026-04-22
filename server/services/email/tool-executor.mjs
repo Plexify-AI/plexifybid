@@ -603,6 +603,82 @@ export async function saveDraftToProvider(draftId, tenantId) {
 }
 
 /**
+ * Send an email directly through the connected provider — no DB draft, no
+ * confirmation queue. Sibling of saveDraftDirect for callers (Sprint BATCH-50
+ * batch send) that already have user-reviewed bodies and want immediate dispatch.
+ *
+ * Wraps the body in the standard email template (signature + readable colors)
+ * and routes to provider.sendEmail (Microsoft: POST /me/sendMail; Gmail: send).
+ *
+ * @param {string} tenantId - Tenant UUID
+ * @param {Object} email - { to: string|string[], subject: string, bodyHtml: string }
+ * @returns {Promise<Object>} { success: boolean, error?: string, providerName?: string }
+ */
+export async function sendDirect(tenantId, email) {
+  const account = await getActiveAccount(tenantId);
+  if (!account) {
+    return { success: false, error: 'No email account connected. Connect Outlook or Gmail in Settings > Email.' };
+  }
+
+  let accessToken;
+  try {
+    const result = await ensureFreshToken(account.id);
+    accessToken = result.accessToken;
+  } catch {
+    const providerName = account.provider === 'microsoft' ? 'Outlook' : 'Gmail';
+    return { success: false, error: `Your ${providerName} connection has expired. Reconnect in Settings > Email.` };
+  }
+
+  const provider = createProvider(account.provider, accessToken);
+
+  if (typeof provider.sendEmail !== 'function') {
+    return { success: false, error: `Direct send is not supported for ${account.provider} accounts yet.` };
+  }
+
+  const toArray = Array.isArray(email.to) ? email.to : [email.to];
+  const toFormatted = toArray.map(addr => (typeof addr === 'object' ? addr : { email: addr }));
+
+  try {
+    const rawBody = email.bodyHtml || `<p>${(email.body || '').replace(/\n/g, '<br/>')}</p>`;
+    const wrappedHtml = await wrapEmailHtml(rawBody, tenantId);
+
+    await provider.sendEmail({
+      to: toFormatted,
+      cc: email.cc || [],
+      bcc: email.bcc || [],
+      subject: email.subject,
+      bodyHtml: wrappedHtml,
+    });
+
+    touchLastUsed(account.id);
+
+    logEmailAudit({
+      tenantId,
+      userId: account.user_id,
+      emailAccountId: account.id,
+      actionType: 'send',
+      recipientsCount: toArray.length,
+      subject: email.subject,
+      metadata: { direct: true, source: 'batch_email' },
+    });
+
+    return { success: true, providerName: account.provider };
+  } catch (err) {
+    logEmailAudit({
+      tenantId,
+      userId: account.user_id,
+      emailAccountId: account.id,
+      actionType: 'send',
+      success: false,
+      errorMessage: err.message,
+      metadata: { direct: true, source: 'batch_email' },
+    });
+
+    return { success: false, error: `Failed to send: ${err.message}`, providerName: account.provider };
+  }
+}
+
+/**
  * Save an email directly to Gmail Drafts from raw content (no DB draft needed).
  * Used by the one-click "Save to Drafts" button on OutreachPreview.
  *

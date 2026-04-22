@@ -32,6 +32,7 @@ async function getHandlers() {
       campaigns: mod.handleBatchCampaigns,
       templates: mod.handleBatchTemplates,
       openers: mod.handleBatchOpeners,
+      sendOne: mod.handleBatchSendOne,
     };
   }
   return _handlers;
@@ -71,6 +72,13 @@ export function batchEmailMiddleware() {
         const handlers = await getHandlers();
         const body = await readJson(req);
         await handlers.openers(req, res, body);
+        return;
+      }
+
+      if (url.startsWith('/api/batch-email/send-one') && req.method === 'POST') {
+        const handlers = await getHandlers();
+        const body = await readJson(req);
+        await handlers.sendOne(req, res, body);
         return;
       }
     } catch (err) {

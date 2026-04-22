@@ -48,7 +48,8 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(HOME=/c/Users/KensBOXX node \"C:/Dev/plexifybid/.claude/worktrees/sharp-mayer/.claude/git-cmd.mjs\" git log --oneline main..HEAD)",
       "Bash(cmd.exe /c \"git log --oneline main..HEAD\")",
-      "Bash(git -C \"C:/Dev/plexifybid/.claude/worktrees/sharp-mayer\" log --oneline main..HEAD)"
+      "Bash(git -C \"C:/Dev/plexifybid/.claude/worktrees/sharp-mayer\" log --oneline main..HEAD)",
+      "Bash(npm run *)"
     ]
   }
 }

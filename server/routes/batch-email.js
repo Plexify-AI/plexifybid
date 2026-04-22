@@ -14,6 +14,7 @@ import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 import { buildUserContext } from '../lib/user-context.js';
 import { logUsage } from '../middleware/logUsage.mjs';
+import { sendDirect } from '../services/email/tool-executor.mjs';
 import { markPowerflowStage } from './powerflow.js';
 
 const BANNED_WORDS = /\b(delve|leverage|seamless|transformative)\b/gi;
@@ -488,6 +489,117 @@ export async function handleBatchOpeners(req, res, body) {
     const status = err.status || 500;
     console.error('[batch-email] Openers error:', err);
     return sendError(res, status, err.message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/batch-email/send-one
+// Sends ONE recipient. Frontend orchestrates the loop with 500ms spacing so
+// the per-recipient UI updates land in real time (no SSE plumbing needed).
+//
+// Body: { batch_id, opportunity_id, to, subject, body_html }
+// Returns: { status: 'sent'|'failed'|'skipped_duplicate', error_message? }
+//
+// Idempotency: before calling provider.sendEmail, check batch_email_sends for
+// any existing row with (tenant_id, batch_id, opportunity_id, status='sent')
+// in the last hour. If found, return 'skipped_duplicate' without re-sending.
+// This protects against retries-from-scratch after browser crash mid-batch.
+// ---------------------------------------------------------------------------
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function handleBatchSendOne(req, res, body) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  const { batch_id, opportunity_id, to, subject, body_html } = body || {};
+
+  if (!batch_id || !UUID_RE.test(batch_id)) return sendError(res, 400, 'Missing or invalid batch_id');
+  if (!opportunity_id || !UUID_RE.test(opportunity_id)) return sendError(res, 400, 'Missing or invalid opportunity_id');
+  if (!to || typeof to !== 'string') return sendError(res, 400, 'Missing required field: to');
+  if (!subject || typeof subject !== 'string') return sendError(res, 400, 'Missing required field: subject');
+  if (!body_html || typeof body_html !== 'string') return sendError(res, 400, 'Missing required field: body_html');
+
+  const supabase = getSupabase();
+
+  try {
+    // Idempotency check — same batch + opportunity already sent in last hour?
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: existing, error: lookupErr } = await supabase
+      .from('batch_email_sends')
+      .select('id, sent_at')
+      .eq('tenant_id', tenant.id)
+      .eq('batch_id', batch_id)
+      .eq('opportunity_id', opportunity_id)
+      .eq('status', 'sent')
+      .gte('sent_at', oneHourAgo)
+      .limit(1);
+
+    if (lookupErr) {
+      console.error('[batch-email/send-one] Idempotency lookup failed:', lookupErr.message);
+      // Fall through — better to risk a duplicate than to refuse a legitimate send
+    } else if (existing && existing.length > 0) {
+      // Log the skip for audit visibility
+      await supabase.from('batch_email_sends').insert({
+        tenant_id: tenant.id,
+        batch_id,
+        opportunity_id,
+        recipient_email: to,
+        subject,
+        status: 'skipped_duplicate',
+        error_message: `Already sent at ${existing[0].sent_at}`,
+      });
+      return sendJSON(res, 200, { status: 'skipped_duplicate', sent_at: existing[0].sent_at });
+    }
+
+    // Send through the connected provider (Outlook OAuth path)
+    const result = await sendDirect(tenant.id, { to, subject, bodyHtml: body_html });
+
+    const status = result.success ? 'sent' : 'failed';
+    const errorMessage = result.success ? null : result.error || 'Send failed';
+    const sentAt = result.success ? new Date().toISOString() : null;
+
+    const { error: insertErr } = await supabase.from('batch_email_sends').insert({
+      tenant_id: tenant.id,
+      batch_id,
+      opportunity_id,
+      recipient_email: to,
+      subject,
+      status,
+      error_message: errorMessage,
+      sent_at: sentAt,
+    });
+    if (insertErr) {
+      console.error('[batch-email/send-one] Audit insert failed:', insertErr.message);
+    }
+
+    if (result.success) {
+      // Powerflow Stage 3 — outreach drafted/sent
+      markPowerflowStage(tenant, 3);
+    }
+
+    return sendJSON(res, 200, {
+      status,
+      error_message: errorMessage,
+      sent_at: sentAt,
+    });
+  } catch (err) {
+    console.error('[batch-email/send-one] Unexpected error:', err);
+    // Best-effort audit row for the failure
+    try {
+      await supabase.from('batch_email_sends').insert({
+        tenant_id: tenant.id,
+        batch_id,
+        opportunity_id,
+        recipient_email: to,
+        subject,
+        status: 'failed',
+        error_message: err.message,
+      });
+    } catch {
+      // Ignore secondary failure
+    }
+    return sendError(res, 500, `Send failed: ${err.message}`);
   }
 }
 
