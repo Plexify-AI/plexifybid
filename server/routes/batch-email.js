@@ -183,6 +183,26 @@ export async function handleBatchOpportunities(req, res) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/batch-email/templates
+// Returns the tenant's email_templates array from preferences. Empty array
+// if none seeded. The Settings > Templates editor (Sprint F) will write here.
+// ---------------------------------------------------------------------------
+
+export async function handleBatchTemplates(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  try {
+    const prefs = tenant.preferences || {};
+    const templates = Array.isArray(prefs.email_templates) ? prefs.email_templates : [];
+    return sendJSON(res, 200, { templates });
+  } catch (err) {
+    console.error('[batch-email] List templates error:', err);
+    return sendError(res, 500, `Failed to list templates: ${err.message}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // GET /api/batch-email/campaigns
 // Returns all campaigns for this tenant (minLeads:1, topN:50) for the filter
 // dropdown. Distinct from the L2 pipeline summary use which trims to top 10.

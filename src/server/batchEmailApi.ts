@@ -30,6 +30,7 @@ async function getHandlers() {
       generate: mod.handleBatchGenerate,
       opportunities: mod.handleBatchOpportunities,
       campaigns: mod.handleBatchCampaigns,
+      templates: mod.handleBatchTemplates,
     };
   }
   return _handlers;
@@ -56,6 +57,12 @@ export function batchEmailMiddleware() {
       if (url.startsWith('/api/batch-email/campaigns') && req.method === 'GET') {
         const handlers = await getHandlers();
         await handlers.campaigns(req, res);
+        return;
+      }
+
+      if (url.startsWith('/api/batch-email/templates') && req.method === 'GET') {
+        const handlers = await getHandlers();
+        await handlers.templates(req, res);
         return;
       }
     } catch (err) {
