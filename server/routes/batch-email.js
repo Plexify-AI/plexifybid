@@ -280,12 +280,16 @@ async function assertOpenerBudget(tenantId, count) {
 // Opener generation — single recipient, with regen + fallback
 // ---------------------------------------------------------------------------
 
-function buildOpenerSystemPrompt(tenantName, tenantCompany, contextBlock) {
+function buildOpenerSystemPrompt(tenantName, tenantCompany, contextBlock, templateHint) {
+  const hintBlock = templateHint
+    ? `\n\nTEMPLATE CONTEXT (non-negotiable — the opener MUST respect this):\n${templateHint}\n`
+    : '';
   return (
     `You write ONE-SENTENCE personalized email openers in the voice of ${tenantName} ` +
     `from ${tenantCompany}. ` +
     (contextBlock ? `\n\n${contextBlock}\n\n` : '\n\n') +
-    `STRICT RULES:\n` +
+    hintBlock +
+    `\nSTRICT RULES:\n` +
     `- Output exactly ONE sentence. No greeting, no signature, no "I hope this finds you well".\n` +
     `- Reference one specific detail about the recipient or their company that justifies the outreach.\n` +
     `- Conversational, warm, never corporate.\n` +
@@ -420,7 +424,7 @@ export async function handleBatchOpeners(req, res, body) {
   const tenant = req.tenant;
   if (!tenant) return sendError(res, 401, 'Not authenticated');
 
-  const { opportunity_ids, campaign_name } = body || {};
+  const { opportunity_ids, campaign_name, template_id } = body || {};
   if (!Array.isArray(opportunity_ids) || opportunity_ids.length === 0) {
     return sendError(res, 400, 'Missing required field: opportunity_ids');
   }
@@ -440,7 +444,18 @@ export async function handleBatchOpeners(req, res, body) {
       // Non-fatal
     }
 
-    const systemPrompt = buildOpenerSystemPrompt(tenant.name, tenant.company, contextBlock);
+    // Resolve template hint (if a template_id was provided and the template
+    // carries an opener_context_hint). Fixes future-tense LLM artifacts for
+    // post-show campaigns where the event has already happened.
+    let templateHint = null;
+    if (template_id && Array.isArray(tenant.preferences?.email_templates)) {
+      const tpl = tenant.preferences.email_templates.find(t => t.id === template_id);
+      if (tpl && typeof tpl.opener_context_hint === 'string' && tpl.opener_context_hint.trim()) {
+        templateHint = tpl.opener_context_hint.trim();
+      }
+    }
+
+    const systemPrompt = buildOpenerSystemPrompt(tenant.name, tenant.company, contextBlock, templateHint);
 
     // Load opportunities (parallel, all-or-some)
     const oppLoads = await Promise.allSettled(
