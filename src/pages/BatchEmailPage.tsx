@@ -272,6 +272,7 @@ const BatchEmailPage: React.FC = () => {
           body: JSON.stringify({
             opportunity_ids: opps.map(o => o.id),
             campaign_name: campaignFilter || null,
+            template_id: tpl.id,
           }),
         });
 
