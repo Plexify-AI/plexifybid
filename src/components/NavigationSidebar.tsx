@@ -48,6 +48,7 @@ const NavigationSidebar: React.FC = () => {
           isNew: true
         },
         { path: '/lead-import', label: 'Import Leads', icon: Upload, isNew: true },
+        { path: '/batch-email', label: 'Batch Email', icon: Mail, isNew: true },
         { path: '/settings/email', label: 'Email', icon: Mail, isNew: true },
         { path: '/settings', label: 'Settings', icon: Settings },
         { path: '/integrations', label: 'Integrations', icon: Link2 }

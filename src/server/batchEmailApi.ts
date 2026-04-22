@@ -1,8 +1,9 @@
 /**
  * Batch Email API (dev middleware)
  *
- * Handles POST /api/batch-email/generate in Vite dev.
- * Production uses server/routes/batch-email.js via server/index.mjs.
+ * Handles POST /api/batch-email/generate and the Sprint BATCH-50 endpoints
+ * (GET opportunities, GET campaigns) in Vite dev. Production uses
+ * server/routes/batch-email.js wired through server/index.mjs.
  */
 
 import type { IncomingMessage, ServerResponse } from 'http';
@@ -20,31 +21,70 @@ function sendJson(res: ServerResponse, status: number, data: unknown) {
   res.end(JSON.stringify(data));
 }
 
-let _handler: any = null;
+let _handlers: any = null;
 
-async function getHandler() {
-  if (!_handler) {
+async function getHandlers() {
+  if (!_handlers) {
     const mod = await import('../../server/routes/batch-email.js');
-    _handler = mod.handleBatchGenerate;
+    _handlers = {
+      generate: mod.handleBatchGenerate,
+      opportunities: mod.handleBatchOpportunities,
+      campaigns: mod.handleBatchCampaigns,
+      templates: mod.handleBatchTemplates,
+      openers: mod.handleBatchOpeners,
+      sendOne: mod.handleBatchSendOne,
+    };
   }
-  return _handler;
+  return _handlers;
 }
 
 export function batchEmailMiddleware() {
   return async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const url = req.url || '';
 
-    if (url.startsWith('/api/batch-email/generate') && req.method === 'POST') {
-      try {
-        const handler = await getHandler();
+    try {
+      if (url.startsWith('/api/batch-email/generate') && req.method === 'POST') {
+        const handlers = await getHandlers();
         const body = await readJson(req);
-        await handler(req, res, body);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('[Batch Email] Error:', err);
-        return sendJson(res, 500, { error: message });
+        await handlers.generate(req, res, body);
+        return;
       }
-      return;
+
+      if (url.startsWith('/api/batch-email/opportunities') && req.method === 'GET') {
+        const handlers = await getHandlers();
+        await handlers.opportunities(req, res);
+        return;
+      }
+
+      if (url.startsWith('/api/batch-email/campaigns') && req.method === 'GET') {
+        const handlers = await getHandlers();
+        await handlers.campaigns(req, res);
+        return;
+      }
+
+      if (url.startsWith('/api/batch-email/templates') && req.method === 'GET') {
+        const handlers = await getHandlers();
+        await handlers.templates(req, res);
+        return;
+      }
+
+      if (url.startsWith('/api/batch-email/openers') && req.method === 'POST') {
+        const handlers = await getHandlers();
+        const body = await readJson(req);
+        await handlers.openers(req, res, body);
+        return;
+      }
+
+      if (url.startsWith('/api/batch-email/send-one') && req.method === 'POST') {
+        const handlers = await getHandlers();
+        const body = await readJson(req);
+        await handlers.sendOne(req, res, body);
+        return;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('[Batch Email] Error:', err);
+      return sendJson(res, 500, { error: message });
     }
 
     next();

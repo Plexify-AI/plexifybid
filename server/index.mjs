@@ -357,10 +357,30 @@ app.delete('/api/askplexi/conversations/:id', async (req, res) => {
 });
 
 // Batch Email Generation
-import { handleBatchGenerate } from './routes/batch-email.js';
+import { handleBatchGenerate, handleBatchOpportunities, handleBatchCampaigns, handleBatchTemplates, handleBatchOpeners, handleBatchSendOne } from './routes/batch-email.js';
 
 app.post('/api/batch-email/generate', async (req, res) => {
   await handleBatchGenerate(req, res, req.body);
+});
+
+app.get('/api/batch-email/opportunities', async (req, res) => {
+  await handleBatchOpportunities(req, res);
+});
+
+app.get('/api/batch-email/campaigns', async (req, res) => {
+  await handleBatchCampaigns(req, res);
+});
+
+app.get('/api/batch-email/templates', async (req, res) => {
+  await handleBatchTemplates(req, res);
+});
+
+app.post('/api/batch-email/openers', async (req, res) => {
+  await handleBatchOpeners(req, res, req.body);
+});
+
+app.post('/api/batch-email/send-one', async (req, res) => {
+  await handleBatchSendOne(req, res, req.body);
 });
 
 // PPTX Export + Deck Generation
