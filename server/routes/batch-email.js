@@ -9,7 +9,7 @@
  * Auth: sandboxAuth middleware sets req.tenant before this handler runs.
  */
 
-import { getSupabase, getOpportunityById } from '../lib/supabase.js';
+import { getSupabase, getOpportunityById, getOpportunitiesForBatch, getCampaignCounts } from '../lib/supabase.js';
 import { sendPrompt } from '../llm-gateway/index.js';
 import { TASK_TYPES } from '../llm-gateway/types.js';
 import { buildUserContext } from '../lib/user-context.js';
@@ -145,6 +145,67 @@ function buildOutreachPrompt(opportunity, toneOverride) {
     channel,
     instructions,
   };
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/batch-email/opportunities
+// Query params: source_campaign, search, has_email (default true), limit (max 500)
+// ---------------------------------------------------------------------------
+
+export async function handleBatchOpportunities(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  try {
+    const url = new URL(req.url, `http://${req.headers?.host || 'localhost'}`);
+    const source_campaign = url.searchParams.get('source_campaign') || null;
+    const search = url.searchParams.get('search') || null;
+    const has_email_param = url.searchParams.get('has_email');
+    const has_email = has_email_param === null ? true : has_email_param !== 'false';
+    const limit = parseInt(url.searchParams.get('limit') || '500', 10);
+
+    const opportunities = await getOpportunitiesForBatch(tenant.id, {
+      has_email,
+      source_campaign,
+      search,
+      limit,
+    });
+
+    return sendJSON(res, 200, {
+      opportunities,
+      count: opportunities.length,
+      limit_capped: opportunities.length >= 500,
+    });
+  } catch (err) {
+    console.error('[batch-email] List opportunities error:', err);
+    return sendError(res, 500, `Failed to list opportunities: ${err.message}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/batch-email/campaigns
+// Returns all campaigns for this tenant (minLeads:1, topN:50) for the filter
+// dropdown. Distinct from the L2 pipeline summary use which trims to top 10.
+// ---------------------------------------------------------------------------
+
+export async function handleBatchCampaigns(req, res) {
+  const tenant = req.tenant;
+  if (!tenant) return sendError(res, 401, 'Not authenticated');
+
+  try {
+    const counts = await getCampaignCounts(tenant.id, {
+      minLeads: 1,
+      topN: 50,
+      includeNull: false,
+    });
+
+    const campaigns = counts.map(([name, count]) => ({ name, count }));
+
+    return sendJSON(res, 200, { campaigns });
+  } catch (err) {
+    console.error('[batch-email] List campaigns error:', err);
+    return sendError(res, 500, `Failed to list campaigns: ${err.message}`);
+  }
 }
 
 // ---------------------------------------------------------------------------

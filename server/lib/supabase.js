@@ -635,6 +635,59 @@ export async function getOpportunities(tenantId, { limit = 200, orderBy = 'warmt
 }
 
 /**
+ * Batch-email-specific opportunity query. Distinct from getOpportunities so the
+ * batch-email route can push has_email + text search into SQL without affecting
+ * any callers that rely on getOpportunities' broader semantics.
+ *
+ * Filters pushed into SQL WHERE before .limit():
+ *   - has_email (default true): .not('contact_email', 'is', null) AND .neq('contact_email','')
+ *   - source_campaign: .eq()
+ *   - search: substring match on contact_name OR account_name OR contact_email
+ *
+ * Hard cap: 500 rows. Sprint F refactor will replace with cursor pagination.
+ */
+export async function getOpportunitiesForBatch(tenantId, {
+  has_email = true,
+  source_campaign = null,
+  search = null,
+  limit = 500,
+} = {}) {
+  const cap = Math.min(Math.max(parseInt(limit, 10) || 500, 1), 500);
+
+  let query = supabase
+    .from('opportunities')
+    .select('id, contact_name, contact_email, contact_title, account_name, warmth_score, stage, source_campaign, enrichment_data, deal_hypothesis')
+    .eq('tenant_id', tenantId)
+    .not('stage', 'eq', 'ejected');
+
+  if (has_email) {
+    query = query.not('contact_email', 'is', null).neq('contact_email', '');
+  }
+
+  if (source_campaign) {
+    query = query.eq('source_campaign', source_campaign);
+  }
+
+  if (search && typeof search === 'string' && search.trim()) {
+    // Sanitize: PostgREST .or() uses commas as separators and parens for grouping.
+    // Drop characters that would break the filter expression. Substring match.
+    const safe = search.trim().replace(/[,()*]/g, '').slice(0, 100);
+    if (safe) {
+      const pat = `%${safe}%`;
+      query = query.or(
+        `contact_name.ilike.${pat},account_name.ilike.${pat},contact_email.ilike.${pat}`
+      );
+    }
+  }
+
+  const { data, error } = await query
+    .order('warmth_score', { ascending: false })
+    .limit(cap);
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Aggregate opportunities by source_campaign for a tenant.
  * Returns sorted descending by count: [[campaign_name, count], ...].
  * Filters: applies minLeads threshold, truncates to topN.

@@ -46,6 +46,7 @@ import HomePage from './features/home/HomePage';
 import LinkedInImportPage from './pages/LinkedInImportPage';
 import LeadImportPage from './features/lead-import/LeadImportPage';
 import EmailSettingsPage from './pages/EmailSettingsPage';
+import BatchEmailPage from './pages/BatchEmailPage';
 import SettingsPage from './pages/SettingsPage';
 
 // Agent Management route wrappers
@@ -400,6 +401,7 @@ const AppBody: React.FC = () => {
                   <Route path="/integrations" element={<IntegrationsPage />} />
                   <Route path="/linkedin-import" element={<LinkedInImportPage />} />
                   <Route path="/lead-import" element={<LeadImportPage />} />
+                  <Route path="/batch-email" element={<BatchEmailPage />} />
                   <Route path="/settings/email" element={<EmailSettingsPage />} />
                   {/* Catch-all for authenticated users */}
                   <Route path="*" element={<Navigate to="/home" replace />} />
