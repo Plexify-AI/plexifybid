@@ -291,6 +291,7 @@ function buildOpenerSystemPrompt(tenantName, tenantCompany, contextBlock, templa
     hintBlock +
     `\nSTRICT RULES:\n` +
     `- Output exactly ONE sentence. No greeting, no signature, no "I hope this finds you well".\n` +
+    `- ABSOLUTELY NO GREETING. The template already has "Hi [name]," at the top — your sentence appends to it. Never start with "Hi", "Hello", "Hey", "Good day", "Good morning", "Good afternoon", "Greetings", or the recipient's name followed by punctuation. Start with a clause about THEM ("Saw your team is...", "Since you're...", "Noticed that...", "With your work on...").\n` +
     `- Reference one specific detail about the recipient or their company that justifies the outreach.\n` +
     `- Conversational, warm, never corporate.\n` +
     `- NEVER use these words: delve, leverage, seamless, transformative.\n` +
@@ -332,6 +333,18 @@ function sanitizeOpener(text) {
   t = t.replace(/^(Here(?:'s| is) (?:the|an|a|your) opener:\s*)/i, '').trim();
   // Collapse internal newlines into single space
   t = t.replace(/\s*\n+\s*/g, ' ').trim();
+  // Defense-in-depth: strip a leading greeting if the model slipped one in
+  // despite the "ABSOLUTELY NO GREETING" rule. Matches:
+  //   "Hi <Name>,? <rest>" / "Hello <Name>,? <rest>" / "Hey..." / "Greetings..."
+  //   "Good day <Name>,? - <rest>" / "Good morning ..." / "Good afternoon ..."
+  //   "<Name> -? <rest>" (bare name salutation, only when name is the very
+  //   first word followed by separator)
+  t = t.replace(
+    /^(?:(?:hi|hello|hey|greetings|good\s+(?:day|morning|afternoon|evening))\b[^,.\-—–:!?]{0,40}[,\-—–:!]?\s*)/i,
+    ''
+  );
+  // Capitalize first letter after the strip (otherwise it can read awkwardly)
+  if (t && /^[a-z]/.test(t)) t = t[0].toUpperCase() + t.slice(1);
   return t;
 }
 

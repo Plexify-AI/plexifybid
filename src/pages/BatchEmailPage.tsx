@@ -976,7 +976,10 @@ const DraftEditor: React.FC<{
       <div className="flex-1 overflow-y-auto px-5 py-4">
         <EditorContent
           editor={editor}
-          className="prose prose-invert prose-sm max-w-none focus:outline-none [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror]:focus:outline-none"
+          className="prose prose-invert prose-sm max-w-none focus:outline-none
+                     [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror]:focus:outline-none
+                     [&_.ProseMirror_p]:my-3
+                     [&_.ProseMirror_a]:text-blue-400 [&_.ProseMirror_a]:underline [&_.ProseMirror_a]:decoration-blue-400/60 hover:[&_.ProseMirror_a]:text-blue-300"
         />
       </div>
     </div>
