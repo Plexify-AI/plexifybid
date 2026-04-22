@@ -257,7 +257,7 @@ const BatchEmailPage: React.FC = () => {
   // -------------------------------------------------------------------------
 
   const generateOpenersAndDrafts = useCallback(
-    async (tpl: Template, opps: Opportunity[]) => {
+    async (tpl: Template, opps: Opportunity[], merge: boolean = false) => {
       setGenerating(true);
       setComposeError(null);
       setGenerationProgress({ done: 0, total: opps.length });
@@ -285,8 +285,8 @@ const BatchEmailPage: React.FC = () => {
         const list: Opener[] = data.openers || [];
 
         // Build map + drafts
-        const openerMap = new Map<string, Opener>();
-        const draftMap = new Map<string, Draft>();
+        const newOpenerMap = new Map<string, Opener>();
+        const newDraftMap = new Map<string, Draft>();
         for (const op of opps) {
           const found = list.find(o => o.opportunity_id === op.id);
           const opener = found || {
@@ -295,19 +295,35 @@ const BatchEmailPage: React.FC = () => {
             regenerated: false,
             fallback: true,
           };
-          openerMap.set(op.id, opener);
+          newOpenerMap.set(op.id, opener);
 
-          draftMap.set(op.id, {
+          newDraftMap.set(op.id, {
             subject: applyMergeFields(tpl.subject, op, opener.opener_text, campaignFilter),
             body_html: applyMergeFields(tpl.body_html, op, opener.opener_text, campaignFilter),
             edited: false,
           });
         }
 
-        setOpeners(openerMap);
-        setDrafts(draftMap);
+        if (merge) {
+          // Preserve existing entries for opps still selected from a prior pass
+          setOpeners(prev => {
+            const next = new Map(prev);
+            newOpenerMap.forEach((v, k) => next.set(k, v));
+            return next;
+          });
+          setDrafts(prev => {
+            const next = new Map(prev);
+            newDraftMap.forEach((v, k) => next.set(k, v));
+            return next;
+          });
+        } else {
+          setOpeners(newOpenerMap);
+          setDrafts(newDraftMap);
+        }
         setGenerationProgress({ done: opps.length, total: opps.length });
-        if (opps.length > 0) setActiveRecipientId(opps[0].id);
+        // Only auto-select if nothing is currently active (don't yank focus
+        // away from a recipient the user may already be viewing)
+        setActiveRecipientId(curr => curr && newDraftMap.has(curr) ? curr : (opps[0]?.id ?? curr));
       } catch (err: any) {
         console.error('[BatchEmailPage] Opener generation error:', err);
         setComposeError(err.message || 'Generation failed');
@@ -318,16 +334,52 @@ const BatchEmailPage: React.FC = () => {
     [token, campaignFilter]
   );
 
-  // Trigger generation when entering compose step
+  // Resync compose state with current selection on every entry to the compose
+  // step (and whenever selection changes while there). Three responsibilities:
+  //   1. Prune drafts/openers for opportunities the user removed from selection
+  //   2. Drop activeRecipientId if it points to an unselected opp; pick a new one
+  //   3. Generate openers for any newly added opps that don't yet have a draft
   useEffect(() => {
     if (step !== 'compose') return;
     const tpl = templates.find(t => t.id === templateId);
     if (!tpl || selectedOpps.length === 0) return;
-    if (drafts.size === 0) {
-      generateOpenersAndDrafts(tpl, selectedOpps);
+
+    const selectedIds = new Set(selectedOpps.map(o => o.id));
+
+    // Prune
+    setDrafts(prev => {
+      let changed = false;
+      const next = new Map<string, Draft>();
+      prev.forEach((v, k) => {
+        if (selectedIds.has(k)) next.set(k, v);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+    setOpeners(prev => {
+      let changed = false;
+      const next = new Map<string, Opener>();
+      prev.forEach((v, k) => {
+        if (selectedIds.has(k)) next.set(k, v);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+
+    // Repoint active if it's been unchecked
+    if (activeRecipientId && !selectedIds.has(activeRecipientId)) {
+      setActiveRecipientId(selectedOpps[0].id);
+    } else if (!activeRecipientId) {
+      setActiveRecipientId(selectedOpps[0].id);
+    }
+
+    // Generate for newly added opps only (preserves edits on existing drafts)
+    const newOpps = selectedOpps.filter(o => !drafts.has(o.id));
+    if (newOpps.length > 0) {
+      generateOpenersAndDrafts(tpl, newOpps, /* merge */ true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, selectedOpps]);
 
   const handleTemplateChange = useCallback(
     (newId: string) => {
