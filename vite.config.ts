@@ -106,6 +106,7 @@ export default defineConfig(({ mode }) => {
       'zustand',
       '@tiptap/react',
       '@tiptap/starter-kit',
+      '@tiptap/extension-link',
     ],
     alias: {
       // During local dev, resolve plexify-shared-ui directly from source so consumers
@@ -144,6 +145,10 @@ export default defineConfig(({ mode }) => {
       '@tiptap/extension-highlight': resolve(
         __dirname,
         'node_modules/@tiptap/extension-highlight'
+      ),
+      '@tiptap/extension-link': resolve(
+        __dirname,
+        'node_modules/@tiptap/extension-link'
       ),
       '@': resolve(__dirname, 'src'),
       '@components': resolve(__dirname, 'src/components'),

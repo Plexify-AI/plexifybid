@@ -15,6 +15,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import Link from '@tiptap/extension-link';
 import {
   Mail, Loader2, Search, Filter, Check, ChevronRight, ChevronLeft,
   AlertCircle, FileText, Edit3, Sparkles, Wand2, Send, X, RefreshCw, MailX,
@@ -906,6 +907,11 @@ const DraftEditor: React.FC<{
     extensions: [
       StarterKit,
       Placeholder.configure({ placeholder: 'Write your email...' }),
+      Link.configure({
+        openOnClick: false,
+        autolink: false,
+        HTMLAttributes: { rel: 'noopener noreferrer' },
+      }),
     ],
     content: draft.body_html,
     onUpdate: ({ editor }) => {
